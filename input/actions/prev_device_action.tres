@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="GUIDEAction" format=3]
+
+[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="1_ufjr6"]
+
+[resource]
+script = ExtResource("1_ufjr6")
+name = &"prev_device_action"
+display_name = "上一个设备"
+display_category = "设备操作"

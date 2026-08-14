@@ -1,0 +1,107 @@
+[gd_resource type="Resource" script_class="GUIDEMappingContext" format=3]
+
+[ext_resource type="Script" path="res://addons/guide/guide_action_mapping.gd" id="1_vw8bd"]
+[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="2_ych1t"]
+[ext_resource type="Script" path="res://addons/guide/guide_input_mapping.gd" id="3_r803j"]
+[ext_resource type="Script" path="res://addons/guide/inputs/guide_input_key.gd" id="4_ggeh2"]
+[ext_resource type="Script" path="res://addons/guide/modifiers/guide_modifier.gd" id="5_korlh"]
+[ext_resource type="Script" path="res://addons/guide/triggers/guide_trigger.gd" id="6_kh78h"]
+[ext_resource type="Script" path="res://addons/guide/triggers/guide_trigger_pressed.gd" id="7_f7sxu"]
+[ext_resource type="Script" path="res://addons/guide/guide_mapping_context.gd" id="8_mhr85"]
+
+[sub_resource type="Resource" id="Resource_6myob"]
+script = ExtResource("2_ych1t")
+name = &"process_action"
+display_name = "处理"
+display_category = "设备操作"
+
+[sub_resource type="Resource" id="Resource_eqw7n"]
+script = ExtResource("4_ggeh2")
+key = 80
+
+[sub_resource type="Resource" id="Resource_mkg68"]
+script = ExtResource("7_f7sxu")
+
+[sub_resource type="Resource" id="Resource_44mlu"]
+script = ExtResource("3_r803j")
+input = SubResource("Resource_eqw7n")
+triggers = Array[ExtResource("6_kh78h")]([SubResource("Resource_mkg68")])
+
+[sub_resource type="Resource" id="Resource_uyrwf"]
+script = ExtResource("1_vw8bd")
+action = SubResource("Resource_6myob")
+input_mappings = Array[ExtResource("3_r803j")]([SubResource("Resource_44mlu")])
+
+[sub_resource type="Resource" id="Resource_7iylg"]
+script = ExtResource("2_ych1t")
+name = &"clear_action"
+display_name = "清空"
+display_category = "设备操作"
+
+[sub_resource type="Resource" id="Resource_0vefq"]
+script = ExtResource("4_ggeh2")
+key = 67
+
+[sub_resource type="Resource" id="Resource_h8wo2"]
+script = ExtResource("7_f7sxu")
+
+[sub_resource type="Resource" id="Resource_qdmrg"]
+script = ExtResource("3_r803j")
+input = SubResource("Resource_0vefq")
+triggers = Array[ExtResource("6_kh78h")]([SubResource("Resource_h8wo2")])
+
+[sub_resource type="Resource" id="Resource_wdhue"]
+script = ExtResource("1_vw8bd")
+action = SubResource("Resource_7iylg")
+input_mappings = Array[ExtResource("3_r803j")]([SubResource("Resource_qdmrg")])
+
+[sub_resource type="Resource" id="Resource_emxbn"]
+script = ExtResource("2_ych1t")
+name = &"prev_device_action"
+display_name = "上一个设备"
+display_category = "设备操作"
+
+[sub_resource type="Resource" id="Resource_ohrle"]
+script = ExtResource("4_ggeh2")
+key = 81
+
+[sub_resource type="Resource" id="Resource_7tccs"]
+script = ExtResource("7_f7sxu")
+
+[sub_resource type="Resource" id="Resource_e0v3t"]
+script = ExtResource("3_r803j")
+input = SubResource("Resource_ohrle")
+triggers = Array[ExtResource("6_kh78h")]([SubResource("Resource_7tccs")])
+
+[sub_resource type="Resource" id="Resource_lvv4c"]
+script = ExtResource("1_vw8bd")
+action = SubResource("Resource_emxbn")
+input_mappings = Array[ExtResource("3_r803j")]([SubResource("Resource_e0v3t")])
+
+[sub_resource type="Resource" id="Resource_sjy2s"]
+script = ExtResource("2_ych1t")
+name = &"next_device_action"
+display_name = "下一个设备"
+display_category = "设备操作"
+
+[sub_resource type="Resource" id="Resource_2ym2m"]
+script = ExtResource("4_ggeh2")
+key = 69
+
+[sub_resource type="Resource" id="Resource_2flk0"]
+script = ExtResource("7_f7sxu")
+
+[sub_resource type="Resource" id="Resource_7qng4"]
+script = ExtResource("3_r803j")
+input = SubResource("Resource_2ym2m")
+triggers = Array[ExtResource("6_kh78h")]([SubResource("Resource_2flk0")])
+
+[sub_resource type="Resource" id="Resource_cpd68"]
+script = ExtResource("1_vw8bd")
+action = SubResource("Resource_sjy2s")
+input_mappings = Array[ExtResource("3_r803j")]([SubResource("Resource_7qng4")])
+
+[resource]
+script = ExtResource("8_mhr85")
+display_name = "设备操作"
+mappings = Array[ExtResource("1_vw8bd")]([SubResource("Resource_uyrwf"), SubResource("Resource_wdhue"), SubResource("Resource_lvv4c"), SubResource("Resource_cpd68")])

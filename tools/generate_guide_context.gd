@@ -1,75 +1,145 @@
 @tool
-## 生成设备操作 GUIDE 映射上下文的工具脚本
+## 生成 GUIDE 输入配置的工具脚本（M0）
 ## 运行方式: godot --headless --script tools/generate_guide_context.gd
+##
+## 生成内容：
+## - input/actions/：process/clear/prev_device/next_device（设备操作，原工具行为）
+##   + move/aim/shoot/switch_weapon/pause（M0 战斗动作，需求单 §2）
+## - input/contexts/equipment_context.tres（设备操作映射）
+## - input/contexts/combat_context.tres（战斗映射：WASD 移动 / 鼠标瞄准 / 左键射击 / 1-2-3 切枪 / Esc 暂停）
 extends SceneTree
 
+const ACTION_DIR := "res://input/actions"
+const CONTEXT_DIR := "res://input/contexts"
+
 func _init() -> void:
-	# 加载已创建的 Action 资源
-	var process_action: GUIDEAction = load("res://input/actions/process_action.tres")
-	var clear_action: GUIDEAction = load("res://input/actions/clear_action.tres")
-	var prev_device_action: GUIDEAction = load("res://input/actions/prev_device_action.tres")
-	var next_device_action: GUIDEAction = load("res://input/actions/next_device_action.tres")
+	# ── 1. 设备操作动作（原工具保留） ──
+	var process_action := _make_action(&"process_action", "处理", "设备操作",
+		GUIDEAction.GUIDEActionValueType.BOOL)
+	var clear_action := _make_action(&"clear_action", "清空", "设备操作",
+		GUIDEAction.GUIDEActionValueType.BOOL)
+	var prev_device_action := _make_action(&"prev_device_action", "上一个设备", "设备操作",
+		GUIDEAction.GUIDEActionValueType.BOOL)
+	var next_device_action := _make_action(&"next_device_action", "下一个设备", "设备操作",
+		GUIDEAction.GUIDEActionValueType.BOOL)
 
-	if process_action == null or clear_action == null or prev_device_action == null or next_device_action == null:
-		push_error("无法加载 Action 资源")
-		quit(1)
-		return
+	# ── 2. M0 战斗动作 ──
+	# move：AXIS_2D，WASD 四键经 Scale 修正映射到方向（W=-Y，Godot 屏幕坐标）
+	var move_action := _make_action(&"move", "移动", "战斗",
+		GUIDEAction.GUIDEActionValueType.AXIS_2D)
+	# aim：AXIS_2D，鼠标位置（P9 鼠标纯自由瞄准）
+	var aim_action := _make_action(&"aim", "瞄准", "战斗",
+		GUIDEAction.GUIDEActionValueType.AXIS_2D)
+	# shoot：BOOL，鼠标左键（按下即持续触发，配合 Down 默认触发器实现连射）
+	var shoot_action := _make_action(&"shoot", "射击", "战斗",
+		GUIDEAction.GUIDEActionValueType.BOOL)
+	# switch_weapon：BOOL，数字键 1/2/3（主/副/手枪；Pressed 触发器 = 边沿检测）
+	var switch_action := _make_action(&"switch_weapon", "切换武器", "战斗",
+		GUIDEAction.GUIDEActionValueType.BOOL)
+	# pause：BOOL，Esc
+	var pause_action := _make_action(&"pause", "暂停", "系统",
+		GUIDEAction.GUIDEActionValueType.BOOL)
 
-	# 创建映射上下文
-	var context := GUIDEMappingContext.new()
-	context.display_name = "设备操作"
+	# ── 3. 保存动作资源 ──
+	_save_action(process_action, "process_action")
+	_save_action(clear_action, "clear_action")
+	_save_action(prev_device_action, "prev_device_action")
+	_save_action(next_device_action, "next_device_action")
+	_save_action(move_action, "move")
+	_save_action(aim_action, "aim")
+	_save_action(shoot_action, "shoot")
+	_save_action(switch_action, "switch_weapon")
+	_save_action(pause_action, "pause")
 
-	# 加工动作: P 键
-	var process_mapping := GUIDEActionMapping.new()
-	process_mapping.action = process_action
-	var process_input := GUIDEInputKey.new()
-	process_input.key = KEY_P
-	var process_input_mapping := GUIDEInputMapping.new()
-	process_input_mapping.input = process_input
-	var process_trigger := GUIDETriggerPressed.new()
-	process_input_mapping.triggers = [process_trigger]
-	process_mapping.input_mappings = [process_input_mapping]
+	# ── 4. 设备操作上下文（原工具行为：P/C/Q/E） ──
+	var equipment_context := GUIDEMappingContext.new()
+	equipment_context.display_name = "设备操作"
+	equipment_context.mappings = [
+		_key_mapping(process_action, KEY_P, true),
+		_key_mapping(clear_action, KEY_C, true),
+		_key_mapping(prev_device_action, KEY_Q, true),
+		_key_mapping(next_device_action, KEY_E, true),
+	]
+	_save_context(equipment_context, "equipment_context")
 
-	# 清空动作: C 键
-	var clear_mapping := GUIDEActionMapping.new()
-	clear_mapping.action = clear_action
-	var clear_input := GUIDEInputKey.new()
-	clear_input.key = KEY_C
-	var clear_input_mapping := GUIDEInputMapping.new()
-	clear_input_mapping.input = clear_input
-	var clear_trigger := GUIDETriggerPressed.new()
-	clear_input_mapping.triggers = [clear_trigger]
-	clear_mapping.input_mappings = [clear_input_mapping]
+	# ── 5. 战斗上下文（M0） ──
+	var combat_context := GUIDEMappingContext.new()
+	combat_context.display_name = "战斗"
+	combat_context.mappings = [
+		# 移动：WASD → 方向向量（Down 默认触发器：按住持续触发）
+		_key_mapping(move_action, KEY_W, false, Vector3(0, -1, 0)),
+		_key_mapping(move_action, KEY_S, false, Vector3(0, 1, 0)),
+		_key_mapping(move_action, KEY_A, false, Vector3(-1, 0, 0)),
+		_key_mapping(move_action, KEY_D, false, Vector3(1, 0, 0)),
+		# 瞄准：鼠标位置（自由瞄准，P9）
+		_mouse_position_mapping(aim_action),
+		# 射击：左键按住连射
+		_mouse_button_mapping(shoot_action, MOUSE_BUTTON_LEFT),
+		# 切换武器：1/2/3（Pressed = 边沿触发）
+		_key_mapping(switch_action, KEY_1, true),
+		_key_mapping(switch_action, KEY_2, true),
+		_key_mapping(switch_action, KEY_3, true),
+		# 暂停：Esc
+		_key_mapping(pause_action, KEY_ESCAPE, true),
+	]
+	_save_context(combat_context, "combat_context")
 
-	# 上一个设备: Q 键
-	var prev_mapping := GUIDEActionMapping.new()
-	prev_mapping.action = prev_device_action
-	var prev_input := GUIDEInputKey.new()
-	prev_input.key = KEY_Q
-	var prev_input_mapping := GUIDEInputMapping.new()
-	prev_input_mapping.input = prev_input
-	var prev_trigger := GUIDETriggerPressed.new()
-	prev_input_mapping.triggers = [prev_trigger]
-	prev_mapping.input_mappings = [prev_input_mapping]
-
-	# 下一个设备: E 键
-	var next_mapping := GUIDEActionMapping.new()
-	next_mapping.action = next_device_action
-	var next_input := GUIDEInputKey.new()
-	next_input.key = KEY_E
-	var next_input_mapping := GUIDEInputMapping.new()
-	next_input_mapping.input = next_input
-	var next_trigger := GUIDETriggerPressed.new()
-	next_input_mapping.triggers = [next_trigger]
-	next_mapping.input_mappings = [next_input_mapping]
-
-	context.mappings = [process_mapping, clear_mapping, prev_mapping, next_mapping]
-
-	# 保存
-	var err := ResourceSaver.save(context, "res://input/contexts/equipment_context.tres")
-	if err == OK:
-		print("equipment_context.tres 生成成功")
-	else:
-		push_error("保存失败: %d" % err)
-
+	print("GUIDE 输入配置生成完成：actions ×9, contexts ×2")
 	quit(0)
+
+# ─── 构造辅助 ───
+
+func _make_action(action_name: StringName, display: String, category: String, value_type: int) -> GUIDEAction:
+	var action := GUIDEAction.new()
+	action.name = action_name
+	action.display_name = display
+	action.display_category = category
+	action.action_value_type = value_type
+	return action
+
+func _save_action(action: GUIDEAction, file_name: String) -> void:
+	var err := ResourceSaver.save(action, "%s/%s.tres" % [ACTION_DIR, file_name])
+	if err != OK:
+		push_error("保存动作失败 %s: %d" % [file_name, err])
+
+func _save_context(context: GUIDEMappingContext, file_name: String) -> void:
+	var err := ResourceSaver.save(context, "%s/%s.tres" % [CONTEXT_DIR, file_name])
+	if err != OK:
+		push_error("保存上下文失败 %s: %d" % [file_name, err])
+
+## 按键映射；pressed=true 用 Pressed 触发器（边沿），否则用默认 Down（按住持续）
+func _key_mapping(action: GUIDEAction, key: Key, pressed: bool, scale := Vector3.ONE) -> GUIDEActionMapping:
+	var mapping := GUIDEActionMapping.new()
+	mapping.action = action
+	var input_mapping := GUIDEInputMapping.new()
+	var input := GUIDEInputKey.new()
+	input.key = key
+	input_mapping.input = input
+	if scale != Vector3.ONE:
+		var modifier := GUIDEModifierScale.new()
+		modifier.scale = scale
+		input_mapping.modifiers = [modifier]
+	if pressed:
+		input_mapping.triggers = [GUIDETriggerPressed.new()]
+	mapping.input_mappings = [input_mapping]
+	return mapping
+
+## 鼠标位置映射（自由瞄准）
+func _mouse_position_mapping(action: GUIDEAction) -> GUIDEActionMapping:
+	var mapping := GUIDEActionMapping.new()
+	mapping.action = action
+	var input_mapping := GUIDEInputMapping.new()
+	input_mapping.input = GUIDEInputMousePosition.new()
+	mapping.input_mappings = [input_mapping]
+	return mapping
+
+## 鼠标按键映射（按住持续触发 → 连射）
+func _mouse_button_mapping(action: GUIDEAction, button: MouseButton) -> GUIDEActionMapping:
+	var mapping := GUIDEActionMapping.new()
+	mapping.action = action
+	var input_mapping := GUIDEInputMapping.new()
+	var input := GUIDEInputMouseButton.new()
+	input.button = button
+	input_mapping.input = input
+	mapping.input_mappings = [input_mapping]
+	return mapping

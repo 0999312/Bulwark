@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WaveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="1_wave"]
+
+[resource]
+script = ExtResource("1_wave")
+id = "wave/2"
+seed = 202
+directions = Array[int]([0, 1, 2, 3, 4])
+count_range = Vector2i(7, 9)
+enemy_location = "bulwark:enemy/runner"
+warn_duration = 3.5
+spawn_interval = 0.8
+burst_chance = 0.2
+burst_size = 3
+player_count_scale = 1.0

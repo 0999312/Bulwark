@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/player/player_view.gd" id="1_view"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 16.0
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 6
+script = ExtResource("1_view")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.28, 0.66, 0.58, 1)
+polygon = PackedVector2Array(-16, 0, -8, -14, 8, -14, 16, 0, 8, 14, -8, 14)
+
+[node name="Aim" type="Node2D" parent="."]
+
+[node name="Gun" type="ColorRect" parent="Aim"]
+offset_left = 10.0
+offset_top = -3.0
+offset_right = 36.0
+offset_bottom = 3.0
+color = Color(0.52, 0.57, 0.65, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+zoom = Vector2(1.4, 1.4)

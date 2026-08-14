@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="GUIDEAction" format=3]
+
+[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="1_7tbou"]
+
+[resource]
+script = ExtResource("1_7tbou")
+name = &"move"
+action_value_type = 2
+display_name = "移动"
+display_category = "战斗"

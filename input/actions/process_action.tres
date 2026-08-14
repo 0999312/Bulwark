@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="GUIDEAction" format=3]
+
+[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="1_sd0wt"]
+
+[resource]
+script = ExtResource("1_sd0wt")
+name = &"process_action"
+display_name = "处理"
+display_category = "设备操作"

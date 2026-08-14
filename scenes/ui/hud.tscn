@@ -1,0 +1,176 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_hud"]
+[ext_resource type="FontFile" path="res://assets/fonts/MiSans-Semibold.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.32, 0.72, 0.52, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_base_fill"]
+bg_color = Color(0.87, 0.58, 0.22, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="Hud" type="Control"]
+process_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hud")
+
+[node name="BannerLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -420.0
+offset_top = 110.0
+offset_right = 420.0
+offset_bottom = 150.0
+grow_horizontal = 2
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+
+[node name="TopLeft" type="VBoxContainer" parent="."]
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 300.0
+offset_bottom = 130.0
+theme_override_constants/separation = 4
+
+[node name="HPLabel" type="Label" parent="TopLeft"]
+unique_name_in_owner = true
+text = "生命 --"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+
+[node name="HPBar" type="ProgressBar" parent="TopLeft"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 16)
+max_value = 100.0
+value = 100.0
+show_percentage = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+
+[node name="TopRight" type="VBoxContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 160.0
+grow_horizontal = 0
+theme_override_constants/separation = 4
+
+[node name="BaseLabel" type="Label" parent="TopRight"]
+unique_name_in_owner = true
+horizontal_alignment = 2
+text = "基地 --"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+
+[node name="BaseBar" type="ProgressBar" parent="TopRight"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 16)
+max_value = 300.0
+value = 300.0
+show_percentage = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_base_fill")
+
+[node name="WaveLabel" type="Label" parent="TopRight"]
+unique_name_in_owner = true
+horizontal_alignment = 2
+text = "第 - / - 波"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+
+[node name="CompassLabel" type="Label" parent="TopRight"]
+unique_name_in_owner = true
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.4, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+
+[node name="BottomLeft" type="VBoxContainer" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -140.0
+offset_right = 340.0
+offset_bottom = -16.0
+grow_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="SlotsRow" type="HBoxContainer" parent="BottomLeft"]
+theme_override_constants/separation = 8
+
+[node name="SlotMain" type="Label" parent="BottomLeft/SlotsRow"]
+unique_name_in_owner = true
+text = "1 主"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+
+[node name="SlotSub" type="Label" parent="BottomLeft/SlotsRow"]
+unique_name_in_owner = true
+text = "2 副"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+
+[node name="SlotPistol" type="Label" parent="BottomLeft/SlotsRow"]
+unique_name_in_owner = true
+text = "3 手枪"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+
+[node name="AmmoLabel" type="Label" parent="BottomLeft"]
+unique_name_in_owner = true
+text = "弹药 --"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+
+[node name="ReloadLabel" type="Label" parent="BottomLeft"]
+unique_name_in_owner = true
+visible = false
+theme_override_colors/font_color = Color(1, 0.7, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+
+[node name="SwitchLabel" type="Label" parent="BottomLeft"]
+unique_name_in_owner = true
+visible = false
+theme_override_colors/font_color = Color(1, 0.7, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+
+[node name="HintLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -620.0
+offset_top = -46.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "WASD 移动 · 鼠标瞄准 · 左键射击 · R 换弹 · 1/3 切枪 · Esc 暂停"

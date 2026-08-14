@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://cfxu5eeexvvfg"
-path="res://.godot/imported/MiSans-Semibold.ttf-bbffec3b842844aa4cde7fc0c6d6a9ba.fontdata"
+path="res://.godot/imported/MiSans-Semibold.ttf-f78b1727d477a9cb3f24900f32745618.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/MiSans-Semibold.ttf"
-dest_files=["res://.godot/imported/MiSans-Semibold.ttf-bbffec3b842844aa4cde7fc0c6d6a9ba.fontdata"]
+source_file="res://assets/MiSans-Semibold.ttf"
+dest_files=["res://.godot/imported/MiSans-Semibold.ttf-f78b1727d477a9cb3f24900f32745618.fontdata"]
 
 [params]
 

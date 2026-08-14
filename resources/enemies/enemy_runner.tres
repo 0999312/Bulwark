@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = "enemy/runner"
+display_name = "奔跑者"
+threat_mode = 0
+max_hp = 12.0
+move_speed = 115.0
+attack_damage = 6.0
+attack_interval = 1.25
+attack_range = 70.0
+armor = 0.0
+player_count_scale = 1.0
+loot_table_locations = Array[String]([])

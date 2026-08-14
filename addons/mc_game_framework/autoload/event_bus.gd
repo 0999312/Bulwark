@@ -24,9 +24,11 @@ func publish(event: Event) -> void:
 		var listeners_copy = _listeners[event_type].duplicate()
 		var stale: Array = []
 		for listener in listeners_copy:
-			# 清理已销毁对象的 Callable
-			var obj = listener.get_object()
-			if obj != null and not is_instance_valid(obj):
+			# 清理已销毁对象的 Callable。
+			# 注意：get_object() 对已释放对象返回 null（而非无效引用），
+			# 必须用 Callable.is_valid() 判定——否则 null callable 会漏过清理，
+			# 直接 call 抛错并中断整个事件派发（场景重载后必现）。
+			if not listener.is_valid():
 				stale.append(listener)
 				continue
 			# 如果事件已被取消，停止派发后续监听器
