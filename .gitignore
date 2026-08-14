@@ -1,0 +1,26 @@
+# Godot 4+ generated
+.godot/
+/android/
+/export/
+
+# Prototype (web验证原型, 不属于Godot项目)
+prototype/
+
+# DSH 研究/更新源克隆（GodotPrompter 上游，不入库；技能副本在 .dsh/skills/）
+.research/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.zip
+*.pck
+*.exe
