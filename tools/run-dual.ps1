@@ -1,8 +1,8 @@
-# 一键拉起 M2 双客户端（窗口模式，人工验收）
-# 双端共用同一套键位（WASD/鼠标/左键）：键盘与鼠标输入属于有焦点的窗口，
-# 各自点击对应窗口获得焦点即可独立操作
-# 用法: pwsh tools/run-dual.ps1 [-Port 31007] [-Address 127.0.0.1]
-#   局域网联机：client 端 Address 传 host 的局域网 IP（host 防火墙需放行 Port）
+# One-click launch of M2 dual clients (window mode, manual acceptance).
+# Both clients share the same keybindings (WASD / mouse / LMB): keyboard & mouse
+# input belongs to the focused window; click each window to give it focus.
+# Usage: pwsh tools/run-dual.ps1 [-Port 31007] [-Address 127.0.0.1]
+#   LAN play: pass the host LAN IP to -Address (open the port in host firewall).
 param(
     [int]$Port = 31007,
     [string]$Address = "127.0.0.1"
@@ -10,21 +10,22 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent
 $godot = "E:/godot_learning/Godot_v4.6.2-stable_mono_win64/godot.exe"
-if (-not (Test-Path $godot)) { throw "Godot 引擎未找到: $godot" }
+if (-not (Test-Path $godot)) { throw "Godot engine not found: $godot" }
 
-# 双进程独立 user://（避免引擎缓存/日志互踩）
+# Separate user:// per process (avoid engine cache/log clashes)
 $appdataBase = Join-Path $root ".appdata-dual"
 Remove-Item "$appdataBase" -Recurse -Force -ErrorAction SilentlyContinue
 
 $env:APPDATA = "$appdataBase-host"
 Start-Process -FilePath $godot -ArgumentList "--path", $root, "--", "--net=host", "--port=$Port"
-Write-Host "[host] 启动中… (端口 $Port)"
+Write-Host "[host] starting... (port $Port)"
 
 Start-Sleep -Seconds 2
 
 $env:APPDATA = "$appdataBase-client"
 Start-Process -FilePath $godot -ArgumentList "--path", $root, "--", "--net=client", "--port=$Port", "--address=$Address"
-Write-Host "[client] 启动中… (连接 $Address`:$Port)"
+Write-Host "[client] starting... (connect $Address`:$Port)"
 
-Write-Host "双客户端已拉起（共用键位 WASD/鼠标/左键，各自点击窗口获得焦点后独立操作）。"
-Write-Host "关闭窗口即退出。"
+Write-Host ""
+Write-Host "Both clients launched (shared keys WASD/mouse/LMB; click each window to focus)."
+Write-Host "Close the windows to exit."
