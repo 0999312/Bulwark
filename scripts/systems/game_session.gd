@@ -370,25 +370,12 @@ func _setup_client() -> void:
 	base_core = BaseCore.new(BASE_DURABILITY)
 	wave_director = WaveDirector.new()
 
-	_setup_input_client()
+	_setup_input()
 	_setup_scene_bindings_client()
 	_setup_hud(_local_player_id)
 
 	Net.set_state_receiver(_on_net_state)
 	Net.set_event_receiver(_on_net_event)
-
-## client 备选键位（combat_context_alt：方向键移动 + IJKL 瞄准 + 空格射击；
-## 与 host 窗口互不抢键位；无 alt 资源时回退主键位）
-func _setup_input_client() -> void:
-	var context: GUIDEMappingContext = load("res://input/contexts/combat_context_alt.tres")
-	if context == null:
-		context = load("res://input/contexts/combat_context.tres") as GUIDEMappingContext
-	if context == null:
-		push_error("GameSession: 输入上下文缺失（combat_context/combat_context_alt）")
-		return
-	GUIDE.enable_mapping_context(context, false, 0)
-	for mapping: GUIDEActionMapping in context.mappings:
-		actions[mapping.action.name] = mapping.action
 
 func _setup_scene_bindings_client() -> void:
 	# 玩家 A（远端，id 0）= 场景既有节点：纯镜像

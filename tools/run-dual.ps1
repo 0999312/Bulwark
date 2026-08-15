@@ -1,5 +1,6 @@
-﻿# 一键拉起 M2 双客户端（窗口模式，人工验收）
-# host 窗口（WASD/鼠标/左键）+ client 窗口（方向键/IJKL/空格，备选键位）
+# 一键拉起 M2 双客户端（窗口模式，人工验收）
+# 双端共用同一套键位（WASD/鼠标/左键）：键盘与鼠标输入属于有焦点的窗口，
+# 各自点击对应窗口获得焦点即可独立操作
 # 用法: pwsh tools/run-dual.ps1 [-Port 31007] [-Address 127.0.0.1]
 #   局域网联机：client 端 Address 传 host 的局域网 IP（host 防火墙需放行 Port）
 param(
@@ -25,6 +26,5 @@ $env:APPDATA = "$appdataBase-client"
 Start-Process -FilePath $godot -ArgumentList "--path", $root, "--", "--net=client", "--port=$Port", "--address=$Address"
 Write-Host "[client] 启动中… (连接 $Address`:$Port)"
 
-Write-Host ""
-Write-Host "双客户端已拉起：host = WASD/鼠标/左键；client = 方向键/IJKL/空格（P 暂停 / L 换弹 / U-O-I 切枪 / Enter 放路障）"
+Write-Host "双客户端已拉起（共用键位 WASD/鼠标/左键，各自点击窗口获得焦点后独立操作）。"
 Write-Host "关闭窗口即退出。"

@@ -7,8 +7,7 @@
 ##   + move/aim/shoot/switch_weapon/pause/reload/interact（战斗动作，需求单 §2 + M1）
 ## - input/contexts/equipment_context.tres（设备操作映射）
 ## - input/contexts/combat_context.tres（战斗映射：WASD 移动 / 鼠标瞄准 / 左键射击 / 1-2-3 切枪 / R 换弹 / E 互动 / Esc 暂停）
-## - input/contexts/combat_context_alt.tres（M2 双客户端备选键位：方向键移动 / IJKL 键盘瞄准 /
-##   空格射击 / U-O-I 切枪 / L 换弹 / Enter 互动 / P 暂停；client 进程启用，与 host 窗口互不抢键）
+## 双客户端共用同一套键位（M2：键盘/鼠标输入属于有焦点的窗口，本机多窗口各自点击焦点即可）
 extends SceneTree
 
 const ACTION_DIR := "res://input/actions"
@@ -98,36 +97,7 @@ func _init() -> void:
 	]
 	_save_context(combat_context, "combat_context")
 
-	# ── 6. 战斗备选上下文（M2 双客户端：client 进程启用，纯键盘不与 host 抢键位/鼠标焦点） ──
-	var alt_context := GUIDEMappingContext.new()
-	alt_context.display_name = "战斗（备选）"
-	alt_context.mappings = [
-		# 移动：方向键
-		_key_mapping(move_action, KEY_UP, false, Vector3(0, -1, 0)),
-		_key_mapping(move_action, KEY_DOWN, false, Vector3(0, 1, 0)),
-		_key_mapping(move_action, KEY_LEFT, false, Vector3(-1, 0, 0)),
-		_key_mapping(move_action, KEY_RIGHT, false, Vector3(1, 0, 0)),
-		# 瞄准：IJKL 键盘八向（AXIS_2D 与 move 同构；PlayerView 读取 value_axis_2d）
-		_key_mapping(aim_action, KEY_I, false, Vector3(0, -1, 0)),
-		_key_mapping(aim_action, KEY_K, false, Vector3(0, 1, 0)),
-		_key_mapping(aim_action, KEY_J, false, Vector3(-1, 0, 0)),
-		_key_mapping(aim_action, KEY_L, false, Vector3(1, 0, 0)),
-		# 射击：空格按住连射
-		_key_mapping(shoot_action, KEY_SPACE, false),
-		# 切换武器：U/O/I（避开暂停键 P）
-		_key_mapping(switch_action, KEY_U, true),
-		_key_mapping(switch_action, KEY_O, true),
-		_key_mapping(switch_action, KEY_I, true),
-		# 暂停：P
-		_key_mapping(pause_action, KEY_P, true),
-		# 换弹：L
-		_key_mapping(reload_action, KEY_L, true),
-		# 互动/放置：Enter
-		_key_mapping(interact_action, KEY_ENTER, true),
-	]
-	_save_context(alt_context, "combat_context_alt")
-
-	print("GUIDE 输入配置生成完成：actions ×11, contexts ×3")
+	print("GUIDE 输入配置生成完成：actions ×11, contexts ×2")
 	quit(0)
 
 # ─── 构造辅助 ───

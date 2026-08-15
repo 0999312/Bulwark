@@ -11,7 +11,7 @@
 - **目标**：MultiplayerAPI 权威模型验证——host 权威裁决，双客户端共同防守同一基地。
 - **验收**：
   1. `tools/run-dual.ps1` 一键拉起 host + client 两个窗口，同局稳定运行（同步无错乱、无双倍结算）；
-  2. client 可独立输入（备选键位）移动/射击/放置路障/购物，host 裁决并回显；
+  2. client 可独立输入（单套键位，本机多窗口焦点切换）移动/射击/放置路障/购物，host 裁决并回显；
   3. **IP 直连（M2 内完成）**：client 支持 `--address=<host-ip>` 连接任意主机地址（局域网真机联机），默认 127.0.0.1 本机双开；
   4. headless 冒烟 `tools/run-dual-test.ps1` 双进程跑通（退出码判定）；
   5. GUT 全量回归 160+ 通过 + M2 新增单测。
@@ -181,11 +181,11 @@ _ready():
 - 单机（OFFLINE）不应用（数据字段仅双人时消费）；波次数量不缩放（保持 WaveGenerator 种子确定性，GUT 断言不受影响；数量缩放留 M6）。
 - `EnemyView.setup` 增加可选 `p_hp_scale := 1.0` 透传。
 
-## 10. 双客户端输入（备选键位）
+## 10. 双客户端输入（单套键位，本机多窗口）
 
-- 新增 `input/contexts/combat_context_alt.tres`（`tools/generate_guide_context.gd` 生成）：
-  移动 = 方向键（↑↓←→）；瞄准 = IJKL（键盘八向）；射击 = Space；切枪 = U/O/P；换弹 = L；互动 = Enter；暂停 = P。
-- client 分支 `_setup_input` 启用 alt context（actions 注入本地玩家视图）；host 用原 combat_context。两窗口互不抢键位/鼠标焦点。
+- **双端共用同一套键位**（combat_context：WASD/鼠标/左键/1-2-3/R/E/Esc）：键盘与鼠标输入属于**有焦点的窗口**，本机双开时各窗口点击获得焦点后即可独立操作，无需第二套键位（M2 修订：alt 键位方案已移除，避免过度设计）。
+- 局域网真机联机时每台机器天然一套键位，与单机体验一致。
+- client 分支 `_setup_input` 与 host 完全相同（同一 combat_context；双进程各自启用，互不影响）。
 
 ## 11. 测试与验收
 
@@ -215,14 +215,15 @@ _ready():
 
 ## 13. 变更文件清单
 
-- 新增：`scripts/systems/net/net.gd`、`scripts/systems/net/net_codec.gd`、`input/contexts/combat_context_alt.tres`、`tools/run-dual.ps1`、`tools/run-dual-test.ps1`、`tests/unit/test_net_codec.gd`、`tests/unit/test_wave_composition_tiers.gd`、`tests/unit/test_revive_invincibility.gd`、`tests/unit/test_player_count_scale.gd`、`tests/unit/test_event_player_id.gd`、本文件。
-- 修改：`project.godot`（Net autoload）、`game_session.gd`、`player_view.gd`、`enemy_view.gd`、`hud.gd`、`shop_panel.gd`、`pause_panel.gd`、`player_controller.gd`、`weapon_slots.gd`、`runner_controller.gd`、`wave_director.gd`、`wave_composition.gd`、`wave_warning_event.gd` + 12 个玩家相关事件类、`enemy_*.tres`×3（scale 1.6）、`tools/generate_guide_context.gd`（alt context 生成）、`docs/design/m2-handoff-prompt.md`（M2 收官更新）。
+- 新增：`scripts/systems/net/net.gd`、`scripts/systems/net/net_codec.gd`、`tools/run-dual.ps1`、`tools/run-dual-test.ps1`、`tests/unit/test_net_codec.gd`、`tests/unit/test_wave_composition_tiers.gd`、`tests/unit/test_revive_invincibility.gd`、`tests/unit/test_player_count_scale.gd`、`tests/unit/test_event_player_id.gd`、本文件。
+- 修改：`project.godot`（Net autoload）、`game_session.gd`、`player_view.gd`、`enemy_view.gd`、`hud.gd`、`shop_panel.gd`、`pause_panel.gd`、`player_controller.gd`、`weapon_slots.gd`、`runner_controller.gd`、`wave_director.gd`、`wave_composition.gd`、`wave_warning_event.gd` + 12 个玩家相关事件类、`enemy_*.tres`×3（scale 1.6）、`tools/generate_guide_context.gd`、`docs/design/m2-handoff-prompt.md`（M2 收官更新）。
 
 ## 14. 决策记录（开发者离机，Agent 自行拍板，返回后请人工复核）
 
 | # | 决策 | 依据 |
 |---|---|---|
 | D1 | 双进程 loopback + 局域网 IP 直连（`--address=`），房主即服务器 | 开发者拍板：不写专用服务端、不依赖 Steam/第三方，IP 直连必须在 M2 完成；listen server 是架构 §13.2 既定路线；互联网穿透选型（Steam/relay）留 M6+ |
+| D1b | 单套键位（双端共用 combat_context），不设备选键位 | 开发者拍板：键盘/鼠标输入属于有焦点的窗口，本机多窗口各自点击焦点即可独立操作；alt 键位方案（已实现）移除，避免过度设计 |
 | D2 | 客户端位置完全快照驱动（无本地预测） | 权威彻底、实现最简；loopback 延迟≈0，体感可接受；预测留 M6 |
 | D3 | 货币/建材/储备/武器全局强化共享；武器/弹药/配件/复活 CD 独立 | P19/P24 未定，取"共享资源池 + 独立构筑"折中，M6 再细化 |
 | D4 | 双人缩放在敌人血量（×player_count_scale=1.6），不缩放波次数量 | 保护 WaveGenerator 种子确定性测试 |

@@ -139,17 +139,13 @@ func _process(delta: float) -> void:
 			Net.send_intent(&"move", [dir])
 	var aim_action: GUIDEAction = actions.get(&"aim")
 	if aim_action != null:
+		# 鼠标纯自由瞄准（P9）：get_global_mouse_position 自动包含 Camera2D 变换
+		# （旧实现用 viewport canvas transform，不含相机平移/缩放，瞄准方向完全错位）
+		# 本机多窗口：键盘/鼠标输入属于有焦点的窗口，双端单套键位即可（M2 修订）
+		var aim := get_global_mouse_position() - global_position
+		controller.set_aim_direction(aim)
 		if Net.is_client():
-			# client 备选键位：键盘八向瞄准（IJKL/方向键 value_axis_2d）
-			var kbd := aim_action.value_axis_2d
-			if kbd.length_squared() > 0.001:
-				var aim := kbd.normalized()
-				controller.set_aim_direction(aim)
-				Net.send_intent(&"aim", [aim])
-		else:
-			# 鼠标纯自由瞄准（P9）：get_global_mouse_position 自动包含 Camera2D 变换
-			# （旧实现用 viewport canvas transform，不含相机平移/缩放，瞄准方向完全错位）
-			controller.set_aim_direction(get_global_mouse_position() - global_position)
+			Net.send_intent(&"aim", [aim.normalized()])
 	var shoot_action: GUIDEAction = actions.get(&"shoot")
 	if shoot_action != null:
 		var held := shoot_action.is_triggered()
@@ -174,12 +170,6 @@ func _poll_weapon_switch() -> void:
 	elif Input.is_key_pressed(KEY_2):
 		slot = WeaponSlots.SLOT_SUB
 	elif Input.is_key_pressed(KEY_3):
-		slot = WeaponSlots.SLOT_PISTOL
-	elif Input.is_key_pressed(KEY_U):
-		slot = WeaponSlots.SLOT_MAIN
-	elif Input.is_key_pressed(KEY_O):
-		slot = WeaponSlots.SLOT_SUB
-	elif Input.is_key_pressed(KEY_I):
 		slot = WeaponSlots.SLOT_PISTOL
 	if slot < 0:
 		return
