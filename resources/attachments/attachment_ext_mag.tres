@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttachmentData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attachment_data.gd" id="1_att"]
+[ext_resource type="Script" path="res://scripts/data/attribute_modifier_data.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_mag_mod"]
+script = ExtResource("2_mod")
+id = "mod_ext_mag_capacity"
+display_name = "弹匣扩容"
+attribute = &"mag_size"
+amount = 0.0
+multiplier = 1.5
+
+[resource]
+script = ExtResource("1_att")
+id = "attachment/ext_mag"
+display_name = "扩容弹匣"
+description = "弹匣容量 ×1.5（装填后立即补满）"
+slot = 2
+modifiers = Array[ExtResource("2_mod")]([SubResource("Resource_mag_mod")])
+keywords = Array[String]([])

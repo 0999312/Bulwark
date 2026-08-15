@@ -10,16 +10,18 @@ func _on_open(data: Dictionary = {}) -> void:
 	var victory: bool = data.get("victory", false)
 	if victory:
 		title_label.text = "防线守住了"
-		sub_label.text = "3 波异变体已被击退。\n你的职责完成了——虽然没人发勋章，\n营地的耗子倒是给你留了一块饼干。\n（M1 起：波间商店与搜索循环）"
+		title_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.6))
+		sub_label.text = "没人发勋章，但耗子留了块饼干。"
 	else:
+		title_label.add_theme_color_override("font_color", Color(1, 0.52, 0.46))
 		var reason: int = data.get("reason", RunDefeatEvent.Reason.BASE_DESTROYED)
 		match reason:
 			RunDefeatEvent.Reason.BASE_DESTROYED:
 				title_label.text = "基地被啃穿了"
-				sub_label.text = "异变体不在乎你的防线，它们只是饿了。\n下一位守军（就是你）请从重建基地开始。"
+				sub_label.text = "它们只是饿了。"
 			_:
 				title_label.text = "你阵亡了"
-				sub_label.text = "复活系统还没修好（M1 接入）。\n基地或许还在，但故事先到这里。"
+				sub_label.text = "储备用完了，没人来扶你。"
 	restart_button.grab_focus()
 
 func _on_restart_pressed() -> void:

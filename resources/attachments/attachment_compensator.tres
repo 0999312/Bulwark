@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttachmentData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attachment_data.gd" id="1_att"]
+[ext_resource type="Script" path="res://scripts/data/attribute_modifier_data.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_spread_mod"]
+script = ExtResource("2_mod")
+id = "mod_compensator_spread"
+display_name = "散布收束"
+attribute = &"spread"
+amount = -1.0
+multiplier = 1.0
+
+[resource]
+script = ExtResource("1_att")
+id = "attachment/compensator"
+display_name = "制退器"
+description = "散布收束（连射更稳）"
+slot = 0
+modifiers = Array[ExtResource("2_mod")]([SubResource("Resource_spread_mod")])
+keywords = Array[String]([])

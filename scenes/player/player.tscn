@@ -14,17 +14,40 @@ script = ExtResource("1_view")
 shape = SubResource("CircleShape2D_body")
 
 [node name="Body" type="Polygon2D" parent="."]
-color = Color(0.28, 0.66, 0.58, 1)
-polygon = PackedVector2Array(-16, 0, -8, -14, 8, -14, 16, 0, 8, 14, -8, 14)
+color = Color(0.28, 0.4, 0.26, 1)
+antialiased = true
+polygon = PackedVector2Array(-14, -3, -10, -11, -3, -13, 4, -12, 12, -7, 15, 2, 10, 12, -10, 12)
+
+[node name="Outline" type="Polygon2D" parent="Body"]
+z_index = -1
+scale = Vector2(1.12, 1.12)
+color = Color(0.045, 0.06, 0.075, 1)
+antialiased = true
+polygon = PackedVector2Array(-14, -3, -10, -11, -3, -13, 4, -12, 12, -7, 15, 2, 10, 12, -10, 12)
+
+[node name="Pack" type="Polygon2D" parent="Body"]
+color = Color(0.26, 0.2, 0.15, 1)
+antialiased = true
+polygon = PackedVector2Array(-7, 8, 0, 6, 7, 8, 6, 14, -6, 14)
+
+[node name="Helmet" type="Polygon2D" parent="Body"]
+color = Color(0.2, 0.3, 0.2, 1)
+antialiased = true
+polygon = PackedVector2Array(-8, -4, -6, -12, 5, -12, 8, -5, 5, -2, -6, -2)
 
 [node name="Aim" type="Node2D" parent="."]
 
-[node name="Gun" type="ColorRect" parent="Aim"]
-offset_left = 10.0
-offset_top = -3.0
-offset_right = 36.0
-offset_bottom = 3.0
-color = Color(0.52, 0.57, 0.65, 1)
+[node name="Gun" type="Polygon2D" parent="Aim"]
+color = Color(0.38, 0.42, 0.48, 1)
+antialiased = true
+polygon = PackedVector2Array(4, -2, 30, -2, 34, 0, 30, 2, 4, 2)
+
+[node name="Sight" type="Polygon2D" parent="Aim"]
+visible = false
+position = Vector2(40, 0)
+color = Color(0.95, 0.78, 0.3, 0.9)
+antialiased = true
+polygon = PackedVector2Array(0, -4, 4, 0, 0, 4, -4, 0)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_enabled = true

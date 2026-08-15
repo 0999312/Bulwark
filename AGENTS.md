@@ -16,10 +16,11 @@
 |------|------|------|
 | mc_game_framework | v1.0.0 | 核心框架：EventBus、UIManager、Registry、Codec、I18N |
 | guide | v0.13.0 | 输入映射与上下文系统（替代原生 Input Map，GUIDEAction / GUIDEMappingContext / GUIDEMappingContext） |
-| dialogue_manager | v3.10.4 | 分支对话系统（.dialogue 语法，含 C# 支持） |
 | sound_manager | v2.6.1 | 音频管理（音乐 / 音效 / 环境音） |
 | gut | v9.6.0 | GDScript 单元测试框架 |
 | kenney_interface_sounds | — | UI 音效素材包（无插件，纯资源） |
+
+> dialogue_manager 插件已于 M2 前置处理中移除（项目无对话系统需求，且其 class_name 冲突长期干扰导入）。
 
 ## 3. 资源与目录约定
 
@@ -51,7 +52,6 @@
 2. 按任务领域加载对应技能（常用映射）：
    - 新系统/功能设计 → `godot-brainstorming`；大型架构 → `game-architect` + 领域技能
    - 玩家控制 → `player-controller` + `input-handling` + `state-machine`
-   - 对话 → `dialogue-manager`（本项目已装该插件）
    - 输入 → `input-handling`（注意本项目用 guide 插件，先读 `using-godot-prompter` 与插件文档）
    - 测试 → `godot-testing`（GUT）
    - 调试 → `godot-debugging`；代码评审 → `godot-code-review`

@@ -41,3 +41,11 @@ func remove_modifier(attr: StringName, amount: float, multiplicative: bool = fal
 ## 终值：(base + additive) × multiplicative
 func get_final(attr: StringName) -> float:
 	return (_base.get(attr, 0.0) + _additive.get(attr, 0.0)) * _multiplicative.get(attr, 1.0)
+
+## 加法通道累计值（未设置返回 0）
+func get_additive(attr: StringName) -> float:
+	return _additive.get(attr, 0.0)
+
+## 乘法通道累计值（未设置返回 1）
+func get_multiplicative(attr: StringName) -> float:
+	return _multiplicative.get(attr, 1.0)

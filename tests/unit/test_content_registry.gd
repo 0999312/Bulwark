@@ -27,6 +27,66 @@ func test_all_m0_content_registered_under_bulwark() -> void:
 	for wave_id in [Bulwark.WAVE_1, Bulwark.WAVE_2, Bulwark.WAVE_3]:
 		assert_not_null(wave_reg.get_entry(Bulwark.loc(wave_id)))
 
+func test_m1_content_registered_under_bulwark() -> void:
+	# M1：副武器霰弹枪、奔跑者变种、波次 4~6、配件、商店商品、路障设施
+	var type_reg: WeaponTypeRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_TYPE)
+	var model_reg: WeaponModelRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_MODEL)
+	var enemy_reg: EnemyRegistry = RegistryManager.get_registry(Bulwark.REG_ENEMY)
+	var wave_reg: WaveRegistry = RegistryManager.get_registry(Bulwark.REG_WAVE)
+	var att_reg: AttachmentRegistry = RegistryManager.get_registry(Bulwark.REG_ATTACHMENT)
+	var shop_reg: ShopItemRegistry = RegistryManager.get_registry(Bulwark.REG_SHOP_ITEM)
+	var fac_reg: FacilityRegistry = RegistryManager.get_registry(Bulwark.REG_FACILITY)
+	assert_not_null(type_reg)
+	assert_not_null(model_reg)
+	assert_not_null(enemy_reg)
+	assert_not_null(wave_reg)
+	assert_not_null(att_reg)
+	assert_not_null(shop_reg)
+	assert_not_null(fac_reg)
+
+	# 霰弹枪（副武器）：类型 + 型号 + 弹丸数
+	var shotgun: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_SHOTGUN))
+	assert_not_null(shotgun)
+	assert_eq(shotgun.slot, WeaponTypeData.SlotType.SUB, "霰弹枪为副槽")
+	assert_eq(shotgun.ballistic, WeaponTypeData.BallisticMode.SPREAD, "霰弹为 SPREAD 弹道")
+	var jawbreaker: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_JAWBREAKER))
+	assert_not_null(jawbreaker)
+	assert_gt(jawbreaker.pellets, 1, "霰弹型号弹丸数 > 1")
+
+	# 奔跑者变种
+	assert_not_null(enemy_reg.get_entry(Bulwark.loc(Bulwark.ENEMY_RUNNER_FAST)))
+	assert_not_null(enemy_reg.get_entry(Bulwark.loc(Bulwark.ENEMY_RUNNER_TOUGH)))
+
+	# 波次 4~6（多敌人组）
+	for wave_id in [Bulwark.WAVE_4, Bulwark.WAVE_5, Bulwark.WAVE_6]:
+		var wave: WaveData = wave_reg.get_entry(Bulwark.loc(wave_id))
+		assert_not_null(wave)
+		assert_false(wave.groups.is_empty(), "M1 波次使用多敌人组")
+
+	# 配件 ×4
+	for att_id in [Bulwark.ATTACHMENT_RED_DOT, Bulwark.ATTACHMENT_EXT_MAG,
+			Bulwark.ATTACHMENT_COMPENSATOR, Bulwark.ATTACHMENT_LIGHT_STOCK]:
+		assert_not_null(att_reg.get_entry(Bulwark.loc(att_id)))
+
+	# 商店商品：随机池 + 固定物资
+	var shop_entries: Dictionary = shop_reg.get_all_entries()
+	assert_gt(shop_entries.size(), 8, "商品池 > 8 项")
+	var fixed_count := 0
+	for item: ShopItemData in shop_entries.values():
+		if item.is_fixed:
+			fixed_count += 1
+	assert_gte(fixed_count, 3, "固定物资 ≥ 3（路障 + 应急储备 + 弹药箱）")
+	# 弹药箱（补给经济闭环）：固定物资 + 补弹数量
+	var ammo_crate: ShopItemData = shop_reg.get_entry(Bulwark.loc(Bulwark.SHOP_AMMO_CRATE))
+	assert_not_null(ammo_crate, "弹药箱已注册")
+	assert_true(ammo_crate.is_fixed, "弹药箱为固定物资（波间恒可购买）")
+	assert_gt(ammo_crate.ammo_amount, 0, "弹药箱补弹量 > 0")
+
+	# 路障设施
+	var barricade: DefenseFacilityData = fac_reg.get_entry(Bulwark.loc(Bulwark.FACILITY_BARRICADE))
+	assert_not_null(barricade)
+	assert_gt(barricade.max_durability, 0.0)
+
 func test_registry_type_validation_rejects_wrong_type() -> void:
 	var enemy_reg := EnemyRegistry.new()
 	assert_false(enemy_reg.register(Bulwark.loc("enemy/bad"), WeaponTypeData.new()),

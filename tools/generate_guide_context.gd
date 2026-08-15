@@ -4,9 +4,11 @@
 ##
 ## 生成内容：
 ## - input/actions/：process/clear/prev_device/next_device（设备操作，原工具行为）
-##   + move/aim/shoot/switch_weapon/pause（M0 战斗动作，需求单 §2）
+##   + move/aim/shoot/switch_weapon/pause/reload/interact（战斗动作，需求单 §2 + M1）
 ## - input/contexts/equipment_context.tres（设备操作映射）
-## - input/contexts/combat_context.tres（战斗映射：WASD 移动 / 鼠标瞄准 / 左键射击 / 1-2-3 切枪 / Esc 暂停）
+## - input/contexts/combat_context.tres（战斗映射：WASD 移动 / 鼠标瞄准 / 左键射击 / 1-2-3 切枪 / R 换弹 / E 互动 / Esc 暂停）
+## - input/contexts/combat_context_alt.tres（M2 双客户端备选键位：方向键移动 / IJKL 键盘瞄准 /
+##   空格射击 / U-O-I 切枪 / L 换弹 / Enter 互动 / P 暂停；client 进程启用，与 host 窗口互不抢键）
 extends SceneTree
 
 const ACTION_DIR := "res://input/actions"
@@ -39,6 +41,12 @@ func _init() -> void:
 	# pause：BOOL，Esc
 	var pause_action := _make_action(&"pause", "暂停", "系统",
 		GUIDEAction.GUIDEActionValueType.BOOL)
+	# reload：BOOL，R（M0 手动换弹）
+	var reload_action := _make_action(&"reload", "换弹", "战斗",
+		GUIDEAction.GUIDEActionValueType.BOOL)
+	# interact：BOOL，E（M1 互动/放置路障；Pressed 边沿触发）
+	var interact_action := _make_action(&"interact", "互动", "战斗",
+		GUIDEAction.GUIDEActionValueType.BOOL)
 
 	# ── 3. 保存动作资源 ──
 	_save_action(process_action, "process_action")
@@ -50,6 +58,8 @@ func _init() -> void:
 	_save_action(shoot_action, "shoot")
 	_save_action(switch_action, "switch_weapon")
 	_save_action(pause_action, "pause")
+	_save_action(reload_action, "reload")
+	_save_action(interact_action, "interact")
 
 	# ── 4. 设备操作上下文（原工具行为：P/C/Q/E） ──
 	var equipment_context := GUIDEMappingContext.new()
@@ -81,10 +91,43 @@ func _init() -> void:
 		_key_mapping(switch_action, KEY_3, true),
 		# 暂停：Esc
 		_key_mapping(pause_action, KEY_ESCAPE, true),
+		# 换弹：R（边沿触发）
+		_key_mapping(reload_action, KEY_R, true),
+		# 互动/放置：E（边沿触发）
+		_key_mapping(interact_action, KEY_E, true),
 	]
 	_save_context(combat_context, "combat_context")
 
-	print("GUIDE 输入配置生成完成：actions ×9, contexts ×2")
+	# ── 6. 战斗备选上下文（M2 双客户端：client 进程启用，纯键盘不与 host 抢键位/鼠标焦点） ──
+	var alt_context := GUIDEMappingContext.new()
+	alt_context.display_name = "战斗（备选）"
+	alt_context.mappings = [
+		# 移动：方向键
+		_key_mapping(move_action, KEY_UP, false, Vector3(0, -1, 0)),
+		_key_mapping(move_action, KEY_DOWN, false, Vector3(0, 1, 0)),
+		_key_mapping(move_action, KEY_LEFT, false, Vector3(-1, 0, 0)),
+		_key_mapping(move_action, KEY_RIGHT, false, Vector3(1, 0, 0)),
+		# 瞄准：IJKL 键盘八向（AXIS_2D 与 move 同构；PlayerView 读取 value_axis_2d）
+		_key_mapping(aim_action, KEY_I, false, Vector3(0, -1, 0)),
+		_key_mapping(aim_action, KEY_K, false, Vector3(0, 1, 0)),
+		_key_mapping(aim_action, KEY_J, false, Vector3(-1, 0, 0)),
+		_key_mapping(aim_action, KEY_L, false, Vector3(1, 0, 0)),
+		# 射击：空格按住连射
+		_key_mapping(shoot_action, KEY_SPACE, false),
+		# 切换武器：U/O/I（避开暂停键 P）
+		_key_mapping(switch_action, KEY_U, true),
+		_key_mapping(switch_action, KEY_O, true),
+		_key_mapping(switch_action, KEY_I, true),
+		# 暂停：P
+		_key_mapping(pause_action, KEY_P, true),
+		# 换弹：L
+		_key_mapping(reload_action, KEY_L, true),
+		# 互动/放置：Enter
+		_key_mapping(interact_action, KEY_ENTER, true),
+	]
+	_save_context(alt_context, "combat_context_alt")
+
+	print("GUIDE 输入配置生成完成：actions ×11, contexts ×3")
 	quit(0)
 
 # ─── 构造辅助 ───
@@ -108,6 +151,9 @@ func _save_context(context: GUIDEMappingContext, file_name: String) -> void:
 		push_error("保存上下文失败 %s: %d" % [file_name, err])
 
 ## 按键映射；pressed=true 用 Pressed 触发器（边沿），否则用默认 Down（按住持续）
+## swizzle 修饰器（order=0）为 M0 关键修复：GUIDE 键盘输入恒为 Vector3(1,0,0)，
+## Y 轴键（W/S）需先 swizzle（X→Y）再 scale 定向；X 轴键（A/D）只 scale。
+## 若 X 轴键误加 swizzle，输出会被 scale 归零（见 test_frontend_wiring 回归）
 func _key_mapping(action: GUIDEAction, key: Key, pressed: bool, scale := Vector3.ONE) -> GUIDEActionMapping:
 	var mapping := GUIDEActionMapping.new()
 	mapping.action = action
@@ -115,10 +161,16 @@ func _key_mapping(action: GUIDEAction, key: Key, pressed: bool, scale := Vector3
 	var input := GUIDEInputKey.new()
 	input.key = key
 	input_mapping.input = input
+	var modifiers: Array[GUIDEModifier] = []
 	if scale != Vector3.ONE:
+		if scale.y != 0.0:
+			var swizzle := GUIDEModifierInputSwizzle.new()
+			swizzle.order = 0
+			modifiers.append(swizzle)
 		var modifier := GUIDEModifierScale.new()
 		modifier.scale = scale
-		input_mapping.modifiers = [modifier]
+		modifiers.append(modifier)
+		input_mapping.modifiers = modifiers
 	if pressed:
 		input_mapping.triggers = [GUIDETriggerPressed.new()]
 	mapping.input_mappings = [input_mapping]

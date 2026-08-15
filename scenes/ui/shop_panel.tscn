@@ -1,0 +1,143 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/shop_panel.gd" id="1_shop"]
+[ext_resource type="FontFile" path="res://assets/fonts/MiSans-Semibold.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.07, 0.09, 0.12, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.47, 0.56, 0.7)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ShopPanel" type="Control"]
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_shop")
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 40
+
+[node name="Panel" type="PanelContainer" parent="Margin"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="Margin/Panel"]
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Margin/Panel/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.95, 0.9, 0.6, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 34
+text = "军需站"
+
+[node name="CurrencyLabel" type="Label" parent="Margin/Panel/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "货币 -- · 建材 -- · 储备 --"
+
+[node name="Sep" type="HSeparator" parent="Margin/Panel/VBox"]
+
+[node name="Content" type="HBoxContainer" parent="Margin/Panel/VBox"]
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="Left" type="VBoxContainer" parent="Margin/Panel/VBox/Content"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="OffersHeader" type="Label" parent="Margin/Panel/VBox/Content/Left"]
+theme_override_colors/font_color = Color(0.95, 0.95, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "补给"
+
+[node name="OffersScroll" type="ScrollContainer" parent="Margin/Panel/VBox/Content/Left"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="OffersContainer" type="VBoxContainer" parent="Margin/Panel/VBox/Content/Left/OffersScroll"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Right" type="VBoxContainer" parent="Margin/Panel/VBox/Content"]
+custom_minimum_size = Vector2(400, 0)
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="WeaponLabel" type="Label" parent="Margin/Panel/VBox/Content/Right"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.5, 0.85, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "改枪台"
+
+[node name="SlotsOverview" type="HBoxContainer" parent="Margin/Panel/VBox/Content/Right"]
+unique_name_in_owner = true
+theme_override_constants/separation = 10
+
+[node name="AttachHeader" type="Label" parent="Margin/Panel/VBox/Content/Right"]
+theme_override_colors/font_color = Color(0.95, 0.95, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "配件槽"
+
+[node name="AttachmentSlotsContainer" type="VBoxContainer" parent="Margin/Panel/VBox/Content/Right"]
+unique_name_in_owner = true
+theme_override_constants/separation = 4
+
+[node name="BagHeader" type="Label" parent="Margin/Panel/VBox/Content/Right"]
+theme_override_colors/font_color = Color(0.95, 0.95, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "背包"
+
+[node name="BagScroll" type="ScrollContainer" parent="Margin/Panel/VBox/Content/Right"]
+size_flags_vertical = 3
+
+[node name="BagContainer" type="VBoxContainer" parent="Margin/Panel/VBox/Content/Right/BagScroll"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="FeedbackLabel" type="Label" parent="Margin/Panel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 24)
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = ""
+
+[node name="ContinueButton" type="Button" parent="Margin/Panel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "继续"
+
+[connection signal="pressed" from="Margin/Panel/VBox/ContinueButton" to="." method="_on_continue_pressed"]

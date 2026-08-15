@@ -8,8 +8,178 @@
 script = ExtResource("1_session")
 
 [node name="Ground" type="Polygon2D" parent="."]
-color = Color(0.075, 0.093, 0.11, 1)
-polygon = PackedVector2Array(-1100, -900, 1100, -900, 1100, 900, -1100, 900)
+z_index = -20
+color = Color(0.07, 0.088, 0.106, 1)
+antialiased = true
+polygon = PackedVector2Array(-1400, -1150, 1400, -1150, 1400, 1150, -1400, 1150)
+
+[node name="ZoneA" type="Polygon2D" parent="."]
+z_index = -19
+color = Color(0.09, 0.11, 0.13, 1)
+antialiased = true
+polygon = PackedVector2Array(-900, -600, -300, -750, 150, -520, -50, -260, -700, -180, -1050, -320)
+
+[node name="ZoneB" type="Polygon2D" parent="."]
+z_index = -19
+color = Color(0.085, 0.104, 0.124, 1)
+antialiased = true
+polygon = PackedVector2Array(200, 250, 750, 120, 980, 420, 620, 760, 150, 620)
+
+[node name="ZoneC" type="Polygon2D" parent="."]
+z_index = -19
+color = Color(0.055, 0.07, 0.085, 1)
+antialiased = true
+polygon = PackedVector2Array(300, -700, 850, -820, 1080, -520, 700, -300, 320, -420)
+
+[node name="GridV0" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(-1000, -1150, -1000, 1150)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridV1" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(-500, -1150, -500, 1150)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridV2" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(0, -1150, 0, 1150)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridV3" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(500, -1150, 500, 1150)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridV4" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(1000, -1150, 1000, 1150)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridH0" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(-1400, -1000, 1400, -1000)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridH1" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(-1400, -500, 1400, -500)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridH2" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(-1400, 0, 1400, 0)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridH3" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(-1400, 500, 1400, 500)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="GridH4" type="Line2D" parent="."]
+z_index = -18
+points = PackedVector2Array(-1400, 1000, 1400, 1000)
+width = 1.0
+default_color = Color(0.18, 0.22, 0.27, 0.32)
+antialiased = true
+
+[node name="RingInner" type="Line2D" parent="."]
+z_index = -17
+points = PackedVector2Array(300, 0, 259.8, 150, 150, 259.8, 0, 300, -150, 259.8, -259.8, 150, -300, 0, -259.8, -150, -150, -259.8, 0, -300, 150, -259.8, 259.8, -150)
+closed = true
+width = 2.0
+default_color = Color(0.22, 0.3, 0.38, 0.4)
+antialiased = true
+
+[node name="RingMid" type="Line2D" parent="."]
+z_index = -17
+points = PackedVector2Array(520, 0, 450.3, 260, 260, 450.3, 0, 520, -260, 450.3, -450.3, 260, -520, 0, -450.3, -260, -260, -450.3, 0, -520, 260, -450.3, 450.3, -260)
+closed = true
+width = 1.5
+default_color = Color(0.2, 0.27, 0.34, 0.35)
+antialiased = true
+
+[node name="RingOuter" type="Line2D" parent="."]
+z_index = -17
+points = PackedVector2Array(720, 0, 623.5, 360, 360, 623.5, 0, 720, -360, 623.5, -623.5, 360, -720, 0, -623.5, -360, -360, -623.5, 0, -720, 360, -623.5, 623.5, -360)
+closed = true
+width = 1.5
+default_color = Color(0.19, 0.25, 0.32, 0.3)
+antialiased = true
+
+[node name="Noise0" type="Polygon2D" parent="."]
+z_index = -16
+position = Vector2(368, 368)
+color = Color(0.2, 0.26, 0.32, 0.5)
+antialiased = true
+polygon = PackedVector2Array(0, -3, 3, 0, 0, 3, -3, 0)
+
+[node name="Noise1" type="Polygon2D" parent="."]
+z_index = -16
+position = Vector2(0, 520)
+color = Color(0.2, 0.26, 0.32, 0.5)
+antialiased = true
+polygon = PackedVector2Array(0, -3, 3, 0, 0, 3, -3, 0)
+
+[node name="Noise2" type="Polygon2D" parent="."]
+z_index = -16
+position = Vector2(-368, 368)
+color = Color(0.2, 0.26, 0.32, 0.5)
+antialiased = true
+polygon = PackedVector2Array(0, -3, 3, 0, 0, 3, -3, 0)
+
+[node name="Noise3" type="Polygon2D" parent="."]
+z_index = -16
+position = Vector2(-520, 0)
+color = Color(0.2, 0.26, 0.32, 0.5)
+antialiased = true
+polygon = PackedVector2Array(0, -3, 3, 0, 0, 3, -3, 0)
+
+[node name="Noise4" type="Polygon2D" parent="."]
+z_index = -16
+position = Vector2(-368, -368)
+color = Color(0.2, 0.26, 0.32, 0.5)
+antialiased = true
+polygon = PackedVector2Array(0, -3, 3, 0, 0, 3, -3, 0)
+
+[node name="Noise5" type="Polygon2D" parent="."]
+z_index = -16
+position = Vector2(0, -520)
+color = Color(0.2, 0.26, 0.32, 0.5)
+antialiased = true
+polygon = PackedVector2Array(0, -3, 3, 0, 0, 3, -3, 0)
+
+[node name="Noise6" type="Polygon2D" parent="."]
+z_index = -16
+position = Vector2(368, -368)
+color = Color(0.2, 0.26, 0.32, 0.5)
+antialiased = true
+polygon = PackedVector2Array(0, -3, 3, 0, 0, 3, -3, 0)
+
+[node name="Noise7" type="Polygon2D" parent="."]
+z_index = -16
+position = Vector2(520, 0)
+color = Color(0.2, 0.26, 0.32, 0.5)
+antialiased = true
+polygon = PackedVector2Array(0, -3, 3, 0, 0, 3, -3, 0)
 
 [node name="Base" parent="." instance=ExtResource("3_base")]
 

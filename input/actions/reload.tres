@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="GUIDEAction" format=3]
 
-[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="1_reload"]
+[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="1_rj318"]
 
 [resource]
-script = ExtResource("1_reload")
+script = ExtResource("1_rj318")
 name = &"reload"
 display_name = "换弹"
 display_category = "战斗"

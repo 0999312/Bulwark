@@ -26,12 +26,24 @@ const COUNT_RANGE_MAX := 30
 @export_group("构成")
 ## PCG 种子：同种子 → 同构成（确定性，可复现、可调参）
 @export var seed: int = 1
-## 可出怪方位（WaveData.Direction 值列表）
+## 多敌人组（M1+）：非空时优先使用，忽略下方单组字段
+@export var groups: Array[WaveSpawnGroupData] = []
+## 可出怪方位（WaveData.Direction 值列表；groups 为空时的单组简写）
 @export var directions: Array[int] = []
 ## 每个方位的数量区间 [min, max]
 @export var count_range: Vector2i = Vector2i(4, 6)
 ## 出怪敌人 ResourceLocation 字符串（如 "bulwark:enemy/runner"）
 @export var enemy_location: String = "bulwark:enemy/runner"
+
+## 刷怪组列表（优先 groups，回退单组简写；返回引用便于 WaveGenerator 遍历）
+func get_spawn_groups() -> Array[WaveSpawnGroupData]:
+	if not groups.is_empty():
+		return groups
+	var single := WaveSpawnGroupData.new()
+	single.directions = directions
+	single.count_range = count_range
+	single.enemy_location = enemy_location
+	return [single]
 
 @export_group("流程")
 ## 预警时长（秒）：广播构成 → 刷怪

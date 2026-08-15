@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DefenseFacilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/defense_facility_data.gd" id="1_facility"]
+
+[resource]
+script = ExtResource("1_facility")
+id = "facility/barricade"
+display_name = "路障"
+facility_type = 0
+max_durability = 150.0
+material_cost = 1
+build_radius = 500.0
+visual_size = Vector2(80, 24)
+arc_degrees = 60.0
+arc_thickness = 22.0

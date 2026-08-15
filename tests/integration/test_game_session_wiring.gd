@@ -171,13 +171,65 @@ func test_enemy_rams_player_deals_damage_and_dies() -> void:
 	assert_true(_session.player_controller.health < hp_before, "敌人撞击应对玩家造成伤害")
 	assert_true(enemy.controller.is_dead(), "撞击后敌人应自爆")
 
-func test_player_death_ends_run() -> void:
+func test_player_death_starts_revive_not_fail() -> void:
+	# M1 复活系统（P7/P20）：初始储备 2 → 阵亡进入复活 CD，不直接失败
+	assert_gt(_session.run_state.reserve, 0, "开局有应急储备")
 	var ctx := DamageContext.create(Faction.Type.MUTANT, Faction.Type.PLAYER, 9999.0)
 	_session.player_controller.take_damage(ctx)
 	await wait_process_frames(3)
-	assert_true(_session._run_finished, "玩家阵亡后本局应结束")
-	assert_true(get_tree().paused, "玩家阵亡后树应暂停")
-	assert_true(UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_RESULT)), "玩家阵亡应打开结算面板")
+	assert_false(_session._run_finished, "储备充足时阵亡不判负")
+	assert_true(_session.revive_system.is_reviving(), "进入复活 CD")
+	assert_true(_session.player_controller.is_dead(), "复活中玩家保持死亡状态")
+	# 复活 CD 结束 → 复活回基地
+	for i in 400:
+		await wait_physics_frames(1)
+		if not _session.revive_system.is_reviving():
+			break
+	assert_false(_session.revive_system.is_reviving(), "复活 CD 应结束")
+	assert_false(_session.player_controller.is_dead(), "复活后玩家复活")
+	assert_almost_eq(_session.player_controller.health,
+		_session.player_controller.max_health, 0.001, "复活回满血")
+	assert_lt(_session.run_state.reserve, 2, "复活消耗 1 储备")
+
+func test_player_death_without_reserve_ends_run() -> void:
+	# 初始储备 2：两次阵亡各消耗 1（复活后再次阵亡），储备耗尽第三次阵亡判负
+	var ctx := DamageContext.create(Faction.Type.MUTANT, Faction.Type.PLAYER, 9999.0)
+	_session.player_controller.take_damage(ctx)
+	await wait_process_frames(3)
+	# 第一次：进入复活
+	assert_false(_session._run_finished, "第一次阵亡进入复活")
+	for i in 400:
+		await wait_physics_frames(1)
+		if not _session.revive_system.is_reviving():
+			break
+	assert_eq(_session.run_state.reserve, 1, "第一次复活消耗 1 储备")
+	# 复活附带 2s 无敌帧（M2 修复：防敌人守尸秒杀）——等无敌结束再阵亡，否则伤害被免疫
+	for i in 300:
+		await wait_physics_frames(1)
+		if _session.player_controller.get_invincible_time() <= 0.0:
+			break
+	# 第二次阵亡 → 储备 1 → 再复活
+	var ctx2 := DamageContext.create(Faction.Type.MUTANT, Faction.Type.PLAYER, 9999.0)
+	_session.player_controller.take_damage(ctx2)
+	await wait_process_frames(3)
+	assert_false(_session._run_finished, "第二次阵亡仍可复活")
+	for i in 400:
+		await wait_physics_frames(1)
+		if not _session.revive_system.is_reviving():
+			break
+	assert_eq(_session.run_state.reserve, 0, "两次复活耗尽储备")
+	# 第二次复活同样带 2s 无敌帧，等结束再阵亡
+	for i in 300:
+		await wait_physics_frames(1)
+		if _session.player_controller.get_invincible_time() <= 0.0:
+			break
+	# 第三次阵亡 → 储备 0 → 失败
+	var ctx3 := DamageContext.create(Faction.Type.MUTANT, Faction.Type.PLAYER, 9999.0)
+	_session.player_controller.take_damage(ctx3)
+	await wait_process_frames(3)
+	assert_true(_session._run_finished, "储备耗尽后阵亡判负")
+	assert_true(get_tree().paused, "失败后树暂停")
+	assert_true(UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_RESULT)), "失败打开结算面板")
 
 func test_spawn_positions_vary_on_ring() -> void:
 	# 圆环随机刷新：同一方位多只出怪，位置应随机散布（非固定标记点）

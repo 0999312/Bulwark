@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_shop"]
+[ext_resource type="Script" path="res://scripts/data/attribute_modifier_data.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_mod"]
+script = ExtResource("2_mod")
+id = "mod_damage_up"
+display_name = "伤害强化"
+attribute = &"damage"
+amount = 2.0
+multiplier = 1.0
+
+[resource]
+script = ExtResource("1_shop")
+id = "shop/item/damage_up"
+display_name = "枪械校准（伤害+2）"
+description = "所有武器伤害 +2"
+category = 1
+rarity = 0
+base_price = 60
+is_fixed = false
+modifier = SubResource("Resource_mod")

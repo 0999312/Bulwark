@@ -1,246 +1,267 @@
 [gd_resource type="Resource" script_class="GUIDEMappingContext" format=3]
 
-[ext_resource type="Script" path="res://addons/guide/guide_action_mapping.gd" id="1_tc1kq"]
-[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="2_3y7br"]
-[ext_resource type="Script" path="res://addons/guide/guide_input_mapping.gd" id="3_6jwtq"]
-[ext_resource type="Script" path="res://addons/guide/inputs/guide_input_key.gd" id="4_ob46n"]
-[ext_resource type="Script" path="res://addons/guide/modifiers/guide_modifier.gd" id="5_cuseq"]
-[ext_resource type="Script" path="res://addons/guide/modifiers/guide_modifier_scale.gd" id="6_eud3r"]
-[ext_resource type="Script" path="res://addons/guide/triggers/guide_trigger.gd" id="7_r88vt"]
-[ext_resource type="Script" path="res://addons/guide/inputs/guide_input_mouse_position.gd" id="8_nme7n"]
-[ext_resource type="Script" path="res://addons/guide/inputs/guide_input_mouse_button.gd" id="9_y53a7"]
-[ext_resource type="Script" path="res://addons/guide/triggers/guide_trigger_pressed.gd" id="10_vmdfl"]
-[ext_resource type="Script" path="res://addons/guide/guide_mapping_context.gd" id="11_mlp41"]
-[ext_resource type="Script" path="res://addons/guide/modifiers/guide_modifier_input_swizzle.gd" id="12_swizzle"]
+[ext_resource type="Script" path="res://addons/guide/guide_action_mapping.gd" id="1_3y7br"]
+[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="2_6jwtq"]
+[ext_resource type="Script" path="res://addons/guide/guide_input_mapping.gd" id="3_ob46n"]
+[ext_resource type="Script" path="res://addons/guide/inputs/guide_input_key.gd" id="4_cuseq"]
+[ext_resource type="Script" path="res://addons/guide/modifiers/guide_modifier.gd" id="5_eud3r"]
+[ext_resource type="Script" path="res://addons/guide/modifiers/guide_modifier_input_swizzle.gd" id="6_r88vt"]
+[ext_resource type="Script" path="res://addons/guide/modifiers/guide_modifier_scale.gd" id="7_nme7n"]
+[ext_resource type="Script" path="res://addons/guide/triggers/guide_trigger.gd" id="8_y53a7"]
+[ext_resource type="Script" path="res://addons/guide/inputs/guide_input_mouse_position.gd" id="9_vmdfl"]
+[ext_resource type="Script" path="res://addons/guide/inputs/guide_input_mouse_button.gd" id="10_mlp41"]
+[ext_resource type="Script" path="res://addons/guide/triggers/guide_trigger_pressed.gd" id="11_6hs7c"]
+[ext_resource type="Script" path="res://addons/guide/guide_mapping_context.gd" id="12_qfevc"]
 
-[sub_resource type="Resource" id="Resource_6hs7c"]
-script = ExtResource("2_3y7br")
+[sub_resource type="Resource" id="Resource_d0l4l"]
+script = ExtResource("2_6jwtq")
 name = &"move"
 action_value_type = 2
 display_name = "移动"
 display_category = "战斗"
 
-[sub_resource type="Resource" id="Resource_qfevc"]
-script = ExtResource("4_ob46n")
+[sub_resource type="Resource" id="Resource_yavup"]
+script = ExtResource("4_cuseq")
 key = 87
 
-[sub_resource type="Resource" id="Resource_d0l4l"]
-script = ExtResource("6_eud3r")
-scale = Vector3(0, -1, 0)
-
-[sub_resource type="Resource" id="Resource_swzW"]
-script = ExtResource("12_swizzle")
-order = 0
-
-[sub_resource type="Resource" id="Resource_yavup"]
-script = ExtResource("3_6jwtq")
-input = SubResource("Resource_qfevc")
-modifiers = Array[ExtResource("5_cuseq")]([SubResource("Resource_swzW"), SubResource("Resource_d0l4l")])
-
 [sub_resource type="Resource" id="Resource_dmtaf"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_6hs7c")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_yavup")])
+script = ExtResource("6_r88vt")
 
 [sub_resource type="Resource" id="Resource_m01gj"]
-script = ExtResource("4_ob46n")
-key = 83
+script = ExtResource("7_nme7n")
+scale = Vector3(0, -1, 0)
 
 [sub_resource type="Resource" id="Resource_m7ind"]
-script = ExtResource("6_eud3r")
-scale = Vector3(0, 1, 0)
-
-[sub_resource type="Resource" id="Resource_swzS"]
-script = ExtResource("12_swizzle")
-order = 0
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_yavup")
+modifiers = Array[ExtResource("5_eud3r")]([SubResource("Resource_dmtaf"), SubResource("Resource_m01gj")])
 
 [sub_resource type="Resource" id="Resource_0yfi4"]
-script = ExtResource("3_6jwtq")
-input = SubResource("Resource_m01gj")
-modifiers = Array[ExtResource("5_cuseq")]([SubResource("Resource_swzS"), SubResource("Resource_m7ind")])
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_d0l4l")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_m7ind")])
 
 [sub_resource type="Resource" id="Resource_ogg5f"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_6hs7c")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_0yfi4")])
+script = ExtResource("4_cuseq")
+key = 83
 
 [sub_resource type="Resource" id="Resource_wndbp"]
-script = ExtResource("4_ob46n")
-key = 65
+script = ExtResource("6_r88vt")
 
 [sub_resource type="Resource" id="Resource_sbbgq"]
-script = ExtResource("6_eud3r")
-scale = Vector3(-1, 0, 0)
+script = ExtResource("7_nme7n")
+scale = Vector3(0, 1, 0)
 
 [sub_resource type="Resource" id="Resource_ahid5"]
-script = ExtResource("3_6jwtq")
-input = SubResource("Resource_wndbp")
-modifiers = Array[ExtResource("5_cuseq")]([SubResource("Resource_sbbgq")])
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_ogg5f")
+modifiers = Array[ExtResource("5_eud3r")]([SubResource("Resource_wndbp"), SubResource("Resource_sbbgq")])
 
 [sub_resource type="Resource" id="Resource_r6c85"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_6hs7c")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_ahid5")])
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_d0l4l")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_ahid5")])
 
 [sub_resource type="Resource" id="Resource_2mcq0"]
-script = ExtResource("4_ob46n")
-key = 68
+script = ExtResource("4_cuseq")
+key = 65
 
 [sub_resource type="Resource" id="Resource_cutkt"]
-script = ExtResource("6_eud3r")
-scale = Vector3(1, 0, 0)
+script = ExtResource("7_nme7n")
+scale = Vector3(-1, 0, 0)
 
 [sub_resource type="Resource" id="Resource_4gif1"]
-script = ExtResource("3_6jwtq")
+script = ExtResource("3_ob46n")
 input = SubResource("Resource_2mcq0")
-modifiers = Array[ExtResource("5_cuseq")]([SubResource("Resource_cutkt")])
+modifiers = Array[ExtResource("5_eud3r")]([SubResource("Resource_cutkt")])
 
 [sub_resource type="Resource" id="Resource_wp84b"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_6hs7c")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_4gif1")])
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_d0l4l")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_4gif1")])
 
 [sub_resource type="Resource" id="Resource_bl1fd"]
-script = ExtResource("2_3y7br")
+script = ExtResource("4_cuseq")
+key = 68
+
+[sub_resource type="Resource" id="Resource_1n63o"]
+script = ExtResource("7_nme7n")
+scale = Vector3(1, 0, 0)
+
+[sub_resource type="Resource" id="Resource_7g8v7"]
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_bl1fd")
+modifiers = Array[ExtResource("5_eud3r")]([SubResource("Resource_1n63o")])
+
+[sub_resource type="Resource" id="Resource_gm8xd"]
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_d0l4l")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_7g8v7")])
+
+[sub_resource type="Resource" id="Resource_pajs5"]
+script = ExtResource("2_6jwtq")
 name = &"aim"
 action_value_type = 2
 display_name = "瞄准"
 display_category = "战斗"
 
-[sub_resource type="Resource" id="Resource_1n63o"]
-script = ExtResource("8_nme7n")
+[sub_resource type="Resource" id="Resource_r7y3f"]
+script = ExtResource("9_vmdfl")
 
-[sub_resource type="Resource" id="Resource_7g8v7"]
-script = ExtResource("3_6jwtq")
-input = SubResource("Resource_1n63o")
+[sub_resource type="Resource" id="Resource_qtlh0"]
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_r7y3f")
 
-[sub_resource type="Resource" id="Resource_gm8xd"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_bl1fd")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_7g8v7")])
+[sub_resource type="Resource" id="Resource_fovpr"]
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_pajs5")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_qtlh0")])
 
-[sub_resource type="Resource" id="Resource_pajs5"]
-script = ExtResource("2_3y7br")
+[sub_resource type="Resource" id="Resource_e33sw"]
+script = ExtResource("2_6jwtq")
 name = &"shoot"
 display_name = "射击"
 display_category = "战斗"
 
-[sub_resource type="Resource" id="Resource_r7y3f"]
-script = ExtResource("9_y53a7")
+[sub_resource type="Resource" id="Resource_fh084"]
+script = ExtResource("10_mlp41")
 
-[sub_resource type="Resource" id="Resource_qtlh0"]
-script = ExtResource("3_6jwtq")
-input = SubResource("Resource_r7y3f")
+[sub_resource type="Resource" id="Resource_7vdip"]
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_fh084")
 
-[sub_resource type="Resource" id="Resource_fovpr"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_pajs5")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_qtlh0")])
+[sub_resource type="Resource" id="Resource_qffjk"]
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_e33sw")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_7vdip")])
 
-[sub_resource type="Resource" id="Resource_e33sw"]
-script = ExtResource("2_3y7br")
+[sub_resource type="Resource" id="Resource_aygh1"]
+script = ExtResource("2_6jwtq")
 name = &"switch_weapon"
 display_name = "切换武器"
 display_category = "战斗"
 
-[sub_resource type="Resource" id="Resource_fh084"]
-script = ExtResource("4_ob46n")
+[sub_resource type="Resource" id="Resource_ian1r"]
+script = ExtResource("4_cuseq")
 key = 49
 
-[sub_resource type="Resource" id="Resource_7vdip"]
-script = ExtResource("10_vmdfl")
-
-[sub_resource type="Resource" id="Resource_qffjk"]
-script = ExtResource("3_6jwtq")
-input = SubResource("Resource_fh084")
-triggers = Array[ExtResource("7_r88vt")]([SubResource("Resource_7vdip")])
-
-[sub_resource type="Resource" id="Resource_aygh1"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_e33sw")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_qffjk")])
-
-[sub_resource type="Resource" id="Resource_ian1r"]
-script = ExtResource("4_ob46n")
-key = 50
-
 [sub_resource type="Resource" id="Resource_pjm7q"]
-script = ExtResource("10_vmdfl")
+script = ExtResource("11_6hs7c")
 
 [sub_resource type="Resource" id="Resource_a821l"]
-script = ExtResource("3_6jwtq")
+script = ExtResource("3_ob46n")
 input = SubResource("Resource_ian1r")
-triggers = Array[ExtResource("7_r88vt")]([SubResource("Resource_pjm7q")])
+triggers = Array[ExtResource("8_y53a7")]([SubResource("Resource_pjm7q")])
 
 [sub_resource type="Resource" id="Resource_xfso0"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_e33sw")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_a821l")])
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_aygh1")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_a821l")])
 
 [sub_resource type="Resource" id="Resource_iuyw3"]
-script = ExtResource("4_ob46n")
-key = 51
+script = ExtResource("4_cuseq")
+key = 50
 
 [sub_resource type="Resource" id="Resource_5sv1j"]
-script = ExtResource("10_vmdfl")
+script = ExtResource("11_6hs7c")
 
 [sub_resource type="Resource" id="Resource_mmbja"]
-script = ExtResource("3_6jwtq")
+script = ExtResource("3_ob46n")
 input = SubResource("Resource_iuyw3")
-triggers = Array[ExtResource("7_r88vt")]([SubResource("Resource_5sv1j")])
+triggers = Array[ExtResource("8_y53a7")]([SubResource("Resource_5sv1j")])
 
 [sub_resource type="Resource" id="Resource_7f8h1"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_e33sw")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_mmbja")])
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_aygh1")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_mmbja")])
 
 [sub_resource type="Resource" id="Resource_jkvwx"]
-script = ExtResource("2_3y7br")
+script = ExtResource("4_cuseq")
+key = 51
+
+[sub_resource type="Resource" id="Resource_4lyxg"]
+script = ExtResource("11_6hs7c")
+
+[sub_resource type="Resource" id="Resource_ms718"]
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_jkvwx")
+triggers = Array[ExtResource("8_y53a7")]([SubResource("Resource_4lyxg")])
+
+[sub_resource type="Resource" id="Resource_03awh"]
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_aygh1")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_ms718")])
+
+[sub_resource type="Resource" id="Resource_81hih"]
+script = ExtResource("2_6jwtq")
 name = &"pause"
 display_name = "暂停"
 display_category = "系统"
 
-[sub_resource type="Resource" id="Resource_4lyxg"]
-script = ExtResource("4_ob46n")
+[sub_resource type="Resource" id="Resource_xv3sx"]
+script = ExtResource("4_cuseq")
 key = 4194305
 
-[sub_resource type="Resource" id="Resource_ms718"]
-script = ExtResource("10_vmdfl")
+[sub_resource type="Resource" id="Resource_cyuf8"]
+script = ExtResource("11_6hs7c")
 
-[sub_resource type="Resource" id="Resource_03awh"]
-script = ExtResource("3_6jwtq")
-input = SubResource("Resource_4lyxg")
-triggers = Array[ExtResource("7_r88vt")]([SubResource("Resource_ms718")])
+[sub_resource type="Resource" id="Resource_ae6hs"]
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_xv3sx")
+triggers = Array[ExtResource("8_y53a7")]([SubResource("Resource_cyuf8")])
 
-[sub_resource type="Resource" id="Resource_81hih"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_jkvwx")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_03awh")])
+[sub_resource type="Resource" id="Resource_4jfhf"]
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_81hih")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_ae6hs")])
 
-[sub_resource type="Resource" id="Resource_reload_action"]
-script = ExtResource("2_3y7br")
+[sub_resource type="Resource" id="Resource_qrfq0"]
+script = ExtResource("2_6jwtq")
 name = &"reload"
 display_name = "换弹"
 display_category = "战斗"
 
-[sub_resource type="Resource" id="Resource_reload_key"]
-script = ExtResource("4_ob46n")
+[sub_resource type="Resource" id="Resource_jrbqj"]
+script = ExtResource("4_cuseq")
 key = 82
 
-[sub_resource type="Resource" id="Resource_reload_trigger"]
-script = ExtResource("10_vmdfl")
+[sub_resource type="Resource" id="Resource_3mwxt"]
+script = ExtResource("11_6hs7c")
 
-[sub_resource type="Resource" id="Resource_reload_input_mapping"]
-script = ExtResource("3_6jwtq")
-input = SubResource("Resource_reload_key")
-triggers = Array[ExtResource("7_r88vt")]([SubResource("Resource_reload_trigger")])
+[sub_resource type="Resource" id="Resource_h0i8k"]
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_jrbqj")
+triggers = Array[ExtResource("8_y53a7")]([SubResource("Resource_3mwxt")])
 
-[sub_resource type="Resource" id="Resource_reload_action_mapping"]
-script = ExtResource("1_tc1kq")
-action = SubResource("Resource_reload_action")
-input_mappings = Array[ExtResource("3_6jwtq")]([SubResource("Resource_reload_input_mapping")])
+[sub_resource type="Resource" id="Resource_on5f4"]
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_qrfq0")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_h0i8k")])
+
+[sub_resource type="Resource" id="Resource_0e236"]
+script = ExtResource("2_6jwtq")
+name = &"interact"
+display_name = "互动"
+display_category = "战斗"
+
+[sub_resource type="Resource" id="Resource_tb862"]
+script = ExtResource("4_cuseq")
+key = 69
+
+[sub_resource type="Resource" id="Resource_5j1f5"]
+script = ExtResource("11_6hs7c")
+
+[sub_resource type="Resource" id="Resource_cv0pi"]
+script = ExtResource("3_ob46n")
+input = SubResource("Resource_tb862")
+triggers = Array[ExtResource("8_y53a7")]([SubResource("Resource_5j1f5")])
+
+[sub_resource type="Resource" id="Resource_4vri8"]
+script = ExtResource("1_3y7br")
+action = SubResource("Resource_0e236")
+input_mappings = Array[ExtResource("3_ob46n")]([SubResource("Resource_cv0pi")])
 
 [resource]
-script = ExtResource("11_mlp41")
+script = ExtResource("12_qfevc")
 display_name = "战斗"
-mappings = Array[ExtResource("1_tc1kq")]([SubResource("Resource_dmtaf"), SubResource("Resource_ogg5f"), SubResource("Resource_r6c85"), SubResource("Resource_wp84b"), SubResource("Resource_gm8xd"), SubResource("Resource_fovpr"), SubResource("Resource_aygh1"), SubResource("Resource_xfso0"), SubResource("Resource_7f8h1"), SubResource("Resource_81hih"), SubResource("Resource_reload_action_mapping")])
+mappings = Array[ExtResource("1_3y7br")]([SubResource("Resource_0yfi4"), SubResource("Resource_r6c85"), SubResource("Resource_wp84b"), SubResource("Resource_gm8xd"), SubResource("Resource_fovpr"), SubResource("Resource_qffjk"), SubResource("Resource_xfso0"), SubResource("Resource_7f8h1"), SubResource("Resource_03awh"), SubResource("Resource_4jfhf"), SubResource("Resource_on5f4"), SubResource("Resource_4vri8")])

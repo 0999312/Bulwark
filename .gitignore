@@ -24,3 +24,7 @@ Thumbs.db
 *.zip
 *.pck
 *.exe
+
+# 测试临时 APPDATA（GUT 沙箱重定向 / M2 双进程冒烟）
+.appdata/
+.appdata-*/

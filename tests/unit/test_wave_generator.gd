@@ -61,3 +61,57 @@ func test_summarize_format() -> void:
 	var comp := WaveGenerator.generate(wave, SeededRNG.new(wave.seed))
 	assert_string_contains(comp.summarize(), "N×3")
 	assert_string_contains(comp.summarize(), "E×3")
+
+# ─── M1：多敌人组构成（奔跑者变种混合） ───
+
+func _make_group(directions: Array[int], count_range: Vector2i, enemy_location: String) -> WaveSpawnGroupData:
+	var group := WaveSpawnGroupData.new()
+	group.directions = directions
+	group.count_range = count_range
+	group.enemy_location = enemy_location
+	return group
+
+func test_multi_group_composition_mixes_enemies() -> void:
+	var wave := WaveData.new()
+	wave.seed = 404
+	wave.groups = [
+		_make_group([0, 2], Vector2i(6, 8), "bulwark:enemy/runner"),
+		_make_group([4, 6], Vector2i(3, 5), "bulwark:enemy/runner_fast"),
+	]
+	var comp := WaveGenerator.generate(wave, SeededRNG.new(wave.seed))
+	assert_eq(comp.groups.size(), 4, "2 组 × 2 方位 = 4 个刷怪组")
+	var fast_count := 0
+	for group: WaveComposition.SpawnGroup in comp.groups:
+		if group.enemy_location == "bulwark:enemy/runner_fast":
+			fast_count += group.count
+	assert_gt(fast_count, 0, "疾行者组应出怪")
+	assert_gt(comp.total_count(), fast_count, "总数含奔跑者组")
+
+func test_multi_group_deterministic_same_seed() -> void:
+	var wave := WaveData.new()
+	wave.seed = 505
+	wave.groups = [
+		_make_group([0], Vector2i(2, 4), "bulwark:enemy/runner"),
+		_make_group([2], Vector2i(1, 3), "bulwark:enemy/runner_tough"),
+	]
+	var a := WaveGenerator.generate(wave, SeededRNG.new(wave.seed))
+	var b := WaveGenerator.generate(wave, SeededRNG.new(wave.seed))
+	assert_eq(a.total_count(), b.total_count(), "同种子多组总数一致")
+
+func test_legacy_single_group_fallback() -> void:
+	# groups 为空 → 回退单组简写字段（M0 数据不迁移）
+	var wave := _make_wave(9, [0, 2], Vector2i(3, 3))
+	assert_eq(wave.get_spawn_groups().size(), 1)
+	var comp := WaveGenerator.generate(wave, SeededRNG.new(wave.seed))
+	assert_eq(comp.groups.size(), 2)
+	for group: WaveComposition.SpawnGroup in comp.groups:
+		assert_eq(group.enemy_location, "bulwark:enemy/runner")
+
+func test_group_count_scale() -> void:
+	var wave := WaveData.new()
+	wave.seed = 606
+	var group := _make_group([0], Vector2i(4, 4), "bulwark:enemy/runner")
+	group.count_scale = 1.5
+	wave.groups = [group]
+	var comp := WaveGenerator.generate(wave, SeededRNG.new(wave.seed))
+	assert_eq(comp.groups[0].count, 6, "组内数量 ×1.5")

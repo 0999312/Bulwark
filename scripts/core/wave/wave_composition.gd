@@ -15,6 +15,10 @@ class SpawnGroup:
 
 var groups: Array[SpawnGroup] = []
 
+## 方位数量级阈值（M2，HUD 分级：count >= 该值 = 大量，否则少量）
+## 对齐 wave 数据分布：W1~3 单方向 6~11 → 大量；W4+ 快/硬壳 2~5 → 少量
+const HEAVY_THRESHOLD := 6
+
 func add_group(direction: int, count: int, enemy_location: String) -> void:
 	groups.append(SpawnGroup.new(direction, count, enemy_location))
 
@@ -31,3 +35,17 @@ func summarize() -> String:
 	for g in groups:
 		parts.append("%s×%d" % [WaveData.Direction.keys()[g.direction], g.count])
 	return ", ".join(parts)
+
+## 方位数量级分级（M2，HUD 简化显示：只报大量/少量，不再逐方向罗列数量）
+## 按方向聚合（同方向多组取最大 count 定级），返回 {"heavy": [dir...], "light": [dir...]}
+func summarize_tiers(threshold: int = HEAVY_THRESHOLD) -> Dictionary:
+	var per_dir: Dictionary = {}  # dir(int) -> max_count
+	for g in groups:
+		per_dir[g.direction] = maxi(per_dir.get(g.direction, 0), g.count)
+	var tiers := {"heavy": [], "light": []}
+	for dir: int in per_dir.keys():
+		var target: Array = tiers["heavy"] if per_dir[dir] >= threshold else tiers["light"]
+		target.append(dir)
+	(tiers["heavy"] as Array).sort()
+	(tiers["light"] as Array).sort()
+	return tiers

@@ -22,6 +22,8 @@ extends Resource
 @export var crit_multiplier: float = 2.0
 ## 有效射程（像素，HITSCAN 射线长度）
 @export var range: float = 900.0
+## 弹丸数（SPREAD 弹道：每发开火散射 n 条弹道；≥2 为霰弹）
+@export var pellets: int = 1
 
 @export_group("词条")
 ## 独特词条列表（P26，如 PIERCE / BURN / EXTENDED_MAG；M0 空，结构留位）

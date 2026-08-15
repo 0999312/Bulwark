@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_shop"]
+[ext_resource type="Script" path="res://scripts/data/attribute_modifier_data.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_mod"]
+script = ExtResource("2_mod")
+id = "mod_mag_up"
+display_name = "弹匣扩容"
+attribute = &"mag_size"
+amount = 0.0
+multiplier = 1.25
+
+[resource]
+script = ExtResource("1_shop")
+id = "shop/item/mag_up"
+display_name = "军需供应（弹匣 +25%）"
+description = "所有武器弹匣容量 ×1.25"
+category = 1
+rarity = 1
+base_price = 70
+is_fixed = false
+modifier = SubResource("Resource_mod")

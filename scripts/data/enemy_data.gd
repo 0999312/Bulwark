@@ -41,3 +41,13 @@ var armor: float = 0.0
 @export_group("掉落")
 ## 掉落表 ResourceLocation 列表（M0 无掉落，结构留位）
 @export var loot_table_locations: Array[String] = []
+
+@export_group("经济")
+## 击杀奖励货币（M1：商店经济来源）
+@export var kill_reward: int = 10
+
+@export_group("表现")
+## 视觉缩放（表现层参考；奔跑者变种区分体型用）
+@export var visual_scale: float = 1.0
+## 身体主色调（表现层填充色；变种区分用）
+@export var body_color: Color = Color(0.65, 0.35, 0.3, 1.0)

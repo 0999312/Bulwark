@@ -23,6 +23,7 @@ I18NManager="*uid://wj05s0mpoqn"
 UIManager="*uid://b0mn85k3pon1l"
 GUIDE="*res://addons/guide/guide.gd"
 SoundManager="*uid://bjex7rgsn4fi1"
+Net="*res://scripts/systems/net/net.gd"
 
 [display]
 
@@ -36,7 +37,7 @@ project/assembly_name="Bulwark 前线壁垒"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/dialogue_manager/plugin.cfg", "res://addons/guide/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/mc_game_framework/plugin.cfg", "res://addons/sound_manager/plugin.cfg")
+enabled=PackedStringArray("res://addons/guide/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/mc_game_framework/plugin.cfg", "res://addons/sound_manager/plugin.cfg")
 
 [gui]
 

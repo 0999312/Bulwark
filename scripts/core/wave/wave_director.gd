@@ -17,6 +17,10 @@ enum Phase {
 
 const WAVE_INTERMISSION_DURATION := 5.0
 
+## M1 波间商店：置 true 时 INTERMISSION 不自动计时，等待装配层 resume_from_intermission()
+## （商店关闭后调用）；默认 false 保持 M0 自动计时（测试兼容）
+var intermission_waits_for_shop := false
+
 var waves: Array[WaveData] = []
 var phase: Phase = Phase.IDLE
 var current_wave_index: int = -1
@@ -56,6 +60,8 @@ func tick(delta: float) -> void:
 				if _spawn_timer <= 0.0:
 					_spawn_next()
 		Phase.INTERMISSION:
+			if intermission_waits_for_shop:
+				return  # 等待商店关闭（GameSession 调 resume_from_intermission）
 			_timer -= delta
 			if _timer <= 0.0:
 				_begin_next_wave()
@@ -75,6 +81,12 @@ func register_enemy_spawned() -> void:
 func register_enemy_died() -> void:
 	alive_enemies = maxi(0, alive_enemies - 1)
 	_check_wave_cleared()
+
+## 波间商店关闭 → 继续下一波（intermission_waits_for_shop 时由装配层调用）
+func resume_from_intermission() -> void:
+	if phase != Phase.INTERMISSION:
+		return
+	_begin_next_wave()
 
 func get_wave_progress() -> String:
 	return "%d/%d" % [current_wave_index + 1, waves.size()]
@@ -97,7 +109,8 @@ func _begin_next_wave() -> void:
 
 	phase = Phase.WARNING
 	_timer = wave_data.warn_duration
-	EventBus.publish(WaveWarningEvent.new(current_wave_index + 1, waves.size(), composition))
+	EventBus.publish(WaveWarningEvent.new(current_wave_index + 1, waves.size(), composition,
+		composition.summarize_tiers()))
 	# 预警构成暂存，ACTIVE 时发出刷怪请求
 	_pending_composition = composition
 

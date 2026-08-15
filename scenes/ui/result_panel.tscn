@@ -1,7 +1,23 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/result_panel.gd" id="1_panel"]
 [ext_resource type="FontFile" path="res://assets/fonts/MiSans-Semibold.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 48.0
+content_margin_top = 32.0
+content_margin_right = 48.0
+content_margin_bottom = 32.0
+bg_color = Color(0.07, 0.09, 0.12, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.72, 0.3, 0.55)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [node name="ResultPanel" type="Control"]
 process_mode = 3
@@ -20,6 +36,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel"]
 theme_override_constants/separation = 12
@@ -27,6 +44,7 @@ theme_override_constants/separation = 12
 [node name="TitleLabel" type="Label" parent="Center/Panel/VBox"]
 unique_name_in_owner = true
 horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.95, 0.9, 0.6, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 34
 text = "结果"
@@ -34,6 +52,7 @@ text = "结果"
 [node name="SubLabel" type="Label" parent="Center/Panel/VBox"]
 unique_name_in_owner = true
 horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 1, 1, 0.62)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 text = "..."

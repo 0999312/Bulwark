@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_hud"]
 [ext_resource type="FontFile" path="res://assets/fonts/MiSans-Semibold.ttf" id="2_font"]
@@ -17,6 +17,46 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot_badge"]
+content_margin_left = 10.0
+content_margin_top = 3.0
+content_margin_right = 10.0
+content_margin_bottom = 3.0
+bg_color = Color(0.09, 0.12, 0.16, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.36, 0.46, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner_bg"]
+bg_color = Color(0.05, 0.07, 0.09, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.72, 0.3, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_revive_bg"]
+bg_color = Color(0.12, 0.04, 0.04, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.3, 0.26, 0.7)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [node name="Hud" type="Control"]
 process_mode = 1
 anchors_preset = 15
@@ -25,6 +65,20 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_hud")
+
+[node name="BannerBG" type="Panel" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -432.0
+offset_top = 102.0
+offset_right = 432.0
+offset_bottom = 158.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner_bg")
 
 [node name="BannerLabel" type="Label" parent="."]
 unique_name_in_owner = true
@@ -42,21 +96,61 @@ theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 26
 
-[node name="TopLeft" type="VBoxContainer" parent="."]
+[node name="ReviveBG" type="Panel" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -432.0
+offset_top = 148.0
+offset_right = 432.0
+offset_bottom = 204.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_revive_bg")
+
+[node name="ReviveLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -420.0
+offset_top = 156.0
+offset_right = 420.0
+offset_bottom = 196.0
+grow_horizontal = 2
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.45, 0.4, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+
+[node name="TopLeft" type="PanelContainer" parent="."]
 anchors_preset = 0
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 300.0
-offset_bottom = 130.0
+offset_right = 312.0
+offset_bottom = 106.0
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="TopLeft"]
 theme_override_constants/separation = 4
 
-[node name="HPLabel" type="Label" parent="TopLeft"]
+[node name="ResourcesLabel" type="Label" parent="TopLeft/VBox"]
+unique_name_in_owner = true
+text = "货币 -- · 建材 -- · 储备 --"
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+
+[node name="HPLabel" type="Label" parent="TopLeft/VBox"]
 unique_name_in_owner = true
 text = "生命 --"
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
-[node name="HPBar" type="ProgressBar" parent="TopLeft"]
+[node name="HPBar" type="ProgressBar" parent="TopLeft/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 16)
 max_value = 100.0
@@ -64,7 +158,7 @@ value = 100.0
 show_percentage = false
 theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
 
-[node name="TopRight" type="VBoxContainer" parent="."]
+[node name="TopRight" type="PanelContainer" parent="."]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -73,16 +167,19 @@ offset_top = 16.0
 offset_right = -16.0
 offset_bottom = 160.0
 grow_horizontal = 0
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="TopRight"]
 theme_override_constants/separation = 4
 
-[node name="BaseLabel" type="Label" parent="TopRight"]
+[node name="BaseLabel" type="Label" parent="TopRight/VBox"]
 unique_name_in_owner = true
 horizontal_alignment = 2
 text = "基地 --"
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
-[node name="BaseBar" type="ProgressBar" parent="TopRight"]
+[node name="BaseBar" type="ProgressBar" parent="TopRight/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 16)
 max_value = 300.0
@@ -90,66 +187,99 @@ value = 300.0
 show_percentage = false
 theme_override_styles/fill = SubResource("StyleBoxFlat_base_fill")
 
-[node name="WaveLabel" type="Label" parent="TopRight"]
+[node name="WaveLabel" type="Label" parent="TopRight/VBox"]
 unique_name_in_owner = true
 horizontal_alignment = 2
-text = "第 - / - 波"
+text = "第 -/- 波"
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
-[node name="CompassLabel" type="Label" parent="TopRight"]
+[node name="CompassLabel" type="Label" parent="TopRight/VBox"]
 unique_name_in_owner = true
 horizontal_alignment = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.4, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 
-[node name="BottomLeft" type="VBoxContainer" parent="."]
+[node name="BottomLeft" type="PanelContainer" parent="."]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 16.0
-offset_top = -140.0
-offset_right = 340.0
+offset_top = -150.0
+offset_right = 380.0
 offset_bottom = -16.0
 grow_vertical = 0
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="BottomLeft"]
 theme_override_constants/separation = 4
 
-[node name="SlotsRow" type="HBoxContainer" parent="BottomLeft"]
+[node name="SlotsRow" type="HBoxContainer" parent="BottomLeft/VBox"]
 theme_override_constants/separation = 8
 
-[node name="SlotMain" type="Label" parent="BottomLeft/SlotsRow"]
+[node name="SlotMainBadge" type="PanelContainer" parent="BottomLeft/VBox/SlotsRow"]
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_badge")
+
+[node name="SlotMain" type="Label" parent="BottomLeft/VBox/SlotsRow/SlotMainBadge"]
 unique_name_in_owner = true
 text = "1 主"
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
-[node name="SlotSub" type="Label" parent="BottomLeft/SlotsRow"]
+[node name="SlotSubBadge" type="PanelContainer" parent="BottomLeft/VBox/SlotsRow"]
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_badge")
+
+[node name="SlotSub" type="Label" parent="BottomLeft/VBox/SlotsRow/SlotSubBadge"]
 unique_name_in_owner = true
 text = "2 副"
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
-[node name="SlotPistol" type="Label" parent="BottomLeft/SlotsRow"]
+[node name="SlotPistolBadge" type="PanelContainer" parent="BottomLeft/VBox/SlotsRow"]
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_badge")
+
+[node name="SlotPistol" type="Label" parent="BottomLeft/VBox/SlotsRow/SlotPistolBadge"]
 unique_name_in_owner = true
 text = "3 手枪"
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
-[node name="AmmoLabel" type="Label" parent="BottomLeft"]
+[node name="AmmoLabel" type="HBoxContainer" parent="BottomLeft/VBox"]
 unique_name_in_owner = true
-text = "弹药 --"
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
+custom_minimum_size = Vector2(0, 44)
+alignment = 1
+theme_override_constants/separation = 6
 
-[node name="ReloadLabel" type="Label" parent="BottomLeft"]
+[node name="AmmoTitle" type="Label" parent="BottomLeft/VBox/AmmoLabel"]
+text = "弹药"
+theme_override_colors/font_color = Color(0.545, 0.588, 0.647, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+
+[node name="AmmoMag" type="Label" parent="BottomLeft/VBox/AmmoLabel"]
+unique_name_in_owner = true
+text = "--"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 30
+
+[node name="AmmoReserve" type="Label" parent="BottomLeft/VBox/AmmoLabel"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.545, 0.588, 0.647, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+
+[node name="ReloadLabel" type="Label" parent="BottomLeft/VBox"]
 unique_name_in_owner = true
 visible = false
 theme_override_colors/font_color = Color(1, 0.7, 0.5, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 
-[node name="SwitchLabel" type="Label" parent="BottomLeft"]
+[node name="SwitchLabel" type="Label" parent="BottomLeft/VBox"]
 unique_name_in_owner = true
 visible = false
 theme_override_colors/font_color = Color(1, 0.7, 0.5, 1)
@@ -173,4 +303,4 @@ horizontal_alignment = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.55)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
-text = "WASD 移动 · 鼠标瞄准 · 左键射击 · R 换弹 · 1/3 切枪 · Esc 暂停"
+text = "WASD 移动 · 左键射击 · R 换弹 · 1/2/3 切枪 · E 路障 · Esc 暂停"
