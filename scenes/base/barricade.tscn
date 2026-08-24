@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/base/barricade_view.gd" id="1_view"]
+[ext_resource type="Texture2D" path="res://assets/particles/dirt_01.png" id="2_dirt"]
 
 [sub_resource type="ConcavePolygonShape2D" id="ConcavePolygonShape2D_arc"]
 segments = PackedVector2Array(-16, -16, 16, -16, 16, -16, 0, 16, 0, 16, -16, -16)
@@ -14,10 +15,26 @@ script = ExtResource("1_view")
 shape = SubResource("ConcavePolygonShape2D_arc")
 
 [node name="Outline" type="Polygon2D" parent="."]
-color = Color(0.72, 0.75, 0.62, 1)
+color = Color(0.36, 0.27, 0.15, 1)
 
 [node name="Visual" type="Polygon2D" parent="."]
-color = Color(0.45, 0.48, 0.42, 1)
+color = Color(1, 1, 1, 1)
 
 [node name="Spikes" type="Polygon2D" parent="."]
-color = Color(0.72, 0.75, 0.62, 1)
+color = Color(0.82, 0.65, 0.35, 1)
+
+[node name="DestroyParticles" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 18
+lifetime = 0.6
+one_shot = true
+explosiveness = 1.0
+lifetime_randomness = 0.2
+direction = Vector2(0, -1)
+spread = 180.0
+gravity = Vector2(0, 320)
+initial_velocity_min = 50.0
+initial_velocity_max = 180.0
+scale_amount_min = 0.03
+scale_amount_max = 0.07
+texture = ExtResource("2_dirt")

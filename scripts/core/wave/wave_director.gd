@@ -110,7 +110,7 @@ func _begin_next_wave() -> void:
 	phase = Phase.WARNING
 	_timer = wave_data.warn_duration
 	EventBus.publish(WaveWarningEvent.new(current_wave_index + 1, waves.size(), composition,
-		composition.summarize_tiers()))
+		composition.summarize_tiers(), composition.threat_tier(), composition.has_elite()))
 	# 预警构成暂存，ACTIVE 时发出刷怪请求
 	_pending_composition = composition
 

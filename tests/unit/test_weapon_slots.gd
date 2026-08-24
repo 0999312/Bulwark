@@ -2,8 +2,8 @@ extends GutTest
 ## 三槽位武器 + 切换 CD 状态机测试（已定 P11/P23/P25）
 ## CD 规则：主↔副 1.5s；↔手枪 0.3s（落地：min(双方 switch_cd)）
 
-const RIFLE_ID := "weapon/model/storm7"
-const PISTOL_ID := "weapon/model/sentinel1"
+const RIFLE_ID := "weapon/model/ar_1"
+const PISTOL_ID := "weapon/model/hg_1"
 
 var ammo: AmmoSystem
 var slots: WeaponSlots
@@ -13,7 +13,7 @@ func before_each() -> void:
 	ammo.set_count(WeaponTypeData.AmmoType.BULLET, 90)
 	slots = WeaponSlots.new(ammo)
 	var rifle_type := WeaponTypeData.new()
-	rifle_type.id = "weapon/type/assault_rifle"
+	rifle_type.id = "weapon/type/ar"
 	rifle_type.slot = WeaponTypeData.SlotType.MAIN
 	rifle_type.switch_cd = 1.5
 	var rifle := WeaponModelData.new()
@@ -24,7 +24,7 @@ func before_each() -> void:
 	rifle.reload_time = 0.5
 	slots.assign_slot(WeaponSlots.SLOT_MAIN, rifle_type, rifle)
 	var pistol_type := WeaponTypeData.new()
-	pistol_type.id = "weapon/type/pistol"
+	pistol_type.id = "weapon/type/hg"
 	pistol_type.slot = WeaponTypeData.SlotType.PISTOL
 	pistol_type.switch_cd = 0.3
 	var pistol := WeaponModelData.new()
@@ -49,11 +49,11 @@ func test_switch_to_pistol_cd_is_0_3() -> void:
 func test_main_to_sub_cd_is_1_5_structure() -> void:
 	# P23：主↔副 1.5s（副槽 M1 实装，结构先行）
 	var sub_type := WeaponTypeData.new()
-	sub_type.id = "weapon/type/shotgun_placeholder"
+	sub_type.id = "weapon/type/sg_placeholder"
 	sub_type.slot = WeaponTypeData.SlotType.SUB
 	sub_type.switch_cd = 1.5
 	var sub := WeaponModelData.new()
-	sub.id = "weapon/model/shotgun_placeholder"
+	sub.id = "weapon/model/sg_placeholder"
 	sub.mag_size = 5
 	slots.assign_slot(WeaponSlots.SLOT_SUB, sub_type, sub)
 	assert_true(slots.try_switch_to(WeaponSlots.SLOT_SUB))

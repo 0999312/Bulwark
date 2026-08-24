@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = "enemy/self_destruct"
+display_name = "自爆体"
+threat_mode = 1
+max_hp = 18.0
+move_speed = 110.0
+attack_damage = 6.0
+attack_interval = 1.2
+attack_range = 42.0
+armor = 0.0
+explosion_radius = 90.0
+explosion_damage = 30.0
+player_count_scale = 1.6
+loot_table_locations = Array[String]([])
+kill_reward = 12
+visual_scale = 0.95
+body_color = Color(0.85, 0.32, 0.2, 1)

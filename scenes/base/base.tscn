@@ -1,6 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/base/base_view.gd" id="1_view"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tiles/tile_214.png" id="2_visual"]
+[ext_resource type="Texture2D" path="res://assets/particles/smoke_06.png" id="3_smoke"]
+[ext_resource type="Texture2D" path="res://assets/particles/light_03.png" id="4_light"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_core"]
 radius = 48.0
@@ -13,17 +16,9 @@ script = ExtResource("1_view")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_core")
 
-[node name="Outline" type="Polygon2D" parent="."]
-z_index = -1
-scale = Vector2(1.1, 1.1)
-color = Color(0.04, 0.055, 0.07, 1)
-antialiased = true
-polygon = PackedVector2Array(-48, 0, -34, -34, 0, -48, 34, -34, 48, 0, 34, 34, 0, 48, -34, 34)
-
-[node name="Visual" type="Polygon2D" parent="."]
-color = Color(0.28, 0.42, 0.5, 1)
-antialiased = true
-polygon = PackedVector2Array(-48, 0, -34, -34, 0, -48, 34, -34, 48, 0, 34, 34, 0, 48, -34, 34)
+[node name="Visual" type="Sprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_visual")
 
 [node name="Core" type="Polygon2D" parent="Visual"]
 color = Color(1, 0.85, 0.4, 0.9)
@@ -37,6 +32,12 @@ color = Color(1, 0.75, 0.3, 0.25)
 antialiased = true
 polygon = PackedVector2Array(-22, 0, -16, -16, 0, -22, 16, -16, 22, 0, 16, 16, 0, 22, -16, 16)
 
+[node name="CoreLight" type="PointLight2D" parent="Visual"]
+energy = 0.9
+color = Color(1, 0.8, 0.4, 1)
+texture = ExtResource("4_light")
+texture_scale = 0.3
+
 [node name="Smoke" type="CPUParticles2D" parent="."]
 emitting = false
 amount = 6
@@ -49,6 +50,7 @@ spread = 25.0
 gravity = Vector2(0, -30)
 initial_velocity_min = 20.0
 initial_velocity_max = 50.0
-scale_amount_min = 3.0
-scale_amount_max = 8.0
+scale_amount_min = 0.04
+scale_amount_max = 0.08
 color = Color(0.4, 0.4, 0.42, 0.35)
+texture = ExtResource("3_smoke")

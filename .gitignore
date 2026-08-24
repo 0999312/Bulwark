@@ -28,3 +28,9 @@ Thumbs.db
 # 测试临时 APPDATA（GUT 沙箱重定向 / M2 双进程冒烟）
 .appdata/
 .appdata-*/
+
+# 临时素材（Kenney 源包解压，已抽取到 assets/，不入库）
+temp_assets/
+
+# 本地/联机运行配置（含 NodeTunnel app_id，勿公开提交）
+config.cfg

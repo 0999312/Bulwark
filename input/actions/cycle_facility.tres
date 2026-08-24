@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="GUIDEAction" format=3]
+
+[ext_resource type="Script" path="res://addons/guide/guide_action.gd" id="1_fgfxi"]
+
+[resource]
+script = ExtResource("1_fgfxi")
+name = &"cycle_facility"
+is_remappable = true
+display_name = "切换设施"
+display_category = "战斗"

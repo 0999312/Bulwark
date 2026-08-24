@@ -139,14 +139,14 @@ theme_override_constants/separation = 4
 
 [node name="ResourcesLabel" type="Label" parent="TopLeft/VBox"]
 unique_name_in_owner = true
-text = "货币 -- · 建材 -- · 储备 --"
+text = ""
 theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 
 [node name="HPLabel" type="Label" parent="TopLeft/VBox"]
 unique_name_in_owner = true
-text = "生命 --"
+text = ""
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
@@ -175,7 +175,7 @@ theme_override_constants/separation = 4
 [node name="BaseLabel" type="Label" parent="TopRight/VBox"]
 unique_name_in_owner = true
 horizontal_alignment = 2
-text = "基地 --"
+text = ""
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
@@ -190,7 +190,7 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_base_fill")
 [node name="WaveLabel" type="Label" parent="TopRight/VBox"]
 unique_name_in_owner = true
 horizontal_alignment = 2
-text = "第 -/- 波"
+text = ""
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
@@ -224,7 +224,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_slot_badge")
 
 [node name="SlotMain" type="Label" parent="BottomLeft/VBox/SlotsRow/SlotMainBadge"]
 unique_name_in_owner = true
-text = "1 主"
+text = ""
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
@@ -234,7 +234,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_slot_badge")
 
 [node name="SlotSub" type="Label" parent="BottomLeft/VBox/SlotsRow/SlotSubBadge"]
 unique_name_in_owner = true
-text = "2 副"
+text = ""
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
@@ -244,7 +244,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_slot_badge")
 
 [node name="SlotPistol" type="Label" parent="BottomLeft/VBox/SlotsRow/SlotPistolBadge"]
 unique_name_in_owner = true
-text = "3 手枪"
+text = ""
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
@@ -255,7 +255,8 @@ alignment = 1
 theme_override_constants/separation = 6
 
 [node name="AmmoTitle" type="Label" parent="BottomLeft/VBox/AmmoLabel"]
-text = "弹药"
+unique_name_in_owner = true
+text = ""
 theme_override_colors/font_color = Color(0.545, 0.588, 0.647, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
@@ -303,4 +304,23 @@ horizontal_alignment = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.55)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
-text = "WASD 移动 · 左键射击 · R 换弹 · 1/2/3 切枪 · E 路障 · Esc 暂停"
+text = ""
+
+[node name="PauseHintLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -432.0
+offset_top = -86.0
+offset_right = 432.0
+offset_bottom = -56.0
+grow_horizontal = 2
+grow_vertical = 0
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15

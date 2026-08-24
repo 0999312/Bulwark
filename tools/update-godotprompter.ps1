@@ -1,4 +1,4 @@
-# 同步 GodotPrompter 技能到本项目的脚本
+﻿# 同步 GodotPrompter 技能到本项目的脚本
 # 用法: pwsh tools/update-godotprompter.ps1
 # 说明: 从上游 https://github.com/jame581/GodotPrompter.git 拉取技能，同步到 .dsh/skills/
 #       本地克隆保留在 .research/godotprompter（不入库，见 .gitignore）

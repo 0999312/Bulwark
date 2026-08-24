@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_shop"]
+[ext_resource type="Script" path="res://scripts/data/attribute_modifier_data.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_mod"]
+script = ExtResource("2_mod")
+id = "mod_crit_chance_up"
+display_name = "暴击率强化"
+attribute = &"crit_chance"
+amount = 0.05
+multiplier = 1.0
+
+[resource]
+script = ExtResource("1_shop")
+id = "shop/item/crit_chance_up"
+display_name = "精准击穿（暴击率 +5%）"
+description = "所有武器暴击率 +5%"
+category = 1
+rarity = 1
+base_price = 80
+is_fixed = false
+modifier = SubResource("Resource_mod")

@@ -63,3 +63,42 @@ func test_hud_format_null_composition_safe() -> void:
 	# client 镜像事件：composition 为 null + 无 tiers → 空串不崩
 	var event := WaveWarningEvent.new(2, 6, null)
 	assert_eq(Hud._format_direction_tiers(event), "")
+
+# ─── M5a：波次预告数量档 + 精英标记 ───
+
+func _make_comp(counts: Array[int]) -> WaveComposition:
+	var comp := WaveComposition.new()
+	for i in counts.size():
+		comp.add_group(i, counts[i], "bulwark:enemy/runner")
+	return comp
+
+func test_threat_tier_light() -> void:
+	assert_eq(_make_comp([2, 2]).threat_tier(), WaveComposition.TIER_LIGHT)
+
+func test_threat_tier_medium() -> void:
+	assert_eq(_make_comp([2, 3]).threat_tier(), WaveComposition.TIER_MEDIUM, "总量 5 起为中等")
+
+func test_threat_tier_heavy() -> void:
+	assert_eq(_make_comp([6, 6]).threat_tier(), WaveComposition.TIER_HEAVY, "总量 12 起为大量")
+
+func test_has_elite_by_location() -> void:
+	var comp := WaveComposition.new()
+	comp.add_group(0, 1, "bulwark:enemy/elite_behemoth")
+	assert_true(comp.has_elite(), "敌人 id 含 elite 判定为精英波")
+
+func test_has_elite_by_flag() -> void:
+	var comp := WaveComposition.new()
+	comp.is_elite_wave = true
+	comp.add_group(0, 4, "bulwark:enemy/runner")
+	assert_true(comp.has_elite(), "WaveData.is_elite_wave 标记生效")
+
+func test_no_elite() -> void:
+	var comp := WaveComposition.new()
+	comp.add_group(0, 5, "bulwark:enemy/runner")
+	assert_false(comp.has_elite())
+
+func test_hud_tier_text_mapping() -> void:
+	assert_eq(Hud._tier_text(WaveComposition.TIER_HEAVY), "大量")
+	assert_eq(Hud._tier_text(WaveComposition.TIER_MEDIUM), "中等")
+	assert_eq(Hud._tier_text(WaveComposition.TIER_LIGHT), "少量")
+	assert_eq(Hud._tier_text(""), "未知")

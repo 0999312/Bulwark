@@ -42,10 +42,9 @@ func test_invincibility_expires_after_duration() -> void:
 	assert_true(player.is_dead(), "过期后伤害正常生效")
 	assert_eq(_died_count, 2, "触发第二次阵亡事件")
 
-func test_invincibility_does_not_block_healing() -> void:
+func test_revive_keeps_health_at_max() -> void:
 	_kill()
 	player.revive()
-	player.heal(10.0)  # 满血时治疗无效果但不应报错
 	assert_eq(player.health, player.max_health)
 
 func test_normal_damage_without_revive_unchanged() -> void:

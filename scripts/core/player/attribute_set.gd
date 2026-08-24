@@ -8,6 +8,16 @@ extends RefCounted
 const MAX_HEALTH := &"max_health"
 const MOVE_SPEED := &"move_speed"
 const RELOAD_SPEED := &"reload_speed"
+## M5b：商店强化扩展键
+const ARMOR := &"armor"
+const LIFESTEAL := &"lifesteal"
+const SWITCH_CD := &"switch_cd"
+const TURRET_DAMAGE := &"turret_damage"
+const BARRICADE_HP := &"barricade_hp"
+const REPAIR_SPEED := &"repair_speed"
+const BUILD_COST := &"build_cost"
+const MATERIAL_YIELD := &"material_yield"
+const CREDIT_YIELD := &"credit_yield"
 
 var _base: Dictionary = {}           # StringName -> float
 var _additive: Dictionary = {}       # StringName -> float（Σ）

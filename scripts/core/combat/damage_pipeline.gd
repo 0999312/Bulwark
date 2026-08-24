@@ -35,12 +35,18 @@ static func compute(ctx: DamageContext, rng: RandomNumberGenerator = null) -> Da
 			damage *= ctx.crit_multiplier
 			result.critical = true
 
-	# ── 4. 弱点（P31 占位：命中 ×2）
+	# ── 4. 弱点（P31：命中按弱点倍率，默认 ×2；精英可配置）
 	if ctx.weak_point_hit:
-		damage *= 2.0
+		damage *= maxf(1.0, ctx.weak_point_multiplier)
 
-	# ── 5. 防御减免
-	damage *= 1.0 - clampf(ctx.defense, 0.0, 0.9)
+	# ── 5. 防御减免（含方向性护甲：正面减伤，侧/背无减伤）
+	var defense := ctx.defense
+	if ctx.directional_defense \
+			and ctx.attack_direction.length_squared() > 0.001 \
+			and ctx.facing_direction.length_squared() > 0.001:
+		var dot := ctx.attack_direction.normalized().dot(ctx.facing_direction.normalized())
+		defense = ctx.frontal_defense if dot >= 0.5 else 0.0
+	damage *= 1.0 - clampf(defense, 0.0, 0.9)
 
 	result.damage = damage
 	return result

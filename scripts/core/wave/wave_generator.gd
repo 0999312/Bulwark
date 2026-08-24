@@ -8,6 +8,7 @@ extends RefCounted
 ## M1：WaveData.groups（多敌人组，奔跑者变种混合）；groups 为空回退单组简写
 static func generate(wave_data: WaveData, rng: SeededRNG) -> WaveComposition:
 	var composition := WaveComposition.new()
+	composition.is_elite_wave = wave_data.is_elite_wave
 	for group: WaveSpawnGroupData in wave_data.get_spawn_groups():
 		for direction: int in group.directions:
 			var count := rng.randi_range(group.count_range.x, group.count_range.y)

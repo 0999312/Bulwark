@@ -1,7 +1,7 @@
 extends GutTest
 ## 基地核心测试（P7：耐久归零判负）
 ## 敌人啃基地的接线（EnemyAttackEvent → BaseCore）在 GameSession（装配层）完成，
-## 单测覆盖：BaseCore 扣减/判负 + RunnerController 攻击事件（见 test_runner_controller.gd）
+## 单测覆盖：BaseCore 扣减/判负 + EnemyController 攻击事件（见 test_enemy_controller.gd）
 
 func test_durability_clamp_and_destroy() -> void:
 	var core := BaseCore.new(100.0)

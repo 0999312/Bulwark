@@ -60,3 +60,7 @@ func get_spawn_groups() -> Array[WaveSpawnGroupData]:
 @export_group("强度")
 ## 玩家人数缩放系数（架构 §4.6；M0 固定 1.0，单人多同时设计留位）
 @export var player_count_scale: float = 1.0
+
+@export_group("精英")
+## 精英波标记（关底：1 精英 + 同方位强化小怪潮，M5a）
+@export var is_elite_wave: bool = false

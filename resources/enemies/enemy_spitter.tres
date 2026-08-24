@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = "enemy/spitter"
+display_name = "喷吐者"
+threat_mode = 3
+max_hp = 20.0
+move_speed = 70.0
+attack_damage = 10.0
+attack_interval = 2.0
+attack_range = 260.0
+armor = 0.0
+projectile_speed = 320.0
+projectile_range = 300.0
+player_count_scale = 1.6
+loot_table_locations = Array[String]([])
+kill_reward = 14
+visual_scale = 1.0
+body_color = Color(0.45, 0.62, 0.3, 1)

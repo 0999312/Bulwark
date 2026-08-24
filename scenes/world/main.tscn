@@ -1,35 +1,49 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/game_session.gd" id="1_session"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/base/base.tscn" id="3_base"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tiles/tile_01.png" id="4_grass"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tiles/tile_05.png" id="5_dirt"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_session")
 
 [node name="Ground" type="Polygon2D" parent="."]
 z_index = -20
-color = Color(0.07, 0.088, 0.106, 1)
+texture_repeat = 1
+color = Color(1, 1, 1, 1)
 antialiased = true
 polygon = PackedVector2Array(-1400, -1150, 1400, -1150, 1400, 1150, -1400, 1150)
+uv = PackedVector2Array(-21.875, -17.9688, 21.875, -17.9688, 21.875, 17.9688, -21.875, 17.9688)
+texture = ExtResource("4_grass")
 
 [node name="ZoneA" type="Polygon2D" parent="."]
 z_index = -19
-color = Color(0.09, 0.11, 0.13, 1)
+texture_repeat = 1
+color = Color(1, 1, 1, 1)
 antialiased = true
 polygon = PackedVector2Array(-900, -600, -300, -750, 150, -520, -50, -260, -700, -180, -1050, -320)
+uv = PackedVector2Array(-14.0625, -9.375, -4.6875, -11.7188, 2.3438, -8.125, -0.7812, -4.0625, -10.9375, -2.8125, -16.4062, -5)
+texture = ExtResource("5_dirt")
 
 [node name="ZoneB" type="Polygon2D" parent="."]
 z_index = -19
-color = Color(0.085, 0.104, 0.124, 1)
+texture_repeat = 1
+color = Color(1, 1, 1, 1)
 antialiased = true
 polygon = PackedVector2Array(200, 250, 750, 120, 980, 420, 620, 760, 150, 620)
+uv = PackedVector2Array(3.125, 3.9062, 11.7188, 1.875, 15.3125, 6.5625, 9.6875, 11.875, 2.3438, 9.6875)
+texture = ExtResource("5_dirt")
 
 [node name="ZoneC" type="Polygon2D" parent="."]
 z_index = -19
-color = Color(0.055, 0.07, 0.085, 1)
+texture_repeat = 1
+color = Color(1, 1, 1, 1)
 antialiased = true
 polygon = PackedVector2Array(300, -700, 850, -820, 1080, -520, 700, -300, 320, -420)
+uv = PackedVector2Array(4.6875, -10.9375, 13.2812, -12.8125, 16.875, -8.125, 10.9375, -4.6875, 5, -6.5625)
+texture = ExtResource("5_dirt")
 
 [node name="GridV0" type="Line2D" parent="."]
 z_index = -18

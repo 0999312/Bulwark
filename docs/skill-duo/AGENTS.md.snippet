@@ -1,0 +1,11 @@
+## Godot Skill Duo 路由（GodotPrompter 主 + GD-Agentic-Skills 辅）
+
+<!-- skill-duo:begin -->
+1. **Godot 开发任务先加载 `using-godot-skill-duo`**（已装于 `.dsh/skills/`），它给出双体系路由。
+2. **主**：GodotPrompter（`.dsh/skills/`，55 技能）——流程/架构/评审/测试/调试/C#/第三方 addon 优先；加载方式见 §4 工具映射与 §5 路由卡。
+3. **辅**：GD-Agentic-Skills（克隆于 `.research/gd-agentic-skills/`，不入库）——生产级 GDScript、27 个类型蓝图、4.7 专属/迁移、数值平衡、Agent Vision；按需读 `skills/<name>/SKILL.md`，**不要整体安装**。
+4. **任务索引**：`.dsh/skills/using-godot-skill-duo/duo-skill-index.json`（machine-readable）。
+5. **更新**：GD + 路由模板 `pwsh tools/setup-godot-skill-duo.ps1`；GP `pwsh tools/update-godotprompter.ps1`。
+6. **冲突去重**：同主题只选一个主（默认 GP）；去重表见 `using-godot-skill-duo` SKILL.md。
+<!-- skill-duo:end -->
+

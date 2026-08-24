@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = "enemy/sniper"
+display_name = "狙击手怪"
+threat_mode = 4
+max_hp = 25.0
+move_speed = 60.0
+attack_damage = 25.0
+attack_interval = 3.0
+attack_range = 420.0
+armor = 0.0
+projectile_speed = 700.0
+projectile_range = 450.0
+windup_time = 0.8
+player_count_scale = 1.6
+loot_table_locations = Array[String]([])
+kill_reward = 18
+visual_scale = 1.0
+body_color = Color(0.55, 0.22, 0.25, 1)

@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/base/turret_view.gd" id="1_view"]
+[ext_resource type="Texture2D" path="res://temp_assets/turret/turret_base.svg" id="2_base"]
+[ext_resource type="Texture2D" path="res://temp_assets/turret/turret_barrel.svg" id="3_barrel"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 22.0
+
+[node name="Turret" type="StaticBody2D"]
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("1_view")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_base")
+scale = Vector2(0.8, 0.8)
+
+[node name="Barrel" type="Sprite2D" parent="."]
+texture = ExtResource("3_barrel")
+scale = Vector2(0.8, 0.8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")

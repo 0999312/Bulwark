@@ -1,12 +1,13 @@
 class_name DefenseFacilityData
 extends Resource
 ## 防线设施数据（架构 §4.7 DefenseFacilityData）
-## M1 实装：路障（阻挡/拖延怪物推进，可被敌人攻击摧毁，消耗建材建造）
+## 保留设施：路障（阻挡/拖延怪物推进）、自动炮塔（辅助火力）
 ## 弧形路障：沿基地同心圆弧段（弧心 = 基地），弧线穿过玩家站位
 
 enum FacilityType {
-	BARRICADE = 0, # 路障（M1 唯一实装）
-	# TURRET / AMMO_DEPOT / SPIKE / REPAIR_STATION 为 M3+ 扩展（§7.3 设施池）
+	BARRICADE = 0,   # 路障（M1 实装）
+	TURRET = 1,      # 自动炮塔（M5b）
+	# 弹药补给台已移除（冗余：击杀掉弹 + 商店弹药箱已覆盖补给闭环）
 }
 
 @export_group("标识")
@@ -21,6 +22,18 @@ enum FacilityType {
 @export var material_cost: int = 1
 ## 建造半径限制（距基地中心；路障需布防在基地附近）
 @export var build_radius: float = 500.0
+
+@export_group("炮塔")
+## 自动炮塔：单发伤害（host 结算；温和削弱：10→6）
+@export var turret_damage: float = 6.0
+## 自动炮塔：射速（发/秒；温和削弱：2.0→1.5）
+@export var turret_fire_rate: float = 1.5
+## 自动炮塔：索敌/射程（像素；温和削弱：500→360）
+@export var turret_range: float = 360.0
+## 最小修复：每次修复消耗建材
+@export var repair_cost: int = 1
+## 最小修复：每次修复恢复耐久
+@export var repair_amount: float = 50.0
 
 @export_group("表现")
 ## 视觉尺寸（表现层缩放参考；弧形路障不再使用，保留向后兼容）

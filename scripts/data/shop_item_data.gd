@@ -15,6 +15,7 @@ enum Category {
 	BARRICADE = 3,
 	RESERVE = 4,
 	AMMO = 5,        # 弹药箱（补充子弹备弹；补给经济闭环）
+	WEAPON_CRATE = 6, # 武器箱（M5b：购买后加入个人军械库）
 }
 
 enum Rarity {
@@ -56,6 +57,10 @@ const RARITY_PRICE_COEF := {
 @export var reserve_count: int = 0
 ## AMMO：购买补充的子弹备弹数（弹药箱类商品）
 @export var ammo_amount: int = 0
+## AMMO：弹药类型（默认 BULLET；能量弹药箱填 ENERGY）
+@export var ammo_type: int = 0
+## WEAPON_CRATE：加入个人军械库的武器型号 ResourceLocation
+@export var model_location: String = ""
 
 ## 当前价格（含稀有度系数；购买次数递增由 ShopSystem 结算）
 func price_with_rarity() -> int:

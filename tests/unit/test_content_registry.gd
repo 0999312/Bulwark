@@ -16,11 +16,11 @@ func test_all_m0_content_registered_under_bulwark() -> void:
 	assert_not_null(wave_reg)
 
 	# 武器种类
-	assert_not_null(type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_ASSAULT_RIFLE)))
-	assert_not_null(type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_PISTOL)))
+	assert_not_null(type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_AR)))
+	assert_not_null(type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_HG)))
 	# 武器型号
-	assert_not_null(model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_STORM7)))
-	assert_not_null(model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_SENTINEL1)))
+	assert_not_null(model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_AR_1)))
+	assert_not_null(model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_HG_1)))
 	# 敌人
 	assert_not_null(enemy_reg.get_entry(Bulwark.loc(Bulwark.ENEMY_RUNNER)))
 	# 波次 ×3
@@ -45,11 +45,11 @@ func test_m1_content_registered_under_bulwark() -> void:
 	assert_not_null(fac_reg)
 
 	# 霰弹枪（副武器）：类型 + 型号 + 弹丸数
-	var shotgun: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_SHOTGUN))
+	var shotgun: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_SG))
 	assert_not_null(shotgun)
 	assert_eq(shotgun.slot, WeaponTypeData.SlotType.SUB, "霰弹枪为副槽")
 	assert_eq(shotgun.ballistic, WeaponTypeData.BallisticMode.SPREAD, "霰弹为 SPREAD 弹道")
-	var jawbreaker: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_JAWBREAKER))
+	var jawbreaker: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_SG_1))
 	assert_not_null(jawbreaker)
 	assert_gt(jawbreaker.pellets, 1, "霰弹型号弹丸数 > 1")
 
@@ -105,8 +105,8 @@ func test_resource_location_namespace_and_id() -> void:
 func test_p23_switch_cd_values_in_data() -> void:
 	# 已定数值 P23：主↔副 1.5s、↔手枪 0.3s（数据驱动来源）
 	var type_reg: WeaponTypeRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_TYPE)
-	var rifle: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_ASSAULT_RIFLE))
-	var pistol: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_PISTOL))
+	var rifle: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_AR))
+	var pistol: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_HG))
 	assert_not_null(rifle)
 	assert_not_null(pistol)
 	assert_almost_eq(rifle.switch_cd, 1.5, 0.001)
@@ -114,16 +114,87 @@ func test_p23_switch_cd_values_in_data() -> void:
 
 func test_p26_fictional_names_in_data() -> void:
 	var model_reg: WeaponModelRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_MODEL)
-	var storm7: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_STORM7))
-	assert_not_null(storm7)
-	assert_string_contains(storm7.display_name, "风暴-7")
-	assert_eq(storm7.type_id, "bulwark:weapon/type/assault_rifle")
+	var ar_1: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_AR_1))
+	assert_not_null(ar_1)
+	assert_string_contains(ar_1.display_name, "AR-1")
+	assert_eq(ar_1.type_id, "bulwark:weapon/type/ar")
 
 func test_model_type_reference_resolves() -> void:
 	# 数据层交叉引用（type_id → WeaponTypeRegistry）可解析
 	var model_reg: WeaponModelRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_MODEL)
 	var type_reg: WeaponTypeRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_TYPE)
-	var storm7: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_STORM7))
-	var resolved: WeaponTypeData = type_reg.get_entry(ResourceLocation.from_string(storm7.type_id))
+	var ar_1: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_AR_1))
+	var resolved: WeaponTypeData = type_reg.get_entry(ResourceLocation.from_string(ar_1.type_id))
 	assert_not_null(resolved)
-	assert_eq(resolved.id, "weapon/type/assault_rifle")
+	assert_eq(resolved.id, "weapon/type/ar")
+
+func test_m5a_enemy_content_registered() -> void:
+	var enemy_reg: EnemyRegistry = RegistryManager.get_registry(Bulwark.REG_ENEMY)
+	assert_not_null(enemy_reg)
+	for enemy_id in [
+		Bulwark.ENEMY_RUNNER,
+		Bulwark.ENEMY_RUNNER_FAST,
+		Bulwark.ENEMY_RUNNER_TOUGH,
+		Bulwark.ENEMY_SELF_DESTRUCT,
+		Bulwark.ENEMY_SPITTER,
+		Bulwark.ENEMY_ARMORED,
+		Bulwark.ENEMY_FLYING,
+		Bulwark.ENEMY_SNIPER,
+		Bulwark.ENEMY_ELITE_BEHEMOTH,
+	]:
+		var enemy: EnemyData = enemy_reg.get_entry(Bulwark.loc(enemy_id))
+		assert_not_null(enemy, "敌人已注册 %s" % enemy_id)
+		if enemy_id == Bulwark.ENEMY_ELITE_BEHEMOTH:
+			assert_true(enemy.is_elite, "精英·巨兽带精英标记")
+			assert_true(enemy.has_weak_point, "精英·巨兽带弱点机制")
+
+func test_m5a_wave6_is_elite_wave() -> void:
+	var wave_reg: WaveRegistry = RegistryManager.get_registry(Bulwark.REG_WAVE)
+	var wave: WaveData = wave_reg.get_entry(Bulwark.loc(Bulwark.WAVE_6))
+	assert_not_null(wave)
+	assert_true(wave.is_elite_wave, "W6 应为精英波")
+
+# ─── M5b：武器 5 类×3 型号 / 商店注册项 / 设施 2 种（路障+炮塔） ───
+
+func test_m5b_weapon_registry_ids_and_ballistics() -> void:
+	var type_reg: WeaponTypeRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_TYPE)
+	var model_reg: WeaponModelRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_MODEL)
+	assert_eq(type_reg.get_all_entries().size(), 5, "5 类武器")
+	assert_gte(model_reg.get_all_entries().size(), 16, "5 类 × 3 型号 + 测试重型手枪")
+	var lmg: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_LMG))
+	assert_not_null(lmg)
+	assert_eq(lmg.ballistic, WeaponTypeData.BallisticMode.HITSCAN, "轻机枪走 HITSCAN")
+	var er: WeaponTypeData = type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_ER))
+	assert_not_null(er)
+	assert_eq(er.ammo_type, WeaponTypeData.AmmoType.ENERGY, "能量步枪用 ENERGY")
+	assert_eq(er.ballistic, WeaponTypeData.BallisticMode.CHARGE, "能量步枪走 CHARGE")
+	var er_1: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_ER_1))
+	assert_not_null(er_1)
+	assert_has(er_1.keywords, "PIERCE", "能量步枪带 PIERCE 词条")
+
+func test_m5b_shop_has_expected_items() -> void:
+	var shop_reg: ShopItemRegistry = RegistryManager.get_registry(Bulwark.REG_SHOP_ITEM)
+	assert_not_null(shop_reg)
+	assert_eq(shop_reg.get_all_entries().size(), 35,
+		"商店注册 23 项基础商品 + 12 项武器箱（技能/投掷商品已随技能系统移除）")
+	for item_id: String in Bulwark.SHOP_ITEM_IDS_INCLUDING_CRATES:
+		assert_not_null(shop_reg.get_entry(Bulwark.loc(item_id)), "商品已注册 %s" % item_id)
+
+func test_m5b_facilities_registered() -> void:
+	var fac_reg: FacilityRegistry = RegistryManager.get_registry(Bulwark.REG_FACILITY)
+	assert_not_null(fac_reg)
+	var barricade: DefenseFacilityData = fac_reg.get_entry(Bulwark.loc(Bulwark.FACILITY_BARRICADE))
+	var turret: DefenseFacilityData = fac_reg.get_entry(Bulwark.loc(Bulwark.FACILITY_TURRET))
+	assert_not_null(barricade, "路障已注册")
+	assert_not_null(turret, "炮塔已注册")
+	# 精简后的炮塔数值（温和削弱）
+	assert_almost_eq(turret.turret_damage, 6.0, 0.001)
+	assert_almost_eq(turret.turret_fire_rate, 1.5, 0.001)
+	assert_almost_eq(turret.turret_range, 360.0, 0.001)
+
+func test_m5_fix_heavy_pistol_registered() -> void:
+	var model_reg: WeaponModelRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_MODEL)
+	var hg_4: WeaponModelData = model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_HG_4))
+	assert_not_null(hg_4, "重型手枪 HG-4 已注册")
+	assert_gt(hg_4.damage, 20.0, "大威力")
+	assert_lt(hg_4.mag_size, 10, "低弹容")

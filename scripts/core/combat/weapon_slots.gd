@@ -84,7 +84,35 @@ func is_current_pistol() -> bool:
 	return get_current_slot().type_data != null \
 		and get_current_slot().type_data.slot == WeaponTypeData.SlotType.PISTOL
 
-# ─── 改枪（M1 配件系统） ───
+# ─── 改枪（M1 配件系统 / M5b 换型号） ───
+
+## M5b：改枪台换型号。
+## - 不传 type_data（缺省）：旧语义——新模型必须与槽位当前武器类型一致
+## - 传入 type_data：允许同槽位类别内换武器类型（主槽 AR↔LMG↔ER、手枪槽 HG 等），
+##   槽位类别（slot 枚举）必须一致；弹药/弹道/手感随新类型数据切换
+func set_model(slot_index: int, model_data: WeaponModelData,
+		type_data: WeaponTypeData = null) -> bool:
+	if slot_index < 0 or slot_index >= SLOT_COUNT:
+		return false
+	if model_data == null:
+		return false
+	var slot := slots[slot_index]
+	if slot.type_data == null:
+		return false
+	if type_data == null:
+		if model_data.type_id != Bulwark.loc(slot.type_data.id).to_string():
+			return false
+	else:
+		if model_data.type_id != Bulwark.loc(type_data.id).to_string():
+			return false
+		if type_data.slot != slot.type_data.slot:
+			return false
+		slot.type_data = type_data
+	slot.model_data = model_data
+	_after_loadout_change(slot)
+	EventBus.publish(WeaponSwitchedEvent.new(
+		slot_index, slot.type_data.slot, _slot_model_location(slot), player_id))
+	return true
 
 ## 结算当前数值（模型 × 配件 × 全局强化）；null 槽返回空 WeaponStats
 func get_effective_stats(slot: SlotState) -> WeaponStats:

@@ -1,55 +1,36 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://d1kaliafvntgs"]
 
-[ext_resource type="Script" path="res://scenes/player/player_view.gd" id="1_view"]
+[ext_resource type="Script" uid="uid://cc1yvnjv6dsts" path="res://scenes/player/player_view.gd" id="1_view"]
+[ext_resource type="Texture2D" uid="uid://cro6xirl5nk2d" path="res://assets/sprites/chars/soldier1_stand.png" id="2_stand"]
+[ext_resource type="Texture2D" uid="uid://7gv78y1nj4hc" path="res://assets/particles/muzzle_02.png" id="3_muzzle"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 16.0
 
-[node name="Player" type="CharacterBody2D"]
-collision_layer = 1
-collision_mask = 6
+[node name="Player" type="CharacterBody2D" unique_id=251698862]
+collision_mask = 14
 script = ExtResource("1_view")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1314705316]
 shape = SubResource("CircleShape2D_body")
 
-[node name="Body" type="Polygon2D" parent="."]
-color = Color(0.28, 0.4, 0.26, 1)
-antialiased = true
-polygon = PackedVector2Array(-14, -3, -10, -11, -3, -13, 4, -12, 12, -7, 15, 2, 10, 12, -10, 12)
+[node name="Visual" type="Node2D" parent="." unique_id=7344209]
 
-[node name="Outline" type="Polygon2D" parent="Body"]
-z_index = -1
-scale = Vector2(1.12, 1.12)
-color = Color(0.045, 0.06, 0.075, 1)
-antialiased = true
-polygon = PackedVector2Array(-14, -3, -10, -11, -3, -13, 4, -12, 12, -7, 15, 2, 10, 12, -10, 12)
+[node name="Body" type="Sprite2D" parent="Visual" unique_id=938112931]
+texture = ExtResource("2_stand")
 
-[node name="Pack" type="Polygon2D" parent="Body"]
-color = Color(0.26, 0.2, 0.15, 1)
-antialiased = true
-polygon = PackedVector2Array(-7, 8, 0, 6, 7, 8, 6, 14, -6, 14)
-
-[node name="Helmet" type="Polygon2D" parent="Body"]
-color = Color(0.2, 0.3, 0.2, 1)
-antialiased = true
-polygon = PackedVector2Array(-8, -4, -6, -12, 5, -12, 8, -5, 5, -2, -6, -2)
-
-[node name="Aim" type="Node2D" parent="."]
-
-[node name="Gun" type="Polygon2D" parent="Aim"]
-color = Color(0.38, 0.42, 0.48, 1)
-antialiased = true
-polygon = PackedVector2Array(4, -2, 30, -2, 34, 0, 30, 2, 4, 2)
-
-[node name="Sight" type="Polygon2D" parent="Aim"]
+[node name="MuzzleFlash" type="Sprite2D" parent="Visual" unique_id=816325862]
 visible = false
-position = Vector2(40, 0)
-color = Color(0.95, 0.78, 0.3, 0.9)
-antialiased = true
-polygon = PackedVector2Array(0, -4, 4, 0, 0, 4, -4, 0)
+modulate = Color(1, 1, 0.28235295, 1)
+position = Vector2(32, 8)
+rotation = 1.5707964
+texture = ExtResource("3_muzzle")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1363029599]
+zoom = Vector2(0.7, 0.7)
+limit_left = -1400
+limit_top = -1150
+limit_right = 1400
+limit_bottom = 1150
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
-zoom = Vector2(1.4, 1.4)

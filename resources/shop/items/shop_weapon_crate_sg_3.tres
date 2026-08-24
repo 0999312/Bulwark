@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_shop"]
+
+[resource]
+script = ExtResource("1_shop")
+id = "shop/item/weapon_crate_sg_3"
+display_name = "武器箱 · SG-3 霰弹枪"
+description = "购买后加入个人军械库，可在改枪台装备。"
+category = 6
+rarity = 2
+base_price = 180
+is_fixed = false
+model_location = "bulwark:weapon/model/sg_3"

@@ -47,10 +47,10 @@ func test_backend_instantiable_without_scene_tree() -> void:
 	ammo.set_count(WeaponTypeData.AmmoType.BULLET, 90)
 	var slots := WeaponSlots.new(ammo)
 	var rifle_type := WeaponTypeData.new()
-	rifle_type.id = "weapon/type/assault_rifle"
+	rifle_type.id = "weapon/type/ar"
 	rifle_type.slot = WeaponTypeData.SlotType.MAIN
 	var rifle := WeaponModelData.new()
-	rifle.id = "weapon/model/storm7"
+	rifle.id = "weapon/model/ar_1"
 	rifle.mag_size = 30
 	rifle.fire_rate = 8.0
 	slots.assign_slot(WeaponSlots.SLOT_MAIN, rifle_type, rifle)
@@ -61,7 +61,7 @@ func test_backend_instantiable_without_scene_tree() -> void:
 	var player := PlayerController.new(attributes, slots)
 	var base := BaseCore.new(300.0)
 	var director := WaveDirector.new()
-	var runner := RunnerController.new(EnemyData.new())
+	var runner := EnemyController.new(EnemyData.new())
 
 	assert_not_null(player)
 	assert_not_null(base)

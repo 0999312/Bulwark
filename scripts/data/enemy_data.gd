@@ -34,6 +34,33 @@ enum ThreatMode {
 @export_range(0.0, 0.9, 0.01)
 var armor: float = 0.0
 
+@export_group("威胁行为")
+## 远程弹体速度（像素/秒；喷吐者/狙击手）
+@export var projectile_speed: float = 600.0
+## 远程攻击射程（像素；默认与 attack_range 解耦，用于事件驱动视觉弹体）
+@export var projectile_range: float = 500.0
+## 蓄力/引导时长（秒；狙击手等远程怪的首发前摇）
+@export var windup_time: float = 0.0
+## 自爆半径（像素；自爆体 AoE 范围）
+@export var explosion_radius: float = 80.0
+## 自爆伤害（0 = 回退使用 attack_damage）
+@export var explosion_damage: float = 0.0
+## 无视路障（飞行体/远程点名等）
+@export var ignores_barricades: bool = false
+## 方向性护甲（装甲兽：正面减伤，侧/背无减伤）
+@export var directional_armor: bool = false
+## 正面护甲（directional_armor=true 时正面减免系数 0.0~0.9）
+@export_range(0.0, 0.9, 0.01)
+var frontal_armor: float = 0.0
+## 弱点机制（精英·巨兽：命中弱点按 weak_point_multiplier 增伤）
+@export var has_weak_point: bool = false
+## 弱点倍率（默认 2.0）
+@export var weak_point_multiplier: float = 2.0
+## 精英标记（关底精英波；数据层保留，表现/经济可读）
+@export var is_elite: bool = false
+## 小怪光环强度（精英预留；M5a 不实现光环逻辑，字段留位）
+@export var aura_strength: float = 1.0
+
 @export_group("强度")
 ## 多人人数缩放系数（架构 §4.6；M0 固定 1.0，结构留位）
 @export var player_count_scale: float = 1.0

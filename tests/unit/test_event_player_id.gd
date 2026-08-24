@@ -23,11 +23,11 @@ func test_explicit_player_id_carried() -> void:
 
 func test_weapon_events_carry_player_id() -> void:
 	assert_eq(AmmoChangedEvent.new(0, 30, 90, 1).player_id, 1)
-	assert_eq(WeaponSwitchedEvent.new(0, 0, "bulwark:weapon/model/storm7", 1).player_id, 1)
+	assert_eq(WeaponSwitchedEvent.new(0, 0, "bulwark:weapon/model/ar_1", 1).player_id, 1)
 	assert_eq(WeaponSwitchStartedEvent.new(1, 1.5, 1).player_id, 1)
 	assert_eq(WeaponSwitchRejectedEvent.new(2, WeaponSwitchRejectedEvent.REASON_EMPTY, 1).player_id, 1)
 	assert_eq(ReloadStartedEvent.new(1.2, 0, 1).player_id, 1)
-	assert_eq(ShotFiredEvent.new("bulwark:weapon/model/storm7", Vector2.RIGHT, 1).player_id, 1)
+	assert_eq(ShotFiredEvent.new("bulwark:weapon/model/ar_1", Vector2.RIGHT, 1).player_id, 1)
 	assert_eq(AttachmentEquippedEvent.new(0, "bulwark:attachment/red_dot", 1).player_id, 1)
 	assert_eq(AttachmentUnequippedEvent.new(0, "bulwark:attachment/red_dot", 1).player_id, 1)
 
@@ -55,7 +55,7 @@ func test_weapon_slots_emits_events_with_id() -> void:
 	var type_reg: WeaponTypeRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_TYPE)
 	var model_reg: WeaponModelRegistry = RegistryManager.get_registry(Bulwark.REG_WEAPON_MODEL)
 	slots.assign_slot(WeaponSlots.SLOT_MAIN,
-		type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_ASSAULT_RIFLE)),
-		model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_STORM7)))
+		type_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_TYPE_AR)),
+		model_reg.get_entry(Bulwark.loc(Bulwark.WEAPON_MODEL_AR_1)))
 	slots.emit_initial_state()
 	assert_eq(_got_player_id, 1, "弹药事件携带 player_id")

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_shop"]
+[ext_resource type="Script" path="res://scripts/data/attribute_modifier_data.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_mod"]
+script = ExtResource("2_mod")
+id = "mod_switch_cd_down"
+display_name = "切换 CD 缩短"
+attribute = &"switch_cd"
+amount = -0.2
+multiplier = 1.0
+
+[resource]
+script = ExtResource("1_shop")
+id = "shop/item/switch_cd_down"
+display_name = "快换枪托（切换 CD -0.2s）"
+description = "武器切换 CD 缩短 0.2 秒"
+category = 1
+rarity = 1
+base_price = 90
+is_fixed = false
+modifier = SubResource("Resource_mod")

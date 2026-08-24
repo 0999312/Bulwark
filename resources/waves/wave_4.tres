@@ -1,27 +1,33 @@
-[gd_resource type="Resource" script_class="WaveData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WaveData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="1_wave"]
 [ext_resource type="Script" path="res://scripts/data/wave_spawn_group_data.gd" id="2_group"]
 
-[sub_resource type="Resource" id="Resource_grp_runner"]
-script = ExtResource("2_group")
-directions = Array[int]([0, 1, 2, 3])
-count_range = Vector2i(6, 8)
-enemy_location = "bulwark:enemy/runner"
-
 [sub_resource type="Resource" id="Resource_grp_fast"]
 script = ExtResource("2_group")
-directions = Array[int]([2, 4, 6])
-count_range = Vector2i(3, 5)
+directions = Array[int]([0, 2, 4, 6])
+count_range = Vector2i(4, 5)
 enemy_location = "bulwark:enemy/runner_fast"
+
+[sub_resource type="Resource" id="Resource_grp_armored"]
+script = ExtResource("2_group")
+directions = Array[int]([1, 3, 5, 7])
+count_range = Vector2i(2, 3)
+enemy_location = "bulwark:enemy/armored"
+
+[sub_resource type="Resource" id="Resource_grp_spitter"]
+script = ExtResource("2_group")
+directions = Array[int]([2, 6])
+count_range = Vector2i(2, 3)
+enemy_location = "bulwark:enemy/spitter"
 
 [resource]
 script = ExtResource("1_wave")
 id = "wave/4"
 seed = 404
-groups = Array[ExtResource("2_group")]([SubResource("Resource_grp_runner"), SubResource("Resource_grp_fast")])
+groups = Array[ExtResource("2_group")]([SubResource("Resource_grp_fast"), SubResource("Resource_grp_armored"), SubResource("Resource_grp_spitter")])
 warn_duration = 3.5
 spawn_interval = 0.7
 burst_chance = 0.25
-burst_size = 4
+burst_size = 3
 player_count_scale = 1.0

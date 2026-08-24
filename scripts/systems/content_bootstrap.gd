@@ -19,24 +19,18 @@ static func register_weapon_types() -> void:
 	if RegistryManager.has_registry(Bulwark.REG_WEAPON_TYPE):
 		return
 	var registry := WeaponTypeRegistry.new()
-	registry.register(Bulwark.loc(Bulwark.WEAPON_TYPE_ASSAULT_RIFLE),
-		load("res://resources/weapons/type/type_assault_rifle.tres"))
-	registry.register(Bulwark.loc(Bulwark.WEAPON_TYPE_PISTOL),
-		load("res://resources/weapons/type/type_pistol.tres"))
-	registry.register(Bulwark.loc(Bulwark.WEAPON_TYPE_SHOTGUN),
-		load("res://resources/weapons/type/type_shotgun.tres"))
+	for type_id: String in Bulwark.WEAPON_TYPE_IDS:
+		var file_name := "type_%s" % type_id.trim_prefix("weapon/type/")
+		registry.register(Bulwark.loc(type_id), load("res://resources/weapons/type/%s.tres" % file_name))
 	RegistryManager.register_registry(Bulwark.REG_WEAPON_TYPE, registry)
 
 static func register_weapon_models() -> void:
 	if RegistryManager.has_registry(Bulwark.REG_WEAPON_MODEL):
 		return
 	var registry := WeaponModelRegistry.new()
-	registry.register(Bulwark.loc(Bulwark.WEAPON_MODEL_STORM7),
-		load("res://resources/weapons/model/model_storm7.tres"))
-	registry.register(Bulwark.loc(Bulwark.WEAPON_MODEL_SENTINEL1),
-		load("res://resources/weapons/model/model_sentinel1.tres"))
-	registry.register(Bulwark.loc(Bulwark.WEAPON_MODEL_JAWBREAKER),
-		load("res://resources/weapons/model/model_jawbreaker.tres"))
+	for model_id: String in Bulwark.WEAPON_MODEL_IDS:
+		var file_name := "model_%s" % model_id.trim_prefix("weapon/model/")
+		registry.register(Bulwark.loc(model_id), load("res://resources/weapons/model/%s.tres" % file_name))
 	RegistryManager.register_registry(Bulwark.REG_WEAPON_MODEL, registry)
 
 static func register_enemies() -> void:
@@ -49,6 +43,18 @@ static func register_enemies() -> void:
 		load("res://resources/enemies/enemy_runner_fast.tres"))
 	registry.register(Bulwark.loc(Bulwark.ENEMY_RUNNER_TOUGH),
 		load("res://resources/enemies/enemy_runner_tough.tres"))
+	registry.register(Bulwark.loc(Bulwark.ENEMY_SELF_DESTRUCT),
+		load("res://resources/enemies/enemy_self_destruct.tres"))
+	registry.register(Bulwark.loc(Bulwark.ENEMY_SPITTER),
+		load("res://resources/enemies/enemy_spitter.tres"))
+	registry.register(Bulwark.loc(Bulwark.ENEMY_ARMORED),
+		load("res://resources/enemies/enemy_armored.tres"))
+	registry.register(Bulwark.loc(Bulwark.ENEMY_FLYING),
+		load("res://resources/enemies/enemy_flying.tres"))
+	registry.register(Bulwark.loc(Bulwark.ENEMY_SNIPER),
+		load("res://resources/enemies/enemy_sniper.tres"))
+	registry.register(Bulwark.loc(Bulwark.ENEMY_ELITE_BEHEMOTH),
+		load("res://resources/enemies/enemy_elite_behemoth.tres"))
 	RegistryManager.register_registry(Bulwark.REG_ENEMY, registry)
 
 static func register_waves() -> void:
@@ -78,6 +84,10 @@ static func register_ui() -> void:
 		Bulwark.loc(Bulwark.UI_SHOP),
 		load("res://scenes/ui/shop_panel.tscn"),
 		UILayer.POPUP)
+	registry.register_panel(
+		Bulwark.loc(Bulwark.UI_SETTINGS),
+		load("res://scenes/ui/settings_panel.tscn"),
+		UILayer.POPUP)
 	RegistryManager.register_registry(Bulwark.REG_UI, registry)
 
 static func register_attachments() -> void:
@@ -98,19 +108,9 @@ static func register_shop_items() -> void:
 	if RegistryManager.has_registry(Bulwark.REG_SHOP_ITEM):
 		return
 	var registry := ShopItemRegistry.new()
-	registry.register(Bulwark.loc(Bulwark.SHOP_DAMAGE_UP), load("res://resources/shop/items/shop_damage_up.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_FIRE_RATE_UP), load("res://resources/shop/items/shop_fire_rate_up.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_MAG_UP), load("res://resources/shop/items/shop_mag_up.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_RELOAD_UP), load("res://resources/shop/items/shop_reload_up.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_MAX_HP_UP), load("res://resources/shop/items/shop_max_hp_up.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_MOVE_SPEED_UP), load("res://resources/shop/items/shop_move_speed_up.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_RED_DOT), load("res://resources/shop/items/shop_red_dot.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_EXT_MAG), load("res://resources/shop/items/shop_ext_mag.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_COMPENSATOR), load("res://resources/shop/items/shop_compensator.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_LIGHT_STOCK), load("res://resources/shop/items/shop_light_stock.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_BARRICADE), load("res://resources/shop/items/shop_barricade.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_RESERVE), load("res://resources/shop/items/shop_reserve.tres"))
-	registry.register(Bulwark.loc(Bulwark.SHOP_AMMO_CRATE), load("res://resources/shop/items/shop_ammo_crate.tres"))
+	for item_id: String in Bulwark.SHOP_ITEM_IDS_INCLUDING_CRATES:
+		var file_name := "shop_%s" % item_id.trim_prefix("shop/item/")
+		registry.register(Bulwark.loc(item_id), load("res://resources/shop/items/%s.tres" % file_name))
 	RegistryManager.register_registry(Bulwark.REG_SHOP_ITEM, registry)
 
 static func register_facilities() -> void:
@@ -119,6 +119,8 @@ static func register_facilities() -> void:
 	var registry := FacilityRegistry.new()
 	registry.register(Bulwark.loc(Bulwark.FACILITY_BARRICADE),
 		load("res://resources/facilities/facility_barricade.tres"))
+	registry.register(Bulwark.loc(Bulwark.FACILITY_TURRET),
+		load("res://resources/facilities/facility_turret.tres"))
 	RegistryManager.register_registry(Bulwark.REG_FACILITY, registry)
 
 ## 便捷查询：按 ResourceLocation 字符串从注册表取条目（未注册返回 null）

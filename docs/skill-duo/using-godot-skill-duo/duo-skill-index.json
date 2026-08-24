@@ -1,0 +1,576 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-08-22",
+  "purpose": "GodotPrompter(主/已安装) + GD-Agentic-Skills(辅/只读参考) 双体系任务索引：先看 rule，再按 primary / alternates 加载。",
+  "sources": {
+    "godotprompter": {
+      "kind": "installed",
+      "repo": "https://github.com/jame581/GodotPrompter.git",
+      "dir": ".dsh/skills",
+      "install": "pwsh tools/update-godotprompter.ps1",
+      "license": "MIT",
+      "target": "Godot 4.3+",
+      "language": "GDScript + C#",
+      "profile": "工作流/流程、评审/测试/调试、C#、第三方 addon、教学模式、质量门禁"
+    },
+    "gd_agentic": {
+      "kind": "reference",
+      "repo": "https://github.com/thedivergentai/GD-Agentic-Skills.git",
+      "dir": ".research/gd-agentic-skills",
+      "install": "pwsh tools/setup-godot-skill-duo.ps1",
+      "license": "LGPL-3.0（官方说明：据此开发游戏可闭源商用；仅库本身修改需开源）",
+      "target": "Godot 4.7+",
+      "language": "GDScript（无 C# 技能）",
+      "profile": "生产级 .gd 脚本、27 个类型蓝图、4.7 专属/迁移、数值平衡、视觉验收、人格式 Agent"
+    }
+  },
+  "rules": {
+    "gp_first": "GodotPrompter 先行；GD 仅在被点名/需要代码密度时补充。",
+    "gp_only": "仅 GodotPrompter 覆盖，GD 无对应。",
+    "gd_only": "仅 GD-Agentic-Skills 覆盖，GP 无对应；按需读取 SKILL.md + scripts。",
+    "either": "两套都可用；默认 gp_first，除非该项目明确 4.7+ 且要生产脚本。"
+  },
+  "entries": [
+    {
+      "id": "bootstrap",
+      "task": "技能体系引导/路由",
+      "primary": "godotprompter:using-godot-prompter",
+      "alternates": [
+        "gd_agentic:godot-master"
+      ],
+      "rule": "gp_first",
+      "note": "GP 自动激活；GD 克隆后由 agent 按路径读 SKILL.md。"
+    },
+    {
+      "id": "project-setup",
+      "task": "新项目脚手架/目录/autoload/.gitignore",
+      "primary": "godotprompter:godot-project-setup",
+      "alternates": [
+        "gd_agentic:godot-project-foundations",
+        "gd_agentic:godot-project-templates"
+      ],
+      "rule": "gp_first",
+      "note": "GD 提供更细的 foundation/templates 参考。"
+    },
+    {
+      "id": "architecture",
+      "task": "系统架构/场景树/模式选择",
+      "primary": "godotprompter:godot-brainstorming",
+      "alternates": [
+        "gd_agentic:godot-master"
+      ],
+      "rule": "gp_first",
+      "note": "架构大决策用 GP brainstorming；深度矩阵看 GD godot-master。"
+    },
+    {
+      "id": "scene-org",
+      "task": "场景组织/何时拆节点",
+      "primary": "godotprompter:scene-organization",
+      "alternates": [
+        "gd_agentic:godot-scene-management"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "di-autoload",
+      "task": "依赖注入/Autoload/服务定位",
+      "primary": "godotprompter:dependency-injection",
+      "alternates": [
+        "gd_agentic:godot-autoload-architecture"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "state-machine",
+      "task": "状态机",
+      "primary": "godotprompter:state-machine",
+      "alternates": [
+        "gd_agentic:godot-state-machine-advanced"
+      ],
+      "rule": "gp_first",
+      "note": "层级 FSM / pushdown 等进阶看 GD。"
+    },
+    {
+      "id": "events",
+      "task": "信号/事件总线/解耦",
+      "primary": "godotprompter:event-bus",
+      "alternates": [
+        "gd_agentic:godot-signal-architecture"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "components",
+      "task": "组件化/组合优于继承",
+      "primary": "godotprompter:component-system",
+      "alternates": [
+        "gd_agentic:godot-composition",
+        "gd_agentic:godot-composition-apps"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "resources",
+      "task": "Resource/数据驱动/.tres",
+      "primary": "godotprompter:resource-pattern",
+      "alternates": [
+        "gd_agentic:godot-resource-data-patterns"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "gdscript",
+      "task": "GDScript 模式/高级语言技巧",
+      "primary": "godotprompter:gdscript-patterns",
+      "alternates": [
+        "gd_agentic:godot-gdscript-mastery"
+      ],
+      "rule": "gp_first",
+      "note": "GP 还有 gdscript-advanced；GD 是 mastery 汇总。"
+    },
+    {
+      "id": "csharp",
+      "task": "C# / GodotSharp / C# 信号",
+      "primary": "godotprompter:csharp-godot",
+      "alternates": [
+        "godotprompter:csharp-signals"
+      ],
+      "rule": "gp_only",
+      "note": "GD 没有 C# 技能。"
+    },
+    {
+      "id": "input",
+      "task": "输入处理/重绑定/手柄",
+      "primary": "godotprompter:input-handling",
+      "alternates": [
+        "gd_agentic:godot-input-handling"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "player",
+      "task": "玩家控制器（CharacterBody）",
+      "primary": "godotprompter:player-controller",
+      "alternates": [
+        "gd_agentic:godot-characterbody-2d"
+      ],
+      "rule": "gp_first",
+      "note": "GD 有 platformer 细节（coyote time/jump buffer）。"
+    },
+    {
+      "id": "2d",
+      "task": "2D 基础/TileMap/视差",
+      "primary": "godotprompter:2d-essentials",
+      "alternates": [
+        "gd_agentic:godot-tilemap-mastery",
+        "gd_agentic:godot-2d-animation"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "3d",
+      "task": "3D 基础/光照/材质/世界",
+      "primary": "godotprompter:3d-essentials",
+      "alternates": [
+        "gd_agentic:godot-3d-lighting",
+        "gd_agentic:godot-3d-materials",
+        "gd_agentic:godot-3d-world-building"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "physics",
+      "task": "物理/碰撞/射线/Jolt",
+      "primary": "godotprompter:physics-system",
+      "alternates": [
+        "gd_agentic:godot-2d-physics",
+        "gd_agentic:godot-physics-3d"
+      ],
+      "rule": "gp_first",
+      "note": "GD 有 swarm/CCD/substep 等生产脚本。"
+    },
+    {
+      "id": "animation",
+      "task": "动画/AnimationTree/BlendTree",
+      "primary": "godotprompter:animation-system",
+      "alternates": [
+        "gd_agentic:godot-animation-player",
+        "gd_agentic:godot-animation-tree-mastery",
+        "gd_agentic:godot-2d-animation"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "tween",
+      "task": "Tween/动效/游戏手感",
+      "primary": "godotprompter:tween-animation",
+      "alternates": [
+        "gd_agentic:godot-tweening"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "camera",
+      "task": "相机跟随/震屏/区域切换",
+      "primary": "godotprompter:camera-system",
+      "alternates": [
+        "gd_agentic:godot-camera-systems"
+      ],
+      "rule": "gp_first",
+      "note": "GD 有 trauma/deadzone 细节。"
+    },
+    {
+      "id": "audio",
+      "task": "音频/总线/采样池",
+      "primary": "godotprompter:audio-system",
+      "alternates": [
+        "gd_agentic:godot-audio-systems"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "ui",
+      "task": "UI/Control/主题/容器",
+      "primary": "godotprompter:godot-ui",
+      "alternates": [
+        "gd_agentic:godot-ui-containers",
+        "gd_agentic:godot-ui-theming",
+        "gd_agentic:godot-ui-rich-text"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "responsive",
+      "task": "多分辨率/响应式布局",
+      "primary": "godotprompter:responsive-ui",
+      "alternates": [
+        "gd_agentic:godot-adapt-desktop-to-mobile"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "hud",
+      "task": "HUD/血条/小地图",
+      "primary": "godotprompter:hud-system",
+      "rule": "gp_only"
+    },
+    {
+      "id": "shader",
+      "task": "Shader/后处理",
+      "primary": "godotprompter:shader-basics",
+      "alternates": [
+        "gd_agentic:godot-shaders-basics"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "particles",
+      "task": "粒子/VFX",
+      "primary": "godotprompter:particles-vfx",
+      "alternates": [
+        "gd_agentic:godot-particles"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "inventory",
+      "task": "库存/物品/槽位",
+      "primary": "godotprompter:inventory-system",
+      "alternates": [
+        "gd_agentic:godot-inventory-system"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "ability",
+      "task": "能力/属性/冷却",
+      "primary": "godotprompter:ability-system",
+      "alternates": [
+        "gd_agentic:godot-ability-system"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "combat",
+      "task": "战斗系统",
+      "primary": "gd_agentic:godot-combat-system",
+      "rule": "gd_only",
+      "note": "GP 无独立战斗技能。"
+    },
+    {
+      "id": "economy",
+      "task": "经济/数值/调平衡",
+      "primary": "gd_agentic:godot-economy-system",
+      "alternates": [
+        "gd_agentic:godot-monte-carlo-balancer"
+      ],
+      "rule": "gd_only"
+    },
+    {
+      "id": "quests",
+      "task": "任务/剧情链",
+      "primary": "gd_agentic:godot-quest-system",
+      "rule": "gd_only"
+    },
+    {
+      "id": "dialogue",
+      "task": "对话系统/Dialogue Manager",
+      "primary": "godotprompter:dialogue-system",
+      "alternates": [
+        "godotprompter:dialogue-manager",
+        "gd_agentic:godot-dialogue-system"
+      ],
+      "rule": "gp_first",
+      "note": "用 Dialogue Manager addon 时优先 GP 的 addon 技能。"
+    },
+    {
+      "id": "save",
+      "task": "存档/序列化/版本迁移",
+      "primary": "godotprompter:save-load",
+      "alternates": [
+        "gd_agentic:godot-save-load-systems"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "ai",
+      "task": "AI 导航/寻路/行为",
+      "primary": "godotprompter:ai-navigation",
+      "alternates": [
+        "gd_agentic:godot-ai-navigation",
+        "gd_agentic:godot-navigation-pathfinding"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "procedural",
+      "task": "程序化生成/Noise/WFC",
+      "primary": "godotprompter:procedural-generation",
+      "alternates": [
+        "gd_agentic:godot-procedural-generation"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "localization",
+      "task": "本地化/i18n",
+      "primary": "godotprompter:localization",
+      "rule": "gp_only"
+    },
+    {
+      "id": "multiplayer",
+      "task": "多玩家/同步/专用服务器",
+      "primary": "godotprompter:multiplayer-basics",
+      "alternates": [
+        "godotprompter:multiplayer-sync",
+        "godotprompter:dedicated-server",
+        "gd_agentic:godot-multiplayer-networking",
+        "gd_agentic:godot-server-architecture"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "perf",
+      "task": "性能优化/剖析",
+      "primary": "godotprompter:godot-optimization",
+      "alternates": [
+        "gd_agentic:godot-performance-optimization"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "debug",
+      "task": "调试/错误模式/信号追踪",
+      "primary": "godotprompter:godot-debugging",
+      "alternates": [
+        "gd_agentic:godot-debugging-profiling"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "testing",
+      "task": "测试/GUT/gdUnit4",
+      "primary": "godotprompter:godot-testing",
+      "alternates": [
+        "gd_agentic:godot-testing-patterns"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "review",
+      "task": "代码评审/最佳实践",
+      "primary": "godotprompter:godot-code-review",
+      "alternates": [
+        "gd_agentic:godot-auditor",
+        "gd_agentic:godot-analyst"
+      ],
+      "rule": "gp_first",
+      "note": "GD 的 Auditor/Analyst 是人格化评分，可作二审。"
+    },
+    {
+      "id": "export",
+      "task": "导出/CI/发布",
+      "primary": "godotprompter:export-pipeline",
+      "alternates": [
+        "gd_agentic:godot-export-builds"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "mobile",
+      "task": "移动端/Android/iOS",
+      "primary": "godotprompter:mobile-development",
+      "alternates": [
+        "gd_agentic:godot-platform-mobile",
+        "gd_agentic:godot-adapt-desktop-to-mobile"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "web",
+      "task": "Web 平台",
+      "primary": "gd_agentic:godot-platform-web",
+      "rule": "gd_only"
+    },
+    {
+      "id": "console",
+      "task": "主机平台",
+      "primary": "gd_agentic:godot-platform-console",
+      "rule": "gd_only"
+    },
+    {
+      "id": "desktop",
+      "task": "桌面平台",
+      "primary": "gd_agentic:godot-platform-desktop",
+      "rule": "gd_only"
+    },
+    {
+      "id": "xr",
+      "task": "VR/XR/OpenXR",
+      "primary": "godotprompter:xr-development",
+      "alternates": [
+        "gd_agentic:godot-platform-vr"
+      ],
+      "rule": "gp_first"
+    },
+    {
+      "id": "gdextension",
+      "task": "原生扩展 (godot-cpp/gdext)",
+      "primary": "godotprompter:gdextension",
+      "rule": "gp_only"
+    },
+    {
+      "id": "threads",
+      "task": "多线程/WorkerThreadPool",
+      "primary": "godotprompter:multithreading",
+      "rule": "gp_only"
+    },
+    {
+      "id": "addons",
+      "task": "第三方 addon（行为树/冒险/相机等）",
+      "primary": "godotprompter:limboai",
+      "alternates": [
+        "godotprompter:beehave",
+        "godotprompter:popochiu",
+        "godotprompter:dialogue-manager",
+        "godotprompter:phantom-camera"
+      ],
+      "rule": "gp_only",
+      "note": "GD 无 addon 专项技能。"
+    },
+    {
+      "id": "assets",
+      "task": "素材导入/资源管线",
+      "primary": "godotprompter:assets-pipeline",
+      "rule": "gp_only"
+    },
+    {
+      "id": "addon-dev",
+      "task": "编辑器插件/EditorPlugin/@tool",
+      "primary": "godotprompter:addon-development",
+      "rule": "gp_only"
+    },
+    {
+      "id": "math",
+      "task": "数学/向量/插值曲线",
+      "primary": "godotprompter:math-essentials",
+      "rule": "gp_only"
+    },
+    {
+      "id": "genres",
+      "task": "类型玩法蓝图（27 个）",
+      "primary": "gd_agentic:godot-genre-idle-clicker",
+      "alternates": [
+        "gd_agentic:godot-genre-*（action-rpg/roguelike/metroidvania/fps/moba/romance/…按需选择）"
+      ],
+      "rule": "gd_only",
+      "note": "GP 无 genre 蓝图。"
+    },
+    {
+      "id": "loops",
+      "task": "核心循环/特定机制",
+      "primary": "gd_agentic:godot-game-loop-collection",
+      "alternates": [
+        "gd_agentic:godot-game-loop-harvest",
+        "gd_agentic:godot-game-loop-time-trial",
+        "gd_agentic:godot-game-loop-waves",
+        "gd_agentic:godot-mechanic-revival",
+        "gd_agentic:godot-mechanic-secrets",
+        "gd_agentic:godot-turn-system"
+      ],
+      "rule": "gd_only"
+    },
+    {
+      "id": "migration",
+      "task": "引擎版本迁移（3→4→4.x→4.7）",
+      "primary": "gd_agentic:godot-version-migration",
+      "rule": "gd_only",
+      "note": "GP 无专项；GD 有逐技能 migration notes。"
+    },
+    {
+      "id": "adapt",
+      "task": "跨平台/跨维度移植",
+      "primary": "gd_agentic:godot-adapt-2d-to-3d",
+      "alternates": [
+        "gd_agentic:godot-adapt-3d-to-2d",
+        "gd_agentic:godot-adapt-desktop-to-mobile",
+        "gd_agentic:godot-adapt-mobile-to-desktop",
+        "gd_agentic:godot-adapt-single-to-multiplayer"
+      ],
+      "rule": "gd_only"
+    },
+    {
+      "id": "vision",
+      "task": "Agent 视觉验收/架构评分/构建",
+      "primary": "gd_agentic:godot-agent-vision",
+      "alternates": [
+        "gd_agentic:godot-analyst",
+        "gd_agentic:godot-auditor",
+        "gd_agentic:godot-builder"
+      ],
+      "rule": "gd_only",
+      "note": "需要截图/看 GUI 验收时用 Agent Vision。"
+    },
+    {
+      "id": "mentor",
+      "task": "边学边做/教学模式",
+      "primary": "godotprompter:godot-mentor",
+      "rule": "gp_only"
+    },
+    {
+      "id": "serverscale",
+      "task": "万级实体/RID 服务器优化",
+      "primary": "gd_agentic:godot-server-architecture",
+      "alternates": [
+        "gd_agentic:godot-performance-optimization"
+      ],
+      "rule": "gd_only"
+    },
+    {
+      "id": "appui",
+      "task": "应用/工具类 UI 组合",
+      "primary": "gd_agentic:godot-composition-apps",
+      "rule": "gd_only"
+    }
+  ]
+}

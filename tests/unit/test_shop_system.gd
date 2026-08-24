@@ -114,3 +114,46 @@ func test_rarity_price_coefficient() -> void:
 	var epic := _make_item("shop/item/e", ShopItemData.Category.STAT_PLAYER, 100, ShopItemData.Rarity.EPIC)
 	assert_eq(common.price_with_rarity(), 100)
 	assert_eq(epic.price_with_rarity(), 320, "史诗 3.2× 基础价")
+
+func test_fixed_rotating_picks_two_when_pool_larger() -> void:
+	var pool: Array[ShopItemData] = []
+	var fixed: Array[ShopItemData] = []
+	for i in 4:
+		fixed.append(_make_item("shop/item/fixed_%d" % i, ShopItemData.Category.BARRICADE, 50, 0, true))
+	shop.setup(pool, fixed)
+	shop.refresh(42)
+	var fixed_offered := 0
+	for offer in shop.offers:
+		if offer.item.is_fixed:
+			fixed_offered += 1
+	assert_eq(fixed_offered, ShopSystem.ROTATING_FIXED_COUNT, "固定池 >2 时每波轮换 2 个")
+
+func test_weapon_crate_not_offered_when_model_owned() -> void:
+	var crate := _make_item("shop/item/weapon_crate_ar_2",
+		ShopItemData.Category.WEAPON_CRATE, 120, ShopItemData.Rarity.RARE)
+	crate.model_location = "bulwark:weapon/model/ar_2"
+	var owned: Array[String] = ["bulwark:weapon/model/ar_2"]
+	shop.setup([crate], [], owned)
+	shop.refresh(1)
+	assert_false(shop.is_offered("bulwark:shop/item/weapon_crate_ar_2"),
+		"已拥有型号的武器箱不上架")
+	assert_eq(shop.offers.size(), 0)
+
+func test_weapon_crate_purchase_grants_model_and_delists() -> void:
+	var crate := _make_item("shop/item/weapon_crate_ar_2",
+		ShopItemData.Category.WEAPON_CRATE, 120, ShopItemData.Rarity.RARE)
+	crate.model_location = "bulwark:weapon/model/ar_2"
+	var owned: Array[String] = []
+	shop.setup([crate], [], owned)
+	shop.refresh(1)
+	run_state.add_credits(1000)
+	assert_true(shop.is_offered("bulwark:shop/item/weapon_crate_ar_2"))
+	assert_true(shop.try_purchase("bulwark:shop/item/weapon_crate_ar_2",
+		func(it: ShopItemData) -> void:
+			owned.append(it.model_location)))
+	assert_true(owned.has("bulwark:weapon/model/ar_2"), "effect_handler 将型号加入军械库")
+	assert_false(shop.is_offered("bulwark:shop/item/weapon_crate_ar_2"),
+		"武器箱购买成功后立即下架")
+	shop.refresh(2)
+	assert_false(shop.is_offered("bulwark:shop/item/weapon_crate_ar_2"),
+		"后续刷新也不会再上架已拥有型号")

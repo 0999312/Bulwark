@@ -54,22 +54,28 @@ func test_full_run_six_waves_to_victory() -> void:
 		_clear_current_wave()
 		await wait_physics_frames(2)
 
-		# 波间：商店面板打开 + 暂停（每波清场后都应打开）
-		guard = 0
-		while not UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_SHOP)) and guard < 120:
-			await wait_process_frames(1)
-			guard += 1
-		if UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_SHOP)):
+		# 波间：前 5 波打开商店 + 暂停；末波直接进胜利（M4.1 决策：无需波间购买）
+		if wave_idx < 6:
+			guard = 0
+			while not UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_SHOP)) and guard < 120:
+				await wait_process_frames(1)
+				guard += 1
+			assert_true(UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_SHOP)), "第 %d 波后商店打开" % wave_idx)
 			shop_opens += 1
 			assert_true(get_tree().paused, "商店期间暂停")
-			if wave_idx <= 5:
-				# 买一个固定物资（路障组件）验证经济链路
-				_session.run_state.add_credits(1000)
-				_session.shop_system.try_purchase(
-					Bulwark.loc(Bulwark.SHOP_BARRICADE).to_string(), _session._shop_effect_handler)
-				assert_gt(_session.run_state.material, 0, "路障组件购买生效")
+			# 买一个固定物资（路障组件）验证经济链路
+			_session.run_state.add_credits(1000)
+			_session.shop_system.try_purchase(
+				Bulwark.loc(Bulwark.SHOP_BARRICADE).to_string(), _session._shop_effect_handler)
+			assert_gt(_session.run_state.material, 0, "路障组件购买生效")
 			_session.on_shop_closed()
 			await wait_process_frames(3)
+		else:
+			# 末波清场后不应再弹商店，直接结算
+			for i in 10:
+				await wait_process_frames(1)
+			assert_false(UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_SHOP)),
+				"末波清场后不再打开波间商店（M4.1）")
 
 	# 等待胜利结算（最后波清场 → INTERMISSION → 无下一波 → VICTORY）
 	var guard := 0

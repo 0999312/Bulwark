@@ -44,7 +44,7 @@
 
 ## 5. GodotPrompter 技能路由卡
 
-本项目已安装 **56 个项目技能**（`.dsh/skills/`，随仓库走）：55 个 GodotPrompter 技能 + `game-architect` 架构知识库。
+本项目已安装 **57 个项目技能**（`.dsh/skills/`，随仓库走）：55 个 GodotPrompter 技能 + `game-architect` 架构知识库 + `using-godot-skill-duo` 路由技能。
 
 **使用规则：**
 
@@ -87,3 +87,25 @@
 - **技能更新**：`tools/update-godotprompter.ps1` 从上游仓库同步技能目录
 - **C# 脚本**：DSH 会话内无法编译 C#，新增/修改 C# 后需在 Godot 编辑器内构建
 - **不要修改** `addons/` 内第三方插件源码（除非明确要求）；`docs/agent-prompts/` 为上游 GodotPrompter 的 DSH 适配版（MIT）
+
+## 9. i18n / 用户可见文案硬约束（项目级，所有 UI 与提示必须遵守）
+
+1. **禁止硬编码用户可见文本**：GDScript 字符串字面量、`.tscn` 的 `text`/`tooltip`/`placeholder` 不得直接写中文/英文展示文案；一律经 `tr(key)` / `I18NManager.get_text(key, args)` / `UiText.text(key, args)` 取翻译。代码注释、日志、`push_error` 不受此限。
+2. **翻译键统一进 `locales/zh.json` 与 `locales/en.json`**：新增键必须双语同键同参；维护脚本为 `tools/update_locales.py`（内容数据键自动从 `resources/` 生成，结构键在脚本中维护）。
+3. **内容数据名称/描述**：武器型号、商店商品、技能、配件、设施等 `display_name/description` 是中文回退源；UI 显示必须走 `UiText.content_name(id, fallback)` / `UiText.content_description(id, fallback)`（键规则 `content.<id 斜杠/冒号转下划线>.<name|desc>`），禁止 UI 直接使用资源字段。
+4. **语言切换即时生效**：需要常驻/可被设置面板覆盖的面板（主菜单、暂停、结算、HUD、商店、技能三选一等）必须订阅 `EventBus` 的 `LanguageChangedEvent`，在回调里重建全部可见文本；面板关闭/销毁时 `unsubscribe`。
+5. **评审与检查**：任何新增/修改 UI 必须人工确认两种语言切换后无残留硬编码；GUT 门禁须包含 i18n 键奇偶校验（见 `tests/unit/test_i18n.gd`）。新增 `.tscn` 文本应保持空串或键名，运行时由脚本填充。
+6. **占位符格式**：翻译文本使用 `{0} {1}` 占位符；需要 `%.1f` 等格式时在调用侧先格式化，不要把 printf 格式塞进翻译键。
+
+## Godot Skill Duo 路由（GodotPrompter 主 + GD-Agentic-Skills 辅）
+
+<!-- skill-duo:begin -->
+1. **Godot 开发任务先加载 `using-godot-skill-duo`**（已装于 `.dsh/skills/`），它给出双体系路由。
+2. **主**：GodotPrompter（`.dsh/skills/`，55 技能）——流程/架构/评审/测试/调试/C#/第三方 addon 优先；加载方式见 §4 工具映射与 §5 路由卡。
+3. **辅**：GD-Agentic-Skills（克隆于 `.research/gd-agentic-skills/`，不入库）——生产级 GDScript、27 个类型蓝图、4.7 专属/迁移、数值平衡、Agent Vision；按需读 `skills/<name>/SKILL.md`，**不要整体安装**。
+4. **任务索引**：`.dsh/skills/using-godot-skill-duo/duo-skill-index.json`（machine-readable）。
+5. **更新**：GD + 路由模板 `pwsh tools/setup-godot-skill-duo.ps1`；GP `pwsh tools/update-godotprompter.ps1`。
+6. **冲突去重**：同主题只选一个主（默认 GP）；去重表见 `using-godot-skill-duo` SKILL.md。
+<!-- skill-duo:end -->
+
+

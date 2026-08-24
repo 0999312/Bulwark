@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WeaponModelData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_model_data.gd" id="1_wmodel"]
+
+[resource]
+script = ExtResource("1_wmodel")
+id = "weapon/model/sg_2"
+type_id = "bulwark:weapon/type/sg"
+display_name = "SG-2 霰弹枪"
+damage = 11.0
+fire_rate = 2.0
+mag_size = 5
+reload_time = 1.5
+spread = 5.0
+crit_chance = 0.05
+crit_multiplier = 2.0
+range = 380.0
+pellets = 8
+keywords = Array[String]([])

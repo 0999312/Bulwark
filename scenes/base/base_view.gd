@@ -5,7 +5,7 @@ extends StaticBody2D
 const LOW_RATIO := 0.35      # 低耐久阈值（低于此比例冒烟 + 核心闪烁）
 const BLINK_SPEED := 8.0     # 低耐久核心闪烁频率
 
-@onready var visual: Polygon2D = $Visual
+@onready var visual: Sprite2D = $Visual
 @onready var core_visual: Polygon2D = $Visual/Core
 @onready var smoke: CPUParticles2D = $Smoke
 
@@ -31,8 +31,8 @@ func _on_durability_changed(event: BaseDurabilityChangedEvent) -> void:
 func _update_visual(current: float, max_value: float) -> void:
 	var ratio := current / max_value if max_value > 0.0 else 0.0
 	_low_durability = ratio <= LOW_RATIO
-	# 耐久高 → 偏青的军绿；耐久低 → 偏红（基地被打穿的既视感）
-	visual.color = Color(0.28, 0.42, 0.5, 1.0).lerp(Color(0.5, 0.18, 0.16, 1.0), 1.0 - ratio)
+	# 耐久高 → 偏青的军绿；耐久低 → 偏红（基地被打穿的既视感）；M4 贴图走 modulate 着色
+	visual.modulate = Color(0.62, 0.85, 0.72, 1.0).lerp(Color(1.0, 0.4, 0.32, 1.0), 1.0 - ratio)
 	core_visual.modulate.a = 0.4 + 0.6 * ratio
 	if smoke != null:
 		smoke.emitting = _low_durability

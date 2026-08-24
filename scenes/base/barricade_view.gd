@@ -2,13 +2,18 @@ class_name BarricadeView
 extends StaticBody2D
 ## 路障表现层（前端）：弧形碰撞阻挡敌人 + 耐久视觉 + 受击/摧毁反馈
 ## - 后端 BarricadeController 持有耐久；本节点订阅事件做展示与移除
-## - 碰撞：layer 8（world）——敌人（mask 13 = 1|4|8）被阻挡，玩家（mask 6）不受影响
+## - 碰撞：layer 8（world）——敌人（mask 13 = 1|4|8）被阻挡；M4 起玩家（mask 14 = 2|4|8）
+##   同样被阻挡（不可跨越，可绕弧端通行），基地不阻挡玩家
 ## - 弧形几何：弧心 = 基地（局部 +Y），弧线穿过玩家脚下；align_to_arc 旋转 + 重建弧面/碰撞
 
 @onready var outline: Polygon2D = $Outline
 @onready var visual: Polygon2D = $Visual
 @onready var spikes: Polygon2D = $Spikes
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
+@onready var destroy_particles: CPUParticles2D = $DestroyParticles
+
+## M4：沙袋墙贴图（Kenney tile_105；UV 沿弧长/径向生成，几何照旧程序化）
+const BARRICADE_TEXTURE := preload("res://assets/sprites/tiles/tile_105.png")
 
 var controller: BarricadeController
 
@@ -26,6 +31,7 @@ const OUTLINE_WIDTH := 3.0         # 描边宽度（px）
 
 func setup(p_controller: BarricadeController) -> void:
 	controller = p_controller
+	visual.texture = BARRICADE_TEXTURE
 	EventBus.subscribe(&"BarricadeDamagedEvent", _on_damaged)
 	EventBus.subscribe(&"BarricadeDestroyedEvent", _on_destroyed)
 
@@ -56,14 +62,25 @@ func _rebuild_arc_geometry(arc_degrees: float, thickness: float) -> void:
 	var shape := ConcavePolygonShape2D.new()
 	shape.segments = BarricadeController.build_arc_segments(center, half, thickness, ARC_SAMPLES)
 	collision_shape.shape = shape
-	# 主体弧面
+	# 主体弧面（M4：贴图 + UV 沿弧长 u / 径向 v 平铺）
 	visual.polygon = body_poly
+	visual.uv = _build_arc_uv(ARC_SAMPLES)
 	# 描边：向外扩一圈（外圈 +outline、内圈 -outline），先绘制被主体盖住只露边框
 	outline.polygon = BarricadeController.build_arc_polygon(
 		center, half, thickness + OUTLINE_WIDTH * 2.0, ARC_SAMPLES)
 	# 尖刺：朝向基地一侧（内圈向弧心方向伸出）
 	spikes.polygon = BarricadeController.build_spike_polygon(
 		center, half, thickness, SPIKE_LENGTH, SPIKE_COUNT)
+
+## M4：与 build_arc_polygon 顶点序对齐的 UV（外圈 u:0→1/v=0，内圈 u:0→1/v=1）
+static func _build_arc_uv(samples: int) -> PackedVector2Array:
+	var uv := PackedVector2Array()
+	uv.resize((samples + 1) * 2)
+	for i in range(samples + 1):
+		uv[i] = Vector2(float(i) / samples, 0.0)
+	for i in range(samples + 1):
+		uv[samples + 1 + i] = Vector2(float(i) / samples, 1.0)
+	return uv
 
 func get_location() -> String:
 	if controller == null:
@@ -86,7 +103,10 @@ func _on_destroyed(event: BarricadeDestroyedEvent) -> void:
 	if _destroyed_freed:
 		return
 	_destroyed_freed = true
-	# 拆除反馈：短暂放大 + 整体淡出后移除（GameSession 也会清理引用）
+	# 拆除反馈：碎片爆发 + 短暂放大 + 整体淡出后移除（GameSession 也会清理引用）
+	if destroy_particles != null:
+		destroy_particles.restart()
+		destroy_particles.emitting = true
 	var tw := create_tween()
 	tw.tween_property(self, "scale", Vector2(1.4, 1.4), 0.15)
 	tw.parallel().tween_property(self, "modulate:a", 0.0, 0.15)

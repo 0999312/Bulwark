@@ -1,46 +1,36 @@
 class_name BarricadeController
-extends RefCounted
+extends FacilityController
 ## 路障后端（纯逻辑；架构 §4.7 设施）
-## - 耐久：敌人攻击（EnemyAttackEvent target=路障）经装配层结算扣减
+## - 继承 FacilityController：耐久/受击/修复/唯一标识通用
 ## - 归零 → 摧毁事件（表现层移除节点）
-## - 实例标识：facility_location（数据） + instance_id（同数据多实例区分，装配层分配）
-
-var data: DefenseFacilityData
-var instance_id: int = 0
-var durability: float = 0.0
-var max_durability: float = 0.0
-
-var _destroyed_reported := false
+## - 弧形几何与放置公式为本类扩展
 
 func _init(p_data: DefenseFacilityData, p_instance_id: int = 0) -> void:
-	data = p_data
-	instance_id = p_instance_id
-	max_durability = p_data.max_durability
-	durability = p_data.max_durability
+	super(p_data, p_instance_id)
 
-func is_destroyed() -> bool:
-	return _destroyed_reported
+# ─── M4 放置几何（纯函数，headless 可测；D-M4-17） ───
 
-## 唯一标识（同数据多实例区分）：如 "bulwark:facility/barricade#3"
-## 事件路由（EnemyAttackEvent.target）与表现层节点查找共用
-func get_location() -> String:
-	return "%s#%d" % [Bulwark.loc(data.id).to_string(), instance_id]
+## 放置位置 = 玩家与基地连线的外侧（方位角不变，半径 + forward_offset）。
+## 返回 {pos: Vector2, radius: float}；radius = 放置者到基地的原距离（<0 时退回玩家站位）
+static func compute_forward_placement(player_pos: Vector2, base_pos: Vector2,
+		forward_offset: float) -> Dictionary:
+	var base_dir := player_pos - base_pos
+	var radius := base_dir.length()
+	if radius <= 0.001 or forward_offset < 0.0:
+		return {"pos": player_pos, "radius": radius}
+	return {
+		"pos": base_pos + base_dir.normalized() * (radius + forward_offset),
+		"radius": radius,
+	}
 
-func get_durability_ratio() -> float:
-	if max_durability <= 0.0:
-		return 0.0
-	return durability / max_durability
-
-## 受击（敌人攻击结算入口；防御减免走伤害管道，M1 路障无护甲直接扣减）
-func take_damage(amount: float) -> float:
-	if _destroyed_reported or amount <= 0.0:
-		return durability
-	durability = maxf(0.0, durability - amount)
-	EventBus.publish(BarricadeDamagedEvent.new(get_location(), durability, max_durability))
-	if durability <= 0.0 and not _destroyed_reported:
-		_destroyed_reported = true
-		EventBus.publish(BarricadeDestroyedEvent.new(get_location()))
-	return durability
+## 与既有路障中心的最小间距校验（防重叠堆叠；D-M4-17 规则 3）
+static func has_min_spacing(candidate: Vector2, existing: Array, min_spacing: float) -> bool:
+	for pos_v in existing:
+		if not (pos_v is Vector2):
+			continue
+		if candidate.distance_to(pos_v) < min_spacing:
+			return false
+	return true
 
 
 # ─── 弧形几何（纯函数，headless 可测；供 BarricadeView 生成弧面/碰撞/尖刺） ───

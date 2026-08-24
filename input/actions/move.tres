@@ -6,5 +6,6 @@
 script = ExtResource("1_7tbou")
 name = &"move"
 action_value_type = 2
+is_remappable = true
 display_name = "移动"
 display_category = "战斗"

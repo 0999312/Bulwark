@@ -29,6 +29,13 @@ const STATE_NAMES := {
 ## 复活无敌帧（M2，M1 已知问题 #7：防止敌人"守尸"——复活瞬间被再撞秒杀）
 const INVINCIBLE_DURATION := 2.0
 
+## M3 方案 B：连射热度（命中散布扩散源）——裁决状态进 core。
+## 命中判定逻辑化后散布在裁决侧（装配层）计算，heat 必须随裁决状态存在，
+## 不再作为表现层私有手感数值（原在 PlayerView）
+const HEAT_MAX := 4.0             # 连射热度上限（度；草案 §3 "上限 4°"）
+const HEAT_DECAY := 3.0           # 停火热度衰减速度（度/秒）
+const HEAT_PER_SHOT := 0.15       # 每发连射热度增量（度，乘 type.recoil.x）
+
 var player_id: int = 0
 var attribute_set: AttributeSet
 var weapon_slots: WeaponSlots
@@ -36,6 +43,8 @@ var weapon_slots: WeaponSlots
 var health: float = 100.0
 var max_health: float = 100.0
 var state: State = State.IDLE
+## 连射热度（0 ~ HEAT_MAX；裁决侧散布计算用；视图可读用于表现）
+var heat := 0.0
 
 ## 意图状态（前端每帧喂入）
 var move_direction: Vector2 = Vector2.ZERO
@@ -93,6 +102,9 @@ func intent_reload() -> void:
 # ─── 每帧驱动（后端权威） ───
 
 func tick(delta: float) -> void:
+	# 连射热度衰减（无论死活都衰减，与表现层解耦后由裁决侧统一维护）
+	if heat > 0.0:
+		heat = maxf(0.0, heat - HEAT_DECAY * delta)
 	if _invincible_time > 0.0:
 		_invincible_time = maxf(0.0, _invincible_time - delta)
 	if is_incapacitated():
@@ -164,16 +176,10 @@ func revive() -> void:
 	health = max_health
 	state = State.IDLE
 	_invincible_time = INVINCIBLE_DURATION
+	heat = 0.0  # 复活重置连射热度（与表现层视觉复位一致）
 	EventBus.publish(PlayerHealthChangedEvent.new(health, max_health, player_id))
 	EventBus.publish(PlayerStateChangedEvent.new(state))
 
 ## 复活无敌帧剩余时间（秒；0 = 非无敌；测试/表现层查询）
 func get_invincible_time() -> float:
 	return _invincible_time
-
-## 治疗（M0 无来源，结构留位）
-func heal(amount: float) -> void:
-	if state == State.DEAD or amount <= 0.0:
-		return
-	health = minf(max_health, health + amount)
-	EventBus.publish(PlayerHealthChangedEvent.new(health, max_health, player_id))

@@ -115,3 +115,23 @@ func test_group_count_scale() -> void:
 	wave.groups = [group]
 	var comp := WaveGenerator.generate(wave, SeededRNG.new(wave.seed))
 	assert_eq(comp.groups[0].count, 6, "组内数量 ×1.5")
+
+# ─── M5a：精英波标记透传 ───
+
+func test_elite_wave_flag_propagates_to_composition() -> void:
+	var wave := WaveData.new()
+	wave.seed = 606
+	wave.is_elite_wave = true
+	wave.groups = [_make_group([0], Vector2i(1, 1), "bulwark:enemy/elite_behemoth")]
+	var comp := WaveGenerator.generate(wave, SeededRNG.new(wave.seed))
+	assert_true(comp.is_elite_wave, "WaveData.is_elite_wave 应透传到 WaveComposition")
+	assert_true(comp.has_elite(), "精英波构成可识别")
+
+# ─── M5e：难度曲线表 ───
+
+func test_difficulty_curve_table() -> void:
+	assert_eq(DifficultyCurve.get_wave_count(), 6, "6 波单链")
+	assert_eq(DifficultyCurve.get_wave_scale(1), 1.0, "第 1 波基准")
+	assert_gt(DifficultyCurve.get_wave_scale(6), DifficultyCurve.get_wave_scale(1), "后期波次强度更高")
+	assert_eq(DifficultyCurve.get_wave_scale(0), 1.0, "越界回退 1.0")
+	assert_eq(DifficultyCurve.get_wave_scale(99), 1.0, "越界回退 1.0")

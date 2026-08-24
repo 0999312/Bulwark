@@ -12,21 +12,21 @@ func before_each() -> void:
 	ammo.set_count(WeaponTypeData.AmmoType.BULLET, 90)
 	var slots := WeaponSlots.new(ammo)
 	var rifle_type := WeaponTypeData.new()
-	rifle_type.id = "weapon/type/assault_rifle"
+	rifle_type.id = "weapon/type/ar"
 	rifle_type.slot = WeaponTypeData.SlotType.MAIN
 	rifle_type.switch_cd = 1.5
 	var rifle := WeaponModelData.new()
-	rifle.id = "weapon/model/storm7"
+	rifle.id = "weapon/model/ar_1"
 	rifle.mag_size = 30
 	rifle.fire_rate = 8.0
 	rifle.reload_time = 0.5
 	slots.assign_slot(WeaponSlots.SLOT_MAIN, rifle_type, rifle)
 	var pistol_type := WeaponTypeData.new()
-	pistol_type.id = "weapon/type/pistol"
+	pistol_type.id = "weapon/type/hg"
 	pistol_type.slot = WeaponTypeData.SlotType.PISTOL
 	pistol_type.switch_cd = 0.3
 	var pistol := WeaponModelData.new()
-	pistol.id = "weapon/model/sentinel1"
+	pistol.id = "weapon/model/hg_1"
 	pistol.mag_size = 12
 	slots.assign_slot(WeaponSlots.SLOT_PISTOL, pistol_type, pistol)
 	controller = PlayerController.new(attributes, slots)

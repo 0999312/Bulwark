@@ -5,5 +5,6 @@
 [resource]
 script = ExtResource("1_0qp84")
 name = &"shoot"
+is_remappable = true
 display_name = "射击"
 display_category = "战斗"

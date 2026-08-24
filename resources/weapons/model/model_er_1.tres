@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeaponModelData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_model_data.gd" id="1_wmodel"]
+
+[resource]
+script = ExtResource("1_wmodel")
+id = "weapon/model/er_1"
+type_id = "bulwark:weapon/type/er"
+display_name = "ER-1 能量步枪"
+damage = 14.0
+fire_rate = 5.0
+mag_size = 20
+reload_time = 1.8
+spread = 1.0
+crit_chance = 0.1
+crit_multiplier = 2.0
+range = 900.0
+keywords = Array[String](["PIERCE"])

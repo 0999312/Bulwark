@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DefenseFacilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/defense_facility_data.gd" id="1_facility"]
+
+[resource]
+script = ExtResource("1_facility")
+id = "facility/turret"
+display_name = "自动炮塔"
+facility_type = 1
+max_durability = 120.0
+material_cost = 3
+build_radius = 600.0
+turret_damage = 6.0
+turret_fire_rate = 1.5
+turret_range = 360.0
+repair_cost = 1
+repair_amount = 40.0
+visual_size = Vector2(48, 48)

@@ -14,15 +14,15 @@ extends CharacterBody2D
 
 const ACCELERATION := 2200.0
 const TRACER_DURATION := 0.06
-const TRACER_LAYER_MASK := 2  # 2D 物理层 2 = enemy
+## M3 问题 3：快照渲染插值——采用**双缓冲线性插值**（网络同步标准做法）：
+## 渲染位置 = 上一快照点 → 当前快照点按时间线性推进；匀速运动完美平滑、
+## 零滞后、无指数插值的"漂移/橡皮筋"感。间隔须与 GameSession.SNAPSHOT_INTERVAL（20Hz）同步
+const SNAPSHOT_INTERVAL := 0.05
 
 ## ─── 枪械手感参数（M1：鸭科夫式 2D 俯视角适配，草案见 gunplay-attachment-notes.md §3）───
 const RECOIL_PER_SHOT := 0.6      # 每发后坐脉冲（度，乘 type.recoil.x）
 const RECOIL_RECOVER_SPEED := 3.0 # 后坐角弹簧恢复速度（度/秒，向 0 收敛）
-const HEAT_PER_SHOT := 0.15       # 每发连射热度增量（度，乘 type.recoil.x）
-const HEAT_MAX := 4.0             # 连射热度上限（度；草案 §3 "上限 4°"）
-const HEAT_DECAY := 3.0           # 停火热度衰减速度（度/秒）
-const MOVE_SPREAD_MULT := 1.5     # 移动时散布倍率
+const MOVE_SPREAD_MULT := 1.5     # 移动时散布倍率（裁决侧使用，见 GameSession._on_shot_fired）
 const MUZZLE_KICK := 5.0          # 枪口后坐回退像素（乘 type.recoil.y）
 const SHAKE_AMPLITUDE := 3.0      # 相机震动幅度（px，草案 2~4px）
 const SHAKE_DURATION := 0.08      # 单发震动时长（秒，草案 60~100ms）
@@ -39,11 +39,10 @@ enum PositionMode {
 	SNAPSHOT = 1,   # 位置由 host 快照驱动（client 端所有玩家）
 }
 
-@onready var aim_marker: Node2D = $Aim
-@onready var gun: Polygon2D = $Aim/Gun
-@onready var muzzle_flash: Polygon2D = $Aim/Sight
+@onready var visual: Node2D = $Visual
+@onready var body: Sprite2D = $Visual/Body
+@onready var muzzle_flash: Sprite2D = $Visual/MuzzleFlash
 @onready var camera: Camera2D = $Camera2D
-@onready var body: Polygon2D = $Body
 
 var controller: PlayerController
 var actions: Dictionary = {}  # StringName -> GUIDEAction（与 GUIDE 启用上下文同实例）
@@ -53,8 +52,29 @@ var player_id := 0
 var role := Role.LOCAL
 var position_mode := PositionMode.SIMULATED
 
+## ─── M4 Kenney 姿势库（表现层贴图状态机；D-M4-6） ───
+## 纹理按 视觉包前缀（soldier1/manBlue）+ 姿势名 动态 load；offset 用像素质心与画布中心差
+## 对齐脚底/身体中心（俯视角单帧素材，切换帧时视觉不跳动）。
+enum Pose { STAND, HOLD, GUN, MACHINE, RELOAD }
+const POSE_NAMES := ["stand", "hold", "gun", "machine", "reload"]
+## 视觉包 → 固定枢轴偏移（质心-中心，像素；取自 stand 帧的身体中心）。
+## 所有姿势共用同一枢轴：旋转时轴点始终落在角色躯干上，切帧不跳动（D-M4-6 修订）。
+const POSE_OFFSETS := {
+	"soldier1": Vector2(-2.9, -0.5),
+	"manBlue": Vector2(-2.2, -0.5),
+}
+## 枪口焰局部位置（枪口基线朝 +X；以固定枢轴为原点，machine/gun 帧枪口实测）
+const MUZZLE_LOCAL_POS := Vector2(22.0, 7.0)
+const MUZZLE_TEXTURE := preload("res://assets/particles/muzzle_02.png")
+
+var visual_pack := "soldier1"
+var _pose_textures: Dictionary = {}
+var _pivot_offset := Vector2.ZERO
+var _current_pose: int = Pose.STAND
+var _pose_reload_timer := 0.0
+var _pose_switch_timer := 0.0
+
 var _tracer_pool: ObjectPool
-var _heat := 0.0               # 连射热度（度，0 ~ HEAT_MAX；散布扩散源）
 var _recoil_angle := 0.0       # 后坐角（度）：每发脉冲累积，弹簧向 0 恢复
 var _shake_time := 0.0         # 相机震动剩余时间（秒）
 var _shake_axis := Vector2.ZERO # 震动主方向（后坐脉冲反方向单位向量）
@@ -63,6 +83,18 @@ var _hit_tween: Tween          # 受击闪红动画
 var _muzzle_tween: Tween       # 枪口焰闪现动画
 var _last_health := -1.0       # 上一帧生命（受击检测）
 var _rng := RandomNumberGenerator.new()
+## M3 问题 3：快照插值状态（双缓冲线性）——
+## _snap_prev/_snap_target = 上一/当前快照点；_snap_t = 当前快照周期内插值进度
+## 首帧快照直接置位（无插值滑入）；去重（位置未变）不更新时停留在 target
+var _snap_prev := Vector2.ZERO
+var _snap_target := Vector2.ZERO
+var _snap_has_prev := false
+var _snap_t := 1.0
+
+## M3 本地预测（方向 B）：client 本地玩家 SIMULATED 本地模拟 + 快照校正。
+## host 权威位置与本地预测位置的偏差小于该阈值时视为"预测领先"（不校正，保持手感）；
+## 超过阈值（host 端碰撞/路障阻挡/复活重置等权威差异）→ 平滑拉回
+const PREDICTION_CORRECTION_DISTANCE := 80.0
 # 复活表现（M1）：后端 controller.state 在复活 CD 期间保持 DEAD（REVIVING 枚举未接线），
 # 故用 ReviveStartedEvent/RevivedEvent 追踪"复活中"与"复活完成"，而非轮询 is_reviving()
 var _is_reviving_visual := false # 复活中（倒地 + 闪烁提示）
@@ -74,27 +106,123 @@ func setup(p_controller: PlayerController, p_actions: Dictionary) -> void:
 	_last_health = p_controller.health
 	_rng.randomize()
 	_tracer_pool = ObjectPool.new(_make_tracer)
+	_build_pose_library()
+	if muzzle_flash != null:
+		muzzle_flash.texture = MUZZLE_TEXTURE
+		muzzle_flash.position = MUZZLE_LOCAL_POS
 	EventBus.subscribe(&"ShotFiredEvent", _on_shot_fired)
 	EventBus.subscribe(&"PlayerHealthChangedEvent", _on_health_changed)
 	EventBus.subscribe(&"PlayerDiedEvent", _on_player_died)
 	EventBus.subscribe(&"ReviveStartedEvent", _on_revive_started)
 	EventBus.subscribe(&"RevivedEvent", _on_revived)
+	# M4 姿势库：切枪/换弹事件驱动 hold/reload 帧
+	EventBus.subscribe(&"WeaponSwitchedEvent", _on_weapon_switched)
+	EventBus.subscribe(&"ReloadStartedEvent", _on_reload_started)
+	EventBus.subscribe(&"WeaponSwitchStartedEvent", _on_switch_started)
+	_update_pose()
+
+## M4 视觉包（GameSession 装配后调用：0 = Soldier1 绿；1 = ManBlue 蓝，分类可读 D-M4-6）
+func set_visual_pack(pack: String) -> void:
+	visual_pack = pack
+	_build_pose_library()
+	# 强制刷新：_update_pose 对相同 pose 会提前返回，必须打破缓存避免
+	# “玩家 2 已经切包却仍显示玩家 1 贴图”的初始帧错位（M4.2 反馈修复）
+	_current_pose = -1
+	_update_pose()
+
+func _build_pose_library() -> void:
+	_pose_textures.clear()
+	for pose_name: String in POSE_NAMES:
+		var tex := load("res://assets/sprites/chars/%s_%s.png" % [visual_pack, pose_name])
+		if tex != null:
+			_pose_textures[pose_name] = tex
+	_pivot_offset = POSE_OFFSETS.get(visual_pack, POSE_OFFSETS["soldier1"])
+
+func _on_weapon_switched(event: WeaponSwitchedEvent) -> void:
+	if event.player_id == player_id:
+		_pose_switch_timer = 0.0
+		_update_pose()
+
+func _on_reload_started(event: ReloadStartedEvent) -> void:
+	if event.player_id == player_id:
+		_pose_reload_timer = event.duration
+		_update_pose()
+
+func _on_switch_started(event: WeaponSwitchStartedEvent) -> void:
+	if event.player_id == player_id:
+		_pose_switch_timer = event.switch_cd
+		_update_pose()
+
+## 姿势裁决：死亡 > 换弹 > 切枪 > 槽位类型（MAIN/SUB=machine，PISTOL=gun，空=stand）
+func _update_pose() -> void:
+	if body == null or controller == null:
+		return
+	var pose := Pose.STAND
+	if controller.is_incapacitated():
+		pose = Pose.STAND
+	elif _pose_reload_timer > 0.0:
+		pose = Pose.RELOAD
+	elif _pose_switch_timer > 0.0:
+		pose = Pose.HOLD
+	elif controller.weapon_slots != null and controller.weapon_slots.is_current_pistol():
+		pose = Pose.GUN
+	elif controller.weapon_slots != null \
+			and controller.weapon_slots.get_current_slot().type_data != null:
+		pose = Pose.MACHINE
+	if pose == _current_pose:
+		return
+	_current_pose = pose
+	var pose_name: String = POSE_NAMES[pose]
+	if _pose_textures.has(pose_name):
+		body.texture = _pose_textures[pose_name]
+	body.offset = _pivot_offset
 
 ## M2 多人：装配身份与模式（GameSession 在 setup 后调用）
+## M3 问题 1：显式相机归属——每进程只允许一个活跃相机（本地玩家视图）。
+## Camera2D 语义为「最后 enabled 者成为当前相机」：若不管理，远端镜像视图的
+## 相机（默认 enabled）会抢走镜头归属。LOCAL → enabled + make_current；
+## REMOTE/NONE → 禁用（镜头只跟随各自进程的本地玩家）。
 func set_role(p_role: Role, p_position_mode: PositionMode) -> void:
 	role = p_role
 	position_mode = p_position_mode
+	if camera == null:
+		return
+	if role == Role.LOCAL:
+		camera.enabled = true
+		camera.zoom = Vector2.ONE * AppConfig.get_camera_zoom()
+		camera.make_current()
+	else:
+		camera.enabled = false
 
 func set_player_id(p_id: int) -> void:
 	player_id = p_id
 
+## M3 本地预测：host 权威位置校正（client 本地玩家 SIMULATED 模式，每快照调用）。
+## 偏差 ≤ 阈值 → 预测领先，保持本地模拟（输入即时生效的手感不被每帧拉回破坏）；
+## 偏差 > 阈值 → 向权威位置平滑收敛（避免瞬移跳变）
+func apply_prediction_correction(authority_pos: Vector2) -> void:
+	if position_mode != PositionMode.SIMULATED:
+		return
+	if global_position.distance_to(authority_pos) > PREDICTION_CORRECTION_DISTANCE:
+		# 每快照周期向权威位置收敛 50%（两次快照 ≈ 75%，连续收敛无跳变）
+		global_position = global_position.lerp(authority_pos, 0.5)
+
 ## 快照置位（client 端 SNAPSHOT 玩家每帧调用；host 端 SIMULATED 忽略）
+## M3：双缓冲线性插值——新快照把当前 target 转 prev，渲染位置按时间推进
 func apply_snapshot(pos: Vector2, aim_angle: float) -> void:
 	if position_mode != PositionMode.SNAPSHOT:
 		return
-	global_position = pos
-	if aim_marker != null:
-		aim_marker.rotation = aim_angle
+	if _snap_has_prev:
+		_snap_prev = _snap_target
+	else:
+		# 首帧快照：直接置位（避免从初始点滑入的"漂移"）
+		_snap_prev = pos
+		global_position = pos
+		_snap_has_prev = true
+	_snap_target = pos
+	_snap_t = 0.0
+	if visual != null:
+		visual.rotation = aim_angle
 
 func _make_tracer() -> Node:
 	# 弹道发光：外圈半透明光晕 + 内核亮线，复用同一对象池
@@ -179,39 +307,46 @@ func _poll_weapon_switch() -> void:
 
 # ─── 枪械手感（表现层：热度/后坐恢复 / 方向化相机震动 / 枪口后坐） ───
 
-## 每帧驱动：连射热度衰减 + 后坐角弹簧恢复 + 相机震动残影（无论死活都跑，保证视觉恢复）
+## 每帧驱动：后坐角弹簧恢复 + 相机震动残影（无论死活都跑，保证视觉恢复）
 func _tick_gunplay(delta: float) -> void:
-	if _heat > 0.0:
-		_heat = maxf(0.0, _heat - HEAT_DECAY * delta)
+	if _pose_reload_timer > 0.0:
+		_pose_reload_timer = maxf(0.0, _pose_reload_timer - delta)
+		if _pose_reload_timer <= 0.0:
+			_update_pose()
+	if _pose_switch_timer > 0.0:
+		_pose_switch_timer = maxf(0.0, _pose_switch_timer - delta)
+		if _pose_switch_timer <= 0.0:
+			_update_pose()
 	if absf(_recoil_angle) > 0.01:
 		_recoil_angle = move_toward(_recoil_angle, 0.0, RECOIL_RECOVER_SPEED * delta)
 	else:
 		_recoil_angle = 0.0
 	if _shake_time > 0.0:
 		_shake_time = maxf(0.0, _shake_time - delta)
-		if camera != null:
+		# M3：相机震动仅作用于启用的本地相机（远端镜像视图相机已禁用，跳过避免无效偏移）
+		if camera != null and camera.enabled:
 			# 方向化震动：主分量沿后坐反方向（_shake_axis），幅度随时间衰减，叠加少量随机抖动
 			var amp := SHAKE_AMPLITUDE * (_shake_time / SHAKE_DURATION)
 			camera.offset = _shake_axis * amp \
 				+ Vector2(_rng.randf_range(-amp, amp), _rng.randf_range(-amp, amp)) * 0.3
-	elif camera != null and camera.offset != Vector2.ZERO:
+	elif camera != null and camera.enabled and camera.offset != Vector2.ZERO:
 		camera.offset = Vector2.ZERO
 
-## 每发子弹的手感反馈：连射热度 + 方向化相机震动 + 枪口回退（纯表现，不影响后端命中判定）
+## 每发子弹的手感反馈：方向化相机震动 + 枪口回退（纯表现，不影响后端命中判定）
 func _apply_recoil_feedback(recoil: Vector2, pulse: float, aim_dir: Vector2) -> void:
-	_heat = minf(HEAT_MAX, _heat + HEAT_PER_SHOT * recoil.x)
 	_shake_time = SHAKE_DURATION
 	# 震动主方向 = 后坐脉冲反方向（以 aim 方向为基准反向旋转 pulse 角）
 	if aim_dir.length_squared() > 0.001:
 		_shake_axis = aim_dir.rotated(deg_to_rad(-pulse))
 	else:
 		_shake_axis = Vector2.UP
-	if gun != null:
+	if visual != null:
 		if _gun_tween != null and _gun_tween.is_valid():
 			_gun_tween.kill()
-		gun.position = Vector2(-MUZZLE_KICK * recoil.y, 0.0)
+		# M4：整枪视觉沿瞄准反方向回退（Visual 已旋转到 aim，局部 -X = 反冲方向）
+		visual.position = Vector2(-MUZZLE_KICK * recoil.y, 0.0)
 		_gun_tween = create_tween()
-		_gun_tween.tween_property(gun, "position", Vector2.ZERO, GUN_RECOVER_TIME) \
+		_gun_tween.tween_property(visual, "position", Vector2.ZERO, GUN_RECOVER_TIME) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 ## 枪口焰：开火瞬间闪现（放大 + 淡出），非开火时保持隐藏（避免"常驻枪口焰"观感）
@@ -223,20 +358,27 @@ func _flash_muzzle() -> void:
 	if _muzzle_tween != null and _muzzle_tween.is_valid():
 		_muzzle_tween.kill()
 	muzzle_flash.visible = true
-	muzzle_flash.scale = Vector2(1.5, 1.5)
-	muzzle_flash.modulate.a = 1.0
+	# muzzle_02（512px 星芒焰）：0.08→0.04 即约 41px→20px 的枪口焰（与 32px 角色匹配）
+	muzzle_flash.scale = Vector2(0.08, 0.08)
+	muzzle_flash.modulate = Color(1.0, 0.92, 0.7, 1.0)
 	_muzzle_tween = create_tween()
-	_muzzle_tween.tween_property(muzzle_flash, "scale", Vector2.ONE, MUZZLE_FLASH_DURATION)
+	_muzzle_tween.tween_property(muzzle_flash, "scale", Vector2(0.04, 0.04), MUZZLE_FLASH_DURATION)
 	_muzzle_tween.parallel().tween_property(muzzle_flash, "modulate:a", 0.0, MUZZLE_FLASH_DURATION)
 	_muzzle_tween.tween_callback(func() -> void: muzzle_flash.visible = false)
 
-## 受击检测：生命下降 → 机身闪红（0.18s 恢复）；仅响应本玩家事件（M2）
+## 受击检测：生命下降 → 机身闪红 + 受击震屏（0.18s 恢复）；仅响应本玩家事件（M2）
 func _on_health_changed(event: PlayerHealthChangedEvent) -> void:
 	if event.player_id != player_id:
 		return
 	if event.current < _last_health:
 		_flash_hit()
+		_apply_hit_shake()
 	_last_health = event.current
+
+## 受击震屏：复用方向化震动通道，主方向随机，幅度与单发后坐一致
+func _apply_hit_shake() -> void:
+	_shake_time = SHAKE_DURATION * 1.4
+	_shake_axis = Vector2.UP.rotated(_rng.randf_range(0.0, TAU))
 
 ## 敌人撞击伤害入口（EnemyView 经 has_method 调用，避免 PlayerView↔EnemyView 循环引用）
 ## 仅 host 模拟端有效（client 镜像无物理碰撞；host 权威结算）
@@ -263,7 +405,12 @@ func _physics_process(delta: float) -> void:
 	if controller == null:
 		return
 	if position_mode == PositionMode.SNAPSHOT:
-		return  # 位置/朝向由 apply_snapshot 每帧置位
+		# 双缓冲线性插值：prev → target 在 SNAPSHOT_INTERVAL 内匀速推进；
+		# 到达后停在 target 等待下一快照（去重不更新时无抖动）
+		if _snap_has_prev:
+			_snap_t += delta / SNAPSHOT_INTERVAL
+			global_position = _snap_prev.lerp(_snap_target, minf(_snap_t, 1.0))
+		return  # 位置/朝向由快照驱动
 	if controller.is_incapacitated():
 		velocity = Vector2.ZERO
 	else:
@@ -273,19 +420,20 @@ func _physics_process(delta: float) -> void:
 			dir = dir.normalized()
 		velocity = velocity.move_toward(dir * speed, ACCELERATION * delta)
 	move_and_slide()
-	aim_marker.rotation = controller.aim_direction.angle()
+	if visual != null:
+		visual.rotation = controller.aim_direction.angle()
 
 # ─── 弹道执行（HITSCAN，后端验证后触发；散布为表现层手感） ───
 
-## 开火事件：结算修正后数值（含配件/商店强化）→ 方向性后坐 → 多弹丸逐条射线
-## M2：按 player_id 过滤（本视图只表现本玩家的开火；命中判定仅 host 真实敌人执行）
+## 开火事件：结算修正后数值（含配件/商店强化）→ 方向性后坐 → 枪口反馈
+## M2：按 player_id 过滤（本视图只表现本玩家的开火）
+## M3 方案 B：命中判定/伤害/tracer 由 GameSession（装配层）用 core 几何判定统一裁决，
+## 本视图只保留即时手感反馈（后坐/震屏/枪口焰）；tracer 由裁决侧 show_tracer 驱动
 func _on_shot_fired(event: ShotFiredEvent) -> void:
 	if event.player_id != player_id:
 		return
 	if controller == null or controller.weapon_slots == null:
 		return
-	# 修正后数值（含配件/商店强化）：伤害/暴击/散布/弹丸数/射程
-	var stats := controller.weapon_slots.get_effective_stats(controller.weapon_slots.get_current_slot())
 	# 手感系数（type.recoil）：从 model.type_id 查 type 数据（WeaponStats 不含 recoil）
 	var recoil := Vector2.ONE
 	var model: WeaponModelData = ContentBootstrap.get_entry(Bulwark.REG_WEAPON_MODEL, event.model_location)
@@ -297,41 +445,13 @@ func _on_shot_fired(event: ShotFiredEvent) -> void:
 	# 每发后坐脉冲（随机方向，鸭科夫"瞄准点随机偏移"）；弹簧恢复由 _tick_gunplay 驱动
 	var pulse := _rng.randf_range(-RECOIL_PER_SHOT, RECOIL_PER_SHOT) * recoil.x
 	_recoil_angle += pulse
-	# 移动时散布扩大（MOVE_SPEED 相关：意图移动即判定）
-	var move_mult := MOVE_SPREAD_MULT if controller.move_direction.length_squared() > 0.001 else 1.0
-	# 最终散布（度）=（基础 spread + 连射热度）× 移动倍率
-	var total_spread := (stats.spread + _heat) * move_mult
-	# 枪口实际方向 = aim_direction 旋转当前后坐角（准星与枪口分离的 2D 等价）
-	var muzzle_dir := event.aim_direction.rotated(deg_to_rad(_recoil_angle))
-
-	# 多弹丸（霰弹）：每颗弹丸独立 apply_spread + 独立射线，保证命中真实
-	var pellets := maxi(1, stats.pellets)
-	for _i in range(pellets):
-		var dir := apply_spread(muzzle_dir, total_spread, _rng)
-		_fire_ray(stats, dir)
-
 	_apply_recoil_feedback(recoil, pulse, event.aim_direction)
 	_flash_muzzle()
 
-## 单条射线检测：命中 EnemyView 时回报伤害管道（伤害/暴击取自修正后 stats）
-## client 镜像：命中 mirror 敌人无伤害（EnemyView.apply_player_hit 对无 controller 直接返回）
-func _fire_ray(stats: WeaponStats, dir: Vector2) -> void:
-	var from := global_position
-	var to := from + dir * stats.range
-
-	var query := PhysicsRayQueryParameters2D.create(from, to, TRACER_LAYER_MASK)
-	query.exclude = [get_rid()]
-	var hit := get_world_2d().direct_space_state.intersect_ray(query)
-
-	var end := to
-	if not hit.is_empty():
-		end = hit.position
-		var collider = hit.collider
-		if collider is EnemyView:
-			# 命中回报：enemy_view.apply_player_hit(stats: WeaponStats, ...) 已对齐，
-			# 直接传修正后 stats（配件/商店强化经 WeaponStats 生效）
-			collider.apply_player_hit(stats, dir)
-	_show_tracer(from, end)
+## M3 方案 B：tracer 由裁决侧（GameSession）驱动——起点/终点均为裁决几何结果，
+## 表现层不自行发射线（client 镜像无碰撞的"子弹穿身"问题由此消除）
+func show_tracer(from: Vector2, _dir: Vector2, hit_point: Vector2) -> void:
+	_show_tracer(from, hit_point)
 
 func _show_tracer(from: Vector2, to: Vector2) -> void:
 	var tracer: Node2D = _tracer_pool.acquire()
@@ -365,10 +485,9 @@ func _on_player_died(event: PlayerDiedEvent) -> void:
 	if body != null:
 		body.rotation = deg_to_rad(90.0)
 		body.modulate = Color(1.0, 1.0, 1.0, 0.5)
-	if gun != null:
-		gun.visible = false
 	if muzzle_flash != null:
 		muzzle_flash.visible = false
+	_update_pose()
 
 ## 复活 CD 开始（ReviveStartedEvent）：保持倒地 + 闪烁提示
 func _on_revive_started(event: ReviveStartedEvent) -> void:
@@ -386,6 +505,7 @@ func _on_revived(event: RevivedEvent) -> void:
 		body.rotation = 0.0
 		body.modulate = Color.WHITE
 	_reset_gunplay_visual()
+	_update_pose()
 
 ## 复活中闪烁：modulate.a 周期变化（约 5Hz），无论死活都跑（复活 CD 期间 state 为 DEAD）
 func _tick_revive_blink(delta: float) -> void:
@@ -395,18 +515,16 @@ func _tick_revive_blink(delta: float) -> void:
 	var a := 0.3 + 0.4 * (0.5 + 0.5 * sin(_blink_t * 10.0))
 	body.modulate = Color(1.0, 1.0, 1.0, a)
 
-## 枪械视觉复位：heat/recoil/震动归零 + 枪口位置/可见性恢复
+## 枪械视觉复位：recoil/震动归零 + 枪口位置/可见性恢复
 func _reset_gunplay_visual() -> void:
-	_heat = 0.0
 	_recoil_angle = 0.0
 	_shake_time = 0.0
 	if camera != null:
 		camera.offset = Vector2.ZERO
-	if gun != null:
+	if visual != null:
 		if _gun_tween != null and _gun_tween.is_valid():
 			_gun_tween.kill()
-		gun.position = Vector2.ZERO
-		gun.visible = true
+		visual.position = Vector2.ZERO
 	if muzzle_flash != null:
 		if _muzzle_tween != null and _muzzle_tween.is_valid():
 			_muzzle_tween.kill()

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = "enemy/flying"
+display_name = "飞行体"
+threat_mode = 5
+max_hp = 22.0
+move_speed = 160.0
+attack_damage = 8.0
+attack_interval = 1.2
+attack_range = 60.0
+armor = 0.0
+ignores_barricades = true
+player_count_scale = 1.6
+loot_table_locations = Array[String]([])
+kill_reward = 12
+visual_scale = 0.9
+body_color = Color(0.35, 0.5, 0.75, 1)

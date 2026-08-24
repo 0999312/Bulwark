@@ -98,6 +98,7 @@ func test_restart_after_defeat_reloads_scene() -> void:
 	assert_not_null(new_session, "重启后应有新 GameSession")
 	if new_session == null:
 		return
+	_session = new_session
 	assert_false(new_session._run_finished, "新局不应处于结束状态")
 	assert_false(get_tree().paused, "重启后树应恢复运行")
 

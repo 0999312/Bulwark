@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeaponModelData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_model_data.gd" id="1_wmodel"]
+
+[resource]
+script = ExtResource("1_wmodel")
+id = "weapon/model/hg_3"
+type_id = "bulwark:weapon/type/hg"
+display_name = "HG-3 手枪"
+damage = 8.0
+fire_rate = 3.5
+mag_size = 8
+reload_time = 1.1
+spread = 2.0
+crit_chance = 0.07
+crit_multiplier = 2.0
+range = 650.0
+keywords = Array[String]([])

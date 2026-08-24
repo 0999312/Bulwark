@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Bulwark 前线壁垒"
-run/main_scene="res://scenes/world/main.tscn"
+run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+
+[audio]
+
+buses/default_bus_layout="res://resources/audio/default_bus_layout.tres"
 
 [autoload]
 
@@ -23,7 +27,15 @@ I18NManager="*uid://wj05s0mpoqn"
 UIManager="*uid://b0mn85k3pon1l"
 GUIDE="*res://addons/guide/guide.gd"
 SoundManager="*uid://bjex7rgsn4fi1"
+SettingsManager="*res://scripts/systems/settings_manager.gd"
+InputSettings="*res://scripts/systems/input_settings.gd"
+AppConfig="*res://scripts/systems/app_config.gd"
 Net="*res://scripts/systems/net/net.gd"
+AudioDirector="*res://scripts/systems/audio_director.gd"
+CursorStateMachine="*res://scripts/systems/cursor_state_machine.gd"
+LightingManager="*res://scripts/systems/lighting_manager.gd"
+FxBurst="*res://scripts/systems/fx_burst.gd"
+SceneNavigator="*res://scripts/systems/scene_navigator.gd"
 
 [display]
 
@@ -37,7 +49,7 @@ project/assembly_name="Bulwark 前线壁垒"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/guide/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/mc_game_framework/plugin.cfg", "res://addons/sound_manager/plugin.cfg")
+enabled=PackedStringArray("res://addons/guide/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/mc_game_framework/plugin.cfg", "res://addons/nodetunnel/plugin.cfg", "res://addons/sound_manager/plugin.cfg")
 
 [gui]
 
@@ -52,4 +64,5 @@ theme/custom="res://assets/theme/minimal_vector.tres"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 environment/defaults/default_clear_color=Color(0.05, 0.062, 0.075, 1)

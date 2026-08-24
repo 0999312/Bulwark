@@ -19,6 +19,17 @@ var groups: Array[SpawnGroup] = []
 ## 对齐 wave 数据分布：W1~3 单方向 6~11 → 大量；W4+ 快/硬壳 2~5 → 少量
 const HEAVY_THRESHOLD := 6
 
+## M5 波次预告数量档（D-M5-13）：少量 / 中等 / 大量
+const TIER_LIGHT := "light"
+const TIER_MEDIUM := "medium"
+const TIER_HEAVY := "heavy"
+## 总量阈值：< LIGHT_THRESHOLD = 少量；>= LIGHT_THRESHOLD 且 < HEAVY_THRESHOLD = 中等；>= HEAVY_THRESHOLD = 大量
+const LIGHT_THRESHOLD := 5
+const TOTAL_HEAVY_THRESHOLD := 12
+
+## 精英波标记（由 WaveGenerator 从 WaveData.is_elite_wave 带入）
+var is_elite_wave := false
+
 func add_group(direction: int, count: int, enemy_location: String) -> void:
 	groups.append(SpawnGroup.new(direction, count, enemy_location))
 
@@ -49,3 +60,22 @@ func summarize_tiers(threshold: int = HEAVY_THRESHOLD) -> Dictionary:
 	(tiers["heavy"] as Array).sort()
 	(tiers["light"] as Array).sort()
 	return tiers
+
+## M5 波次预告数量档（D-M5-13）：少量 / 中等 / 大量
+## 按总敌人数判定（客户端只需一个档位，不再逐方向罗列）
+func threat_tier() -> String:
+	var total := total_count()
+	if total >= TOTAL_HEAVY_THRESHOLD:
+		return TIER_HEAVY
+	if total >= LIGHT_THRESHOLD:
+		return TIER_MEDIUM
+	return TIER_LIGHT
+
+## 是否包含精英（精英波标记或敌人 id 含 elite）
+func has_elite() -> bool:
+	if is_elite_wave:
+		return true
+	for g in groups:
+		if g.enemy_location.contains("elite"):
+			return true
+	return false

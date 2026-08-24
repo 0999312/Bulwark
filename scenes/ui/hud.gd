@@ -15,6 +15,7 @@ const INFINITE_TEXT := "∞"
 @onready var banner_bg: Panel = %BannerBG
 @onready var compass_label: Label = %CompassLabel
 @onready var ammo_row: HBoxContainer = %AmmoLabel
+@onready var ammo_title_label: Label = %AmmoTitle
 @onready var ammo_mag_label: Label = %AmmoMag
 @onready var ammo_reserve_label: Label = %AmmoReserve
 @onready var reload_label: Label = %ReloadLabel
@@ -26,20 +27,58 @@ const INFINITE_TEXT := "∞"
 @onready var resources_label: Label = %ResourcesLabel
 @onready var revive_label: Label = %ReviveLabel
 @onready var revive_bg: Panel = %ReviveBG
+@onready var pause_hint_label: Label = %PauseHintLabel
 
 var _banner_timer := 0.0
 var _reload_timer := 0.0
 var _switch_timer := 0.0
 var _revive_timer := 0.0
+var _hp_tween: Tween
+var _base_tween: Tween
 var _revive_active := false
 var _current_slot_type: int = WeaponTypeData.SlotType.MAIN
 var _cached_ammo: Dictionary = {}  # {mag:int, reserve:int}
+var _cached_health: Dictionary = {}
+var _cached_base: Dictionary = {}
+var _cached_resources: Array = []
+var _cached_wave: Dictionary = {}
+var _cached_facility_type: int = DefenseFacilityData.FacilityType.BARRICADE
+var _cached_pause_requests: Array = []
+var _cached_pause_total := 2
 ## M2 多人：本 HUD 只显示该玩家 id 的数据（host/单机 = 0；client = 1）
 var _local_player_id := 0
 
 ## M2 多人：绑定本进程负责的玩家（GameSession 挂载时调用）
 func set_local_player_id(pid: int) -> void:
 	_local_player_id = pid
+
+## M3 问题 2：全队暂停请求提示（client 跟随 ui_state 调用）
+## requests = 请求暂停的玩家 id 列表（host 汇总）；total = 在线玩家数
+func set_facility_hint(facility_type: int) -> void:
+	_cached_facility_type = facility_type
+	var facility_id := "facility/barricade"
+	match facility_type:
+		DefenseFacilityData.FacilityType.TURRET:
+			facility_id = "facility/turret"
+	var name := UiText.content_name(facility_id, "?")
+	hint_label.text = UiText.text("hud.facility_hint", [name])
+	hint_label.visible = true
+
+func set_pause_requests(requests: Array, total: int) -> void:
+	_cached_pause_requests = requests.duplicate()
+	_cached_pause_total = maxi(total, 1)
+	_refresh_pause_hint()
+
+func _refresh_pause_hint() -> void:
+	if _cached_pause_requests.is_empty():
+		pause_hint_label.visible = false
+		return
+	var parts: Array[String] = []
+	for pid_v in _cached_pause_requests:
+		parts.append(UiText.text("common.player_number", [int(pid_v) + 1]))
+	pause_hint_label.text = UiText.text("hud.pause_requests", [
+		"、".join(parts), _cached_pause_requests.size(), _cached_pause_total])
+	pause_hint_label.visible = true
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -57,7 +96,17 @@ func _ready() -> void:
 	EventBus.subscribe(&"RunStateChangedEvent", _on_run_state_changed)
 	EventBus.subscribe(&"ReviveStartedEvent", _on_revive_started)
 	EventBus.subscribe(&"RevivedEvent", _on_revived)
+	EventBus.subscribe(&"LanguageChangedEvent", _on_language_changed)
 	_update_slot_highlight()
+	_apply_static_texts()
+
+func _exit_tree() -> void:
+	EventBus.unsubscribe(&"LanguageChangedEvent", _on_language_changed)
+
+func _on_language_changed(_event: LanguageChangedEvent) -> void:
+	_apply_static_texts()
+	_refresh_pause_hint()
+	_refresh_cached_texts()
 
 func _process(delta: float) -> void:
 	if _banner_timer > 0.0:
@@ -75,16 +124,17 @@ func _process(delta: float) -> void:
 			switch_label.visible = false
 	if _revive_active:
 		_revive_timer = maxf(0.0, _revive_timer - delta)
-		revive_label.text = "复活中 %.1fs" % _revive_timer
+		revive_label.text = _format_seconds("hud.revive", _revive_timer)
 
 # ─── 事件订阅 ───
 
 func _on_player_health(event: PlayerHealthChangedEvent) -> void:
 	if event.player_id != _local_player_id:
 		return
+	_cached_health = {"current": event.current, "max": event.max_value}
 	hp_bar.max_value = event.max_value
-	hp_bar.value = event.current
-	hp_label.text = "生命 %d/%d" % [event.current, event.max_value]
+	_tween_hp(event.current)
+	hp_label.text = UiText.text("hud.health", [event.current, event.max_value])
 
 func _on_ammo_changed(event: AmmoChangedEvent) -> void:
 	if event.player_id != _local_player_id:
@@ -104,7 +154,7 @@ func _on_weapon_switched(event: WeaponSwitchedEvent) -> void:
 func _on_switch_started(event: WeaponSwitchStartedEvent) -> void:
 	if event.player_id != _local_player_id:
 		return
-	switch_label.text = "切换中 %.1fs" % event.switch_cd
+	switch_label.text = _format_seconds("hud.switching", event.switch_cd)
 	switch_label.visible = true
 	_switch_timer = event.switch_cd
 
@@ -113,32 +163,50 @@ func _on_switch_rejected(event: WeaponSwitchRejectedEvent) -> void:
 		return
 	match event.reason:
 		WeaponSwitchRejectedEvent.REASON_EMPTY:
-			switch_label.text = "槽位 %d 空" % (event.slot_index + 1)
+			switch_label.text = UiText.text("hud.slot_empty", [event.slot_index + 1])
 		_:
-			switch_label.text = "切换中…"
+			switch_label.text = UiText.text("hud.switching_dots")
 	switch_label.visible = true
 	_switch_timer = 1.5
 
 func _on_reload_started(event: ReloadStartedEvent) -> void:
 	if event.player_id != _local_player_id:
 		return
-	reload_label.text = "换弹 %.1fs" % event.duration
+	reload_label.text = _format_seconds("hud.reloading", event.duration)
 	reload_label.visible = true
 	_reload_timer = event.duration
 
 func _on_base_durability(event: BaseDurabilityChangedEvent) -> void:
+	_cached_base = {"current": event.current, "max": event.max_value}
 	base_bar.max_value = event.max_value
-	base_bar.value = event.current
-	base_label.text = "基地 %d/%d" % [event.current, event.max_value]
+	_tween_base(event.current)
+	base_label.text = UiText.text("hud.base", [event.current, event.max_value])
 
 func _on_wave_warning(event: WaveWarningEvent) -> void:
-	wave_label.text = "第 %d/%d 波" % [event.wave_index, event.wave_total]
-	# 只报来袭方位数量级（M2 简化：大量/少量分级，不再逐方向罗列数量与箭头）
-	# direction_tiers 由 WaveDirector 填充；空（旧事件/测试）时回退逐方向罗列
-	var summary := _format_direction_tiers(event)
-	compass_label.text = "来袭 %s" % summary
+	_cached_wave = {
+		"index": event.wave_index,
+		"tier": event.threat_tier,
+		"elite": event.has_elite,
+	}
+	wave_label.text = UiText.text("hud.wave", [event.wave_index])
+	# M5d（D-M5-13）：只报数量档 + 精英标记，不再显示箭头/逐方向
+	var tier_text := _tier_text(event.threat_tier)
+	var elite_text := UiText.text("hud.elite_warning") if event.has_elite else ""
+	compass_label.text = UiText.text("hud.incoming", [tier_text, elite_text])
 	compass_label.visible = true
-	_show_banner("第 %d 波 · %s" % [event.wave_index, summary], 2.5)
+	_show_banner(UiText.text("hud.banner_wave_warning",
+		[event.wave_index, tier_text, elite_text]), 2.5)
+
+static func _tier_text(tier: String) -> String:
+	match tier:
+		WaveComposition.TIER_HEAVY:
+			return UiText.text("hud.tier_heavy")
+		WaveComposition.TIER_MEDIUM:
+			return UiText.text("hud.tier_medium")
+		WaveComposition.TIER_LIGHT:
+			return UiText.text("hud.tier_light")
+		_:
+			return UiText.text("hud.tier_unknown")
 
 ## 方位分级摘要文本（M2，纯函数便于测试）：
 ## {"heavy": [dir...], "light": [dir...]} → "大量 ↑→ · 少量 ↘"
@@ -156,9 +224,9 @@ static func _format_direction_tiers(event: WaveWarningEvent) -> String:
 	var heavy: Array = tiers.get("heavy", [])
 	var light: Array = tiers.get("light", [])
 	if not heavy.is_empty():
-		sections.append("大量 %s" % _arrows_text(heavy))
+		sections.append("%s %s" % [UiText.text("hud.tier_heavy"), _arrows_text(heavy)])
 	if not light.is_empty():
-		sections.append("少量 %s" % _arrows_text(light))
+		sections.append("%s %s" % [UiText.text("hud.tier_light"), _arrows_text(light)])
 	return " · ".join(sections)
 
 static func _arrows_text(directions: Array) -> String:
@@ -168,26 +236,30 @@ static func _arrows_text(directions: Array) -> String:
 	return "".join(parts)
 
 func _on_wave_started(_event: WaveStartedEvent) -> void:
-	_show_banner("接敌！", 1.5)
+	_show_banner(UiText.text("hud.banner_contact"), 1.5)
 
 func _on_wave_cleared(event: WaveClearedEvent) -> void:
-	_show_banner("第 %d 波击退。" % event.wave_index, 2.0)
+	_show_banner(UiText.text("hud.banner_wave_cleared", [event.wave_index]), 2.0)
 
 func _on_player_died(event: PlayerDiedEvent) -> void:
 	if event.player_id != _local_player_id:
 		return
-	_show_banner("阵亡。正在调用应急储备…", 2.0)
+	_show_banner(UiText.text("hud.banner_died"), 2.0)
 
 func _on_run_state_changed(event: RunStateChangedEvent) -> void:
-	resources_label.text = "货币 %d · 建材 %d · 储备 %d" % [
-		event.credits, event.material, event.reserve]
+	# M3 问题 4：资源行只显示本地玩家（host/单机 = 0；client = 本地 id）
+	if event.player_id != _local_player_id:
+		return
+	_cached_resources = [event.credits, event.material, event.reserve]
+	resources_label.text = UiText.text("hud.resources",
+		[event.credits, event.material, event.reserve])
 
 func _on_revive_started(event: ReviveStartedEvent) -> void:
 	if event.player_id != _local_player_id:
 		return
 	_revive_active = true
 	_revive_timer = event.revive_cd
-	revive_label.text = "复活中 %.1fs" % _revive_timer
+	revive_label.text = _format_seconds("hud.revive", _revive_timer)
 	revive_label.visible = true
 	revive_bg.visible = true
 
@@ -199,6 +271,69 @@ func _on_revived(event: RevivedEvent) -> void:
 	revive_bg.visible = false
 
 # ─── 内部 ───
+
+static func _format_seconds(key: String, seconds: float) -> String:
+	return UiText.text(key, ["%.1f" % seconds])
+
+func _apply_static_texts() -> void:
+	resources_label.text = UiText.text("hud.resources_placeholder") if _cached_resources.is_empty() \
+		else UiText.text("hud.resources", _cached_resources)
+	hp_label.text = UiText.text("hud.health_placeholder") if _cached_health.is_empty() \
+		else UiText.text("hud.health", [_cached_health.get("current", 0), _cached_health.get("max", 0)])
+	base_label.text = UiText.text("hud.base_placeholder") if _cached_base.is_empty() \
+		else UiText.text("hud.base", [_cached_base.get("current", 0), _cached_base.get("max", 0)])
+	wave_label.text = UiText.text("hud.wave", [_cached_wave.get("index", -1)]) if not _cached_wave.is_empty() \
+		else UiText.text("hud.wave_placeholder")
+	ammo_title_label.text = UiText.text("hud.ammo_title")
+	slot_main_label.text = UiText.text("hud.slot_badge", [1, UiText.text("common.slot_main")])
+	slot_sub_label.text = UiText.text("hud.slot_badge", [2, UiText.text("common.slot_sub")])
+	slot_pistol_label.text = UiText.text("hud.slot_badge", [3, UiText.text("common.slot_pistol")])
+	hint_label.text = UiText.text("hud.controls_hint") if _cached_facility_type < 0 \
+		else UiText.text("hud.facility_hint", [_facility_name(_cached_facility_type)])
+	_refresh_ammo_label()
+	_refresh_pause_hint()
+
+func _refresh_cached_texts() -> void:
+	_apply_static_texts()
+	if _revive_active:
+		revive_label.text = _format_seconds("hud.revive", _revive_timer)
+	if _reload_timer > 0.0:
+		reload_label.text = _format_seconds("hud.reloading", _reload_timer)
+	if _switch_timer > 0.0:
+		switch_label.text = _format_seconds("hud.switching", _switch_timer)
+	if not _cached_wave.is_empty():
+		var tier_text := _tier_text(str(_cached_wave.get("tier", "")))
+		var elite_text := UiText.text("hud.elite_warning") if bool(_cached_wave.get("elite", false)) else ""
+		compass_label.text = UiText.text("hud.incoming", [tier_text, elite_text])
+
+func _facility_name(facility_type: int) -> String:
+	match facility_type:
+		DefenseFacilityData.FacilityType.TURRET:
+			return UiText.content_name("facility/turret", "自动炮塔")
+		_:
+			return UiText.content_name("facility/barricade", "路障")
+
+## M5d：数值条用 tween_method 平滑过渡（≤250ms，重入前 kill）
+func _tween_hp(target_value: float) -> void:
+	_tween_bar_to(hp_bar, target_value, _hp_tween)
+
+func _tween_base(target_value: float) -> void:
+	_tween_bar_to(base_bar, target_value, _base_tween)
+
+func _tween_bar_to(bar: ProgressBar, target_value: float, existing_tween: Tween) -> void:
+	if bar == null:
+		return
+	if existing_tween != null and existing_tween.is_valid():
+		existing_tween.kill()
+	var start_value := bar.value
+	var tw := create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_method(func(v: float) -> void: bar.value = v, start_value, target_value, 0.22)
+	if existing_tween == _hp_tween:
+		_hp_tween = tw
+	elif existing_tween == _base_tween:
+		_base_tween = tw
 
 func _refresh_ammo_label() -> void:
 	if _cached_ammo.is_empty():
@@ -213,7 +348,7 @@ func _refresh_ammo_label() -> void:
 		reserve_text = INFINITE_TEXT if int(_cached_ammo["reserve"]) == AmmoSystem.INFINITE \
 			else str(_cached_ammo["reserve"])
 	ammo_mag_label.text = str(int(_cached_ammo["mag"]))
-	ammo_reserve_label.text = "/ %s" % reserve_text
+	ammo_reserve_label.text = UiText.text("hud.ammo_display", [reserve_text])
 
 func _update_slot_highlight() -> void:
 	slot_main_label.modulate = Color(1, 1, 1, 1) if _current_slot_type == WeaponTypeData.SlotType.MAIN else Color(1, 1, 1, 0.45)

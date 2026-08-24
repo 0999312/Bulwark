@@ -6,11 +6,21 @@ extends RefCounted
 ## - 应急储备 reserve：复活资源（P20 局内极难补充；商店高价固定物资）
 ## - 强化 AttributeSet：商店购买的全局修正（玩家属性 / 武器数值共享通道）
 ## 变更广播 RunStateChangedEvent（HUD / 商店面板绑定）
+## 能量资源已移除（唯一用途弹药补给台已删除）
 
 const ATTRIBUTE_KEYS := [
 	AttributeSet.MAX_HEALTH,
 	AttributeSet.MOVE_SPEED,
 	AttributeSet.RELOAD_SPEED,
+	AttributeSet.ARMOR,
+	AttributeSet.LIFESTEAL,
+	AttributeSet.SWITCH_CD,
+	AttributeSet.TURRET_DAMAGE,
+	AttributeSet.BARRICADE_HP,
+	AttributeSet.REPAIR_SPEED,
+	AttributeSet.BUILD_COST,
+	AttributeSet.MATERIAL_YIELD,
+	AttributeSet.CREDIT_YIELD,
 ]
 
 var credits: int = 0
@@ -21,7 +31,11 @@ var reserve: int = 0
 ## 玩家侧 AttributeSet 与武器侧 WeaponStats 在结算时叠加本集）
 var bonus: AttributeSet
 
-func _init() -> void:
+## M3 问题 4：所属玩家（多人独立资源；默认 0 = 单机/本地；事件携带供前端过滤）
+var player_id: int = 0
+
+func _init(p_player_id: int = 0) -> void:
+	player_id = p_player_id
 	bonus = AttributeSet.new()
 	for key: StringName in ATTRIBUTE_KEYS:
 		bonus.set_base(key, 0.0)
@@ -90,4 +104,4 @@ func get_bonus_final(attr: StringName) -> float:
 	return bonus.get_final(attr)
 
 func _emit_changed() -> void:
-	EventBus.publish(RunStateChangedEvent.new(credits, material, reserve))
+	EventBus.publish(RunStateChangedEvent.new(credits, material, reserve, player_id))

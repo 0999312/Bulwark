@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = "enemy/armored"
+display_name = "装甲兽"
+threat_mode = 2
+max_hp = 65.0
+move_speed = 55.0
+attack_damage = 14.0
+attack_interval = 1.8
+attack_range = 70.0
+armor = 0.3
+directional_armor = true
+frontal_armor = 0.6
+player_count_scale = 1.6
+loot_table_locations = Array[String]([])
+kill_reward = 20
+visual_scale = 1.35
+body_color = Color(0.42, 0.45, 0.4, 1)

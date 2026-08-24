@@ -6,7 +6,7 @@ extends Resource
 
 @export_group("标识")
 @export var id: String = ""
-## 关联 WeaponTypeData 的 ResourceLocation 字符串（如 "bulwark:weapon/type/assault_rifle"）
+## 关联 WeaponTypeData 的 ResourceLocation 字符串（如 "bulwark:weapon/type/ar"）
 @export var type_id: String = ""
 @export var display_name: String = ""
 

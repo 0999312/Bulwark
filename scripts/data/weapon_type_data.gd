@@ -29,7 +29,7 @@ enum BallisticMode {
 }
 
 @export_group("标识")
-## 注册 id（不含命名空间，如 "assault_rifle"）；注册时拼为 bulwark:weapon/type/assault_rifle
+## 注册 id（不含命名空间，如 "assault_rifle"）；注册时拼为 bulwark:weapon/type/ar
 @export var id: String = ""
 @export var display_name: String = ""
 

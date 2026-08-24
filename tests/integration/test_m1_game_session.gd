@@ -89,21 +89,24 @@ func test_barricade_placement_consumes_material() -> void:
 	if material_before <= 0:
 		_session.run_state.add_material(1)
 		material_before = _session.run_state.material
-	# 放置位置注入基地旁（headless 鼠标位置不可控）
-	_session._try_place_barricade(_session.base_node.global_position)
+	# 放置位置由玩家当前位置计算（headless 鼠标位置不可控）
+	_session.player_node.global_position = _session.base_node.global_position + Vector2(0, 180)
+	_session._try_place_barricade(0)
 	assert_eq(_session.run_state.material, material_before - 1, "放置消耗 1 建材")
 	assert_eq(_session.barricades.size(), 1, "路障控制器已登记")
 
 func test_barricade_out_of_radius_rejected() -> void:
 	var material_before: int = _session.run_state.material
-	_session._try_place_barricade(Vector2(5000, 5000))
+	_session.player_node.global_position = Vector2(5000, 5000)
+	_session._try_place_barricade(0)
 	assert_eq(_session.run_state.material, material_before, "越界放置不消耗建材")
 	assert_eq(_session.barricades.size(), 0, "越界不放置")
 
 func test_enemy_attacks_barricade_instead_of_base() -> void:
 	# 路障放在基地旁 → 敌人冲基地路上攻击路障，基地耐久不掉
 	_session.run_state.add_material(5)
-	_session._try_place_barricade(_session.base_node.global_position)
+	_session.player_node.global_position = _session.base_node.global_position + Vector2(120, 0)
+	_session._try_place_barricade(0)
 	assert_eq(_session.barricades.size(), 1)
 	var base_durability: float = _session.base_core.durability
 
@@ -111,7 +114,7 @@ func test_enemy_attacks_barricade_instead_of_base() -> void:
 	var enemy: EnemyView = load("res://scenes/enemy/enemy.tscn").instantiate()
 	_session.enemies_root.add_child(enemy)
 	enemy.setup(enemy_data, _session.base_node, _session._get_barricade_views)
-	enemy.global_position = _session.base_node.global_position + Vector2(120, 0)
+	enemy.global_position = _session.base_node.global_position + Vector2(240, 0)
 
 	# 等敌人接近路障（路障在基地位置）
 	for i in 300:
@@ -151,7 +154,7 @@ func test_player_fire_hits_enemy_with_stats() -> void:
 
 	# 模拟后端验证通过的射击事件（主武器向上）
 	EventBus.publish(ShotFiredEvent.new(
-		Bulwark.loc(Bulwark.WEAPON_MODEL_STORM7).to_string(), Vector2.UP))
+		Bulwark.loc(Bulwark.WEAPON_MODEL_AR_1).to_string(), Vector2.UP))
 	await wait_physics_frames(2)
 	assert_lt(enemy.controller.health, hp_before, "玩家射击应命中敌人并造成伤害")
 	# 12dmg vs 12HP：暴击(24dmg)会直接击杀，正常命中则残血——两种都合法，不做死亡断言

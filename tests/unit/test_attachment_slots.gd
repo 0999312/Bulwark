@@ -11,10 +11,10 @@ func before_each() -> void:
 	ammo.set_count(WeaponTypeData.AmmoType.BULLET, 90)
 	slots = WeaponSlots.new(ammo)
 	var rifle_type := WeaponTypeData.new()
-	rifle_type.id = "weapon/type/assault_rifle"
+	rifle_type.id = "weapon/type/ar"
 	rifle_type.slot = WeaponTypeData.SlotType.MAIN
 	var rifle := WeaponModelData.new()
-	rifle.id = "weapon/model/storm7"
+	rifle.id = "weapon/model/ar_1"
 	rifle.damage = 12.0
 	rifle.fire_rate = 8.0
 	rifle.mag_size = 30
@@ -98,9 +98,9 @@ func test_global_bonus_affects_fire_rate() -> void:
 	run_state.apply_bonus_modifier(mod)
 	var slots2 := WeaponSlots.new(AmmoSystem.new(), run_state)
 	var rifle_type := WeaponTypeData.new()
-	rifle_type.id = "weapon/type/assault_rifle"
+	rifle_type.id = "weapon/type/ar"
 	var rifle := WeaponModelData.new()
-	rifle.id = "weapon/model/storm7"
+	rifle.id = "weapon/model/ar_1"
 	rifle.fire_rate = 8.0
 	rifle.mag_size = 5
 	slots2.assign_slot(WeaponSlots.SLOT_MAIN, rifle_type, rifle)

@@ -1,0 +1,236 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="FontFile" path="res://assets/fonts/MiSans-Semibold.ttf" id="2_font"]
+
+[sub_resource type="Gradient" id="Gradient_bg"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(0.012, 0.018, 0.028, 1, 0.024, 0.033, 0.047, 1, 0.052, 0.07, 0.095, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_bg"]
+gradient = SubResource("Gradient_bg")
+width = 64
+height = 64
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_room"]
+content_margin_left = 36.0
+content_margin_top = 24.0
+content_margin_right = 36.0
+content_margin_bottom = 24.0
+bg_color = Color(0.045, 0.06, 0.082, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.42, 0.53, 0.67, 0.75)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 8
+
+[node name="MainMenu" type="Control"]
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_bg")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainVBox" type="VBoxContainer" parent="Center"]
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="Center/MainVBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.96, 0.74, 0.28, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 58
+text = ""
+
+[node name="SubLabel" type="Label" parent="Center/MainVBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.62, 0.68, 0.75, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 17
+text = "FRONTLINE BULWARK"
+
+[node name="Spacer" type="Control" parent="Center/MainVBox"]
+custom_minimum_size = Vector2(0, 20)
+
+[node name="MainButtons" type="VBoxContainer" parent="Center/MainVBox"]
+unique_name_in_owner = true
+theme_override_constants/separation = 10
+
+[node name="SingleButton" type="Button" parent="Center/MainVBox/MainButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 46)
+text = ""
+
+[node name="MultiButton" type="Button" parent="Center/MainVBox/MainButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 46)
+text = ""
+
+[node name="SettingsButton" type="Button" parent="Center/MainVBox/MainButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 46)
+text = ""
+
+[node name="QuitButton" type="Button" parent="Center/MainVBox/MainButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 46)
+text = ""
+
+[node name="RoomPanel" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(560, 0)
+theme_override_styles/panel = SubResource("StyleBoxFlat_room")
+
+[node name="RoomVBox" type="VBoxContainer" parent="Center/RoomPanel"]
+theme_override_constants/separation = 8
+
+[node name="RoomTitle" type="Label" parent="Center/RoomPanel/RoomVBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.96, 0.74, 0.28, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = ""
+
+[node name="ModeRow" type="HBoxContainer" parent="Center/RoomPanel/RoomVBox"]
+theme_override_constants/separation = 8
+
+[node name="ModeLabel" type="Label" parent="Center/RoomPanel/RoomVBox/ModeRow"]
+unique_name_in_owner = true
+text = ""
+
+[node name="ModeOption" type="OptionButton" parent="Center/RoomPanel/RoomVBox/ModeRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+item_count = 2
+selected = 0
+popup/item_0/text = ""
+popup/item_0/id = 0
+popup/item_1/text = ""
+popup/item_1/id = 1
+
+[node name="CreateTitle" type="Label" parent="Center/RoomPanel/RoomVBox"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.62, 0.68, 0.75, 1)
+text = ""
+
+[node name="CreateRow" type="HBoxContainer" parent="Center/RoomPanel/RoomVBox"]
+theme_override_constants/separation = 8
+
+[node name="CreatePortLabel" type="Label" parent="Center/RoomPanel/RoomVBox/CreateRow"]
+unique_name_in_owner = true
+text = ""
+
+[node name="CreatePortEdit" type="LineEdit" parent="Center/RoomPanel/RoomVBox/CreateRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+text = "31007"
+
+[node name="CreateButton" type="Button" parent="Center/RoomPanel/RoomVBox/CreateRow"]
+unique_name_in_owner = true
+text = ""
+
+[node name="RoomCodeLabel" type="Label" parent="Center/RoomPanel/RoomVBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.85, 0.47, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 17
+text = ""
+
+[node name="GoButton" type="Button" parent="Center/RoomPanel/RoomVBox"]
+unique_name_in_owner = true
+visible = false
+text = ""
+
+[node name="Sep" type="HSeparator" parent="Center/RoomPanel/RoomVBox"]
+
+[node name="JoinTitle" type="Label" parent="Center/RoomPanel/RoomVBox"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.62, 0.68, 0.75, 1)
+text = ""
+
+[node name="JoinRow" type="HBoxContainer" parent="Center/RoomPanel/RoomVBox"]
+theme_override_constants/separation = 8
+
+[node name="JoinAddressLabel" type="Label" parent="Center/RoomPanel/RoomVBox/JoinRow"]
+unique_name_in_owner = true
+text = ""
+
+[node name="JoinAddressEdit" type="LineEdit" parent="Center/RoomPanel/RoomVBox/JoinRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+text = "127.0.0.1"
+
+[node name="JoinPortRow" type="HBoxContainer" parent="Center/RoomPanel/RoomVBox"]
+theme_override_constants/separation = 8
+
+[node name="JoinPortLabel" type="Label" parent="Center/RoomPanel/RoomVBox/JoinPortRow"]
+unique_name_in_owner = true
+text = ""
+
+[node name="JoinPortEdit" type="LineEdit" parent="Center/RoomPanel/RoomVBox/JoinPortRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+text = "31007"
+
+[node name="JoinButton" type="Button" parent="Center/RoomPanel/RoomVBox"]
+unique_name_in_owner = true
+text = ""
+
+[node name="StatusLabel" type="Label" parent="Center/RoomPanel/RoomVBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+text = ""
+
+[node name="RoomBackButton" type="Button" parent="Center/RoomPanel/RoomVBox"]
+unique_name_in_owner = true
+text = ""
+
+[node name="VersionLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -34.0
+offset_right = -16.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.35)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = ""

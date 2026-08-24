@@ -16,6 +16,8 @@ const KEY_RELOAD_TIME := &"reload_time"
 const KEY_SPREAD := &"spread"
 const KEY_CRIT_CHANCE := &"crit_chance"
 const KEY_PELLETS := &"pellets"
+## M5b：切换 CD 缩短（商店强化；由 WeaponTypeData 提供基准，此处仅承接全局修正）
+const KEY_SWITCH_CD := &"switch_cd"
 
 ## 数值字段（结算结果；由 compute 填充）
 var damage: float = 0.0
@@ -27,6 +29,8 @@ var crit_chance: float = 0.0
 var crit_multiplier: float = 2.0
 var range: float = 900.0
 var pellets: int = 1
+## M5b：切换 CD 全局修正（0 = 未使用；实际切换仍以 WeaponTypeData.switch_cd 为基准）
+var switch_cd: float = 0.0
 ## 合并后的词条（模型词条 + 配件词条）
 var keywords: Array[String] = []
 
@@ -59,7 +63,7 @@ static func compute(model: WeaponModelData, attachments: Array = [], bonus: Attr
 	# 全局强化（商店武器向；bonus 持有 add/mul 修正，读取拆分通道避免未初始化键的 0 值污染乘法）
 	if bonus != null:
 		for key: StringName in [KEY_DAMAGE, KEY_FIRE_RATE, KEY_MAG_SIZE, KEY_RELOAD_TIME,
-				KEY_SPREAD, KEY_CRIT_CHANCE, KEY_PELLETS]:
+				KEY_SPREAD, KEY_CRIT_CHANCE, KEY_PELLETS, KEY_SWITCH_CD]:
 			if bonus.get_additive(key) != 0.0:
 				stats._apply_attr(key, bonus.get_additive(key), false)
 			if bonus.get_multiplicative(key) != 1.0:
@@ -93,5 +97,7 @@ func _apply_attr(attr: StringName, value: float, multiplicative: bool) -> void:
 			crit_chance = crit_chance * value if multiplicative else crit_chance + value
 		KEY_PELLETS:
 			pellets = int(roundf(pellets * value)) if multiplicative else pellets + int(roundf(value))
+		KEY_SWITCH_CD:
+			switch_cd = switch_cd * value if multiplicative else switch_cd + value
 		_:
 			push_warning("WeaponStats: 未识别的数值键 %s" % attr)

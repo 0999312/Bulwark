@@ -49,7 +49,7 @@ func test_runner_attacks_barricade_preferentially() -> void:
 	runner_data.attack_damage = 6.0
 	runner_data.attack_interval = 1.0
 	runner_data.attack_range = 50.0
-	var runner := RunnerController.new(runner_data)
+	var runner := EnemyController.new(runner_data)
 
 	var attacks: Array[EnemyAttackEvent] = []
 	EventBus.subscribe(&"EnemyAttackEvent",
@@ -67,7 +67,7 @@ func test_runner_attacks_base_when_no_barricade() -> void:
 	runner_data.attack_damage = 6.0
 	runner_data.attack_interval = 1.0
 	runner_data.attack_range = 50.0
-	var runner := RunnerController.new(runner_data)
+	var runner := EnemyController.new(runner_data)
 
 	var attacks: Array[EnemyAttackEvent] = []
 	EventBus.subscribe(&"EnemyAttackEvent",
@@ -79,7 +79,7 @@ func test_runner_attacks_base_when_no_barricade() -> void:
 	assert_eq(attacks[0].target, EnemyAttackEvent.TARGET_BASE, "无路障攻击基地")
 
 func test_runner_switches_back_to_base_after_barricade_destroyed() -> void:
-	var runner := RunnerController.new(_make_runner())
+	var runner := EnemyController.new(_make_runner())
 
 	var attacks: Array[EnemyAttackEvent] = []
 	EventBus.subscribe(&"EnemyAttackEvent",
