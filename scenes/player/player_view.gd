@@ -240,10 +240,10 @@ func _make_tracer() -> Node:
 	core.end_cap_mode = Line2D.LINE_CAP_ROUND
 	core.antialiased = true
 	tracer.add_child(core)
-	# P1-15 玩家弹体：Kenney bulletGreen（沿弹道方向旋转）
+	# P1-15 玩家弹体：Kenney bulletGreen（沿弹道方向旋转；素材默认朝上）
 	var bullet := Sprite2D.new()
 	bullet.texture = VfxBank.bullet("green")
-	bullet.scale = Vector2(1.3, 1.3)
+	bullet.scale = Vector2(2.2, 2.2)
 	tracer.add_child(bullet)
 	return tracer
 
@@ -362,11 +362,11 @@ func _flash_muzzle() -> void:
 	if _muzzle_tween != null and _muzzle_tween.is_valid():
 		_muzzle_tween.kill()
 	muzzle_flash.visible = true
-	# Kenney shotOrange（Default size）：0.08→0.04 缩放拍成短闪现（与 32px 角色匹配）
-	muzzle_flash.scale = Vector2(0.08, 0.08)
+	# Kenney shotOrange（Default size 16×28）：0.38→0.18 缩放拍成短闪现（与 32px 角色匹配）
+	muzzle_flash.scale = Vector2(0.38, 0.38)
 	muzzle_flash.modulate = Color(1.0, 0.92, 0.7, 1.0)
 	_muzzle_tween = create_tween()
-	_muzzle_tween.tween_property(muzzle_flash, "scale", Vector2(0.04, 0.04), MUZZLE_FLASH_DURATION)
+	_muzzle_tween.tween_property(muzzle_flash, "scale", Vector2(0.18, 0.18), MUZZLE_FLASH_DURATION)
 	_muzzle_tween.parallel().tween_property(muzzle_flash, "modulate:a", 0.0, MUZZLE_FLASH_DURATION)
 	_muzzle_tween.tween_callback(func() -> void: muzzle_flash.visible = false)
 
@@ -464,10 +464,10 @@ func _show_tracer(from: Vector2, to: Vector2) -> void:
 		if line != null:
 			line.points = PackedVector2Array([from, to])
 		elif child is Sprite2D:
-			# P1-15：弹体精灵按弹道方向旋转并从出膛点出发
+			# P1-15：弹体精灵按弹道方向旋转并从出膛点出发（素材默认朝上 → +PI/2）
 			var bullet := child as Sprite2D
 			bullet.global_position = from
-			bullet.rotation = (to - from).angle()
+			bullet.rotation = (to - from).angle() + PI * 0.5
 	tracer.modulate.a = 1.0
 	# 挂在世界层（全局坐标直接可用）
 	get_parent().add_child(tracer)

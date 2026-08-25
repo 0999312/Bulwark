@@ -6,7 +6,7 @@ extends Node2D
 ##   不再使用 512px 高清软粒子贴图（与 Kenney 像素角色同语言）
 ## - 设计依据：godot-particles（2D 用 CPUParticles 或纯几何）+ tween-animation（加速入弯）
 
-const BODY_SCALE := 1.25        # 8px 纹理 → 10px 弹体
+const BODY_SCALE := 2.0         # Kenney 竖弹 → 8×20px 弹体（放大更可读）
 const GLOW_SCALE := 2.1         # 16.8px 低透明外圈
 const TAIL_LENGTH := 11.0
 
@@ -45,6 +45,8 @@ func setup(origin: Vector2, target_position: Vector2, speed: float, kind: String
 	body.texture = _body_texture_for_kind(kind)
 	body.scale = Vector2.ONE * BODY_SCALE
 	body.modulate = color
+	# 素材默认朝上：+PI/2 对齐飞行方向（_visual 已旋转到 direction.angle()）
+	body.rotation = PI * 0.5
 	_visual.add_child(body)
 
 	# 像素短尾：外圈光尾 + 内核亮尾（局部 -X = 飞行反方向）

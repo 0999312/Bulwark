@@ -16,16 +16,18 @@ func setup(from: Vector2, to: Vector2) -> void:
 	var core := _make_line(4.0, Color(0.9, 1.0, 1.0, 1.0), from, to)
 	add_child(core)
 
-	# 枪口/命中点闪光（Kenney shotLarge，经 VfxBank）
+	# 枪口/命中点闪光（Kenney shotLarge，经 VfxBank；素材默认朝上 → +PI/2 对齐弹道）
 	var muzzle := Sprite2D.new()
 	muzzle.texture = VfxBank.muzzle("large")
 	muzzle.position = from
-	muzzle.scale = Vector2(0.7, 0.7)
+	muzzle.scale = Vector2(0.5, 0.5)
+	muzzle.rotation = (to - from).angle() + PI * 0.5
 	add_child(muzzle)
 	var hit := Sprite2D.new()
 	hit.texture = VfxBank.muzzle("large")
 	hit.position = to
-	hit.scale = Vector2(0.45, 0.45)
+	hit.scale = Vector2(0.35, 0.35)
+	hit.rotation = (to - from).angle() + PI * 0.5
 	add_child(hit)
 
 	var tw := create_tween()

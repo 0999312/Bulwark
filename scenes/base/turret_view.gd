@@ -11,10 +11,10 @@ func setup(p_controller: FacilityController, p_texture: Texture2D = null,
 	# Kenney 坦克素材拼接（P0-2）：底座 tankBody_dark + 炮管 tankDark_barrel1（VfxBank 唯一入口）
 	if sprite != null:
 		sprite.texture = VfxBank.turret_base("dark")
-		sprite.scale = Vector2(0.6, 0.6)
+		sprite.scale = Vector2(1.15, 1.15)
 	if barrel != null:
 		barrel.texture = VfxBank.turret_barrel(1)
-		barrel.scale = Vector2(0.6, 0.6)
+		barrel.scale = Vector2(1.15, 1.15)
 	EventBus.subscribe(&"TurretFiredEvent", _on_turret_fired)
 
 func _on_turret_fired(event: TurretFiredEvent) -> void:
@@ -24,7 +24,8 @@ func _on_turret_fired(event: TurretFiredEvent) -> void:
 		return
 	if barrel == null:
 		return
-	barrel.rotation = (event.target_position - global_position).angle()
+	# 素材默认朝上（-Y）：+PI/2 使炮管指向裁决命中点（修复“炮口与弹道垂直”）
+	barrel.rotation = (event.target_position - global_position).angle() + PI * 0.5
 	# 炮管微后座（纯表现；0.09s 回弹）
 	barrel.position = Vector2(-3.0, 0.0).rotated(barrel.rotation)
 	var tw := create_tween()

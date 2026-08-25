@@ -25,12 +25,13 @@ func _add_showcase() -> void:
 	# 枪口焰（Kenney shotOrange）
 	var muzzle := Sprite2D.new()
 	muzzle.texture = VfxBank.muzzle("orange")
-	muzzle.scale = Vector2(0.08, 0.08)
+	muzzle.scale = Vector2(0.38, 0.38)
 	muzzle.global_position = center + Vector2(-240 + 90, 120 + 16)
 	get_tree().root.add_child(muzzle)
-	# 爆炸 5 帧循环
+	# 爆炸 5 帧循环（展示用：循环播放；不再修改共享 SpriteFrames 的 loop，避免污染生产）
 	var boom := AnimatedSprite2D.new()
 	boom.sprite_frames = VfxBank.explosion_sprite_frames()
+	boom.sprite_frames = boom.sprite_frames.duplicate()
 	boom.sprite_frames.set_animation_loop("default", true)
 	boom.scale = Vector2(2.0, 2.0)
 	boom.global_position = center + Vector2(-180, 0)

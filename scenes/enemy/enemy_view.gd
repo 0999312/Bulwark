@@ -246,8 +246,10 @@ func _apply_visual(p_data: EnemyData) -> void:
 	# 游戏感改造：死亡粒子改为 8px 像素方块（颜色由 ramp 驱动），弃用高清软粒子贴图
 	death_particles.texture = FxBurst.get_pixel_texture()
 	death_particles.modulate = Color.WHITE
-	death_particles.scale_amount_min = 0.5
-	death_particles.scale_amount_max = 1.0
+	death_particles.amount = 10
+	death_particles.lifetime = 0.32
+	death_particles.scale_amount_min = 0.35
+	death_particles.scale_amount_max = 0.7
 	_apply_outline(p_data)
 
 ## P1-14 敌人轮廓差异化：用 Kenney 坦克素材为 5 类威胁加装轮廓部件
@@ -261,8 +263,8 @@ func _apply_outline(p_data: EnemyData) -> void:
 			_add_outline_part(VfxBank.turret_base("dark"), 0.95,
 				Color(0.35, 0.32, 0.38, 0.92), true, Vector2(0, 2), 0.0)
 		"sniper":
-			_add_outline_part(VfxBank.turret_barrel(2), 0.55,
-				Color(0.5, 0.45, 0.42, 0.95), false, Vector2(16, 0), 0.0)
+			_add_outline_part(VfxBank.turret_barrel(2), 1.0,
+				Color(0.5, 0.45, 0.42, 0.95), false, Vector2(16, 0), 90.0)
 		"flying":
 			_add_outline_part(VfxBank.tank_body_full("blue"), 0.62,
 				Color(0.45, 0.55, 0.85, 0.75), true, Vector2(0, 3), 0.0)
@@ -347,8 +349,8 @@ func _play_death_feedback() -> void:
 		death_particles.amount = maxi(2, roundi(death_particles.amount * MIRROR_PARTICLE_SCALE))
 	death_particles.restart()
 	death_particles.emitting = true
-	# P1-15 死亡爆炸 5 帧动画（Tier2；池化，host/client 同表现）
-	FxBurst.spawn_explosion(global_position, maxf(1.2, _base_visual_scale * 1.6))
+	# P1-15 死亡爆炸 5 帧动画（Tier2；池化，host/client 同表现；缩小避免压过角色）
+	FxBurst.spawn_explosion(global_position, maxf(0.8, _base_visual_scale * 0.9))
 	# M4：死亡爆炸闪光（池化，host/client 同播；粒子数量本身已按镜像降级）
 	FxBurst.spawn_flare(global_position)
 	var tw := create_tween()

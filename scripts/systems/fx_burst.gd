@@ -144,8 +144,8 @@ func spawn_pixel_burst(world_pos: Vector2, color: Color, count: int = 8,
 ## 爆炸闪光：像素方块短促四散 + 动态光；不再使用高清 flare 贴图
 func spawn_flare(world_pos: Vector2, color: Color = Color(1.0, 0.7, 0.3)) -> void:
 	LightingManager.request_flash(world_pos, color, 1.4, 0.12)
-	spawn_pixel_burst(world_pos, color, 10, 90.0, 0.28, 40.0)
-	spawn_impact_ring(world_pos, color.lightened(0.2), 16.0, 0.14)
+	spawn_pixel_burst(world_pos, color, 7, 90.0, 0.26, 40.0)
+	spawn_impact_ring(world_pos, color.lightened(0.2), 12.0, 0.14)
 
 ## 像素环扩散（硬边方框 + 四角点；低分辨率画风下的冲击波替代品）
 func spawn_impact_ring(world_pos: Vector2, color: Color,
