@@ -97,6 +97,8 @@ static func explosion_sprite_frames() -> SpriteFrames:
 	var sf := SpriteFrames.new()
 	if not sf.has_animation("default"):
 		sf.add_animation("default")
+	# 显式单次播放：Godot SpriteFrames 新增动画可能默认 loop，必须关掉（否则播完不消失）
+	sf.set_animation_loop("default", false)
 	sf.set_animation_speed("default", EXPLOSION_FPS)
 	for i in range(1, EXPLOSION_FRAME_COUNT + 1):
 		var tex := _load_texture("explosion:%d" % i,

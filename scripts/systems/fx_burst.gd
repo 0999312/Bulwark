@@ -16,6 +16,7 @@ var _root: Node2D
 var _spark_pool: Array[CPUParticles2D] = []
 var _damage_pool: Array[DamageNumber] = []
 var _explosion_pool: Array[AnimatedSprite2D] = []
+var _explosion_tweens: Dictionary = {}  # AnimatedSprite2D -> Tween（兜底定时隐藏）
 var _pool_cursor := 0
 var _damage_cursor := 0
 var _explosion_cursor := 0
@@ -165,6 +166,7 @@ func spawn_damage_number(world_pos: Vector2, text: String, color: Color) -> void
 	dn.setup(text, color, world_pos)
 
 ## P1-15 爆炸 5 帧动画（0.35s；池化借用，播完自动隐藏；Tier2）
+## 双保险：animation_finished 信号 + 定时兜底（无论 loop 状态如何，0.35s 后强制 stop+隐藏）
 func spawn_explosion(world_pos: Vector2, scale: float = 1.0) -> void:
 	if _root == null or _explosion_pool.is_empty():
 		return
@@ -176,3 +178,25 @@ func spawn_explosion(world_pos: Vector2, scale: float = 1.0) -> void:
 	ex.frame = 0
 	ex.visible = true
 	ex.play("default")
+	# 兜底：覆盖上一个定时器，0.35s+ε 后强制隐藏（不经 signal）
+	var old_tw: Tween = _explosion_tweens.get(ex)
+	if old_tw != null and old_tw.is_valid():
+		old_tw.kill()
+	if not is_inside_tree():
+		return
+	var tw := create_tween()
+	tw.tween_interval(VfxBank.EXPLOSION_DURATION + 0.05)
+	tw.tween_callback(func() -> void:
+		if is_instance_valid(ex):
+			ex.stop()
+			ex.visible = false
+		_explosion_tweens.erase(ex))
+	_explosion_tweens[ex] = tw
+
+## 测试/审计：当前可见爆炸数（用于断言“播完即消失”）
+func get_active_explosion_count() -> int:
+	var count := 0
+	for ex in _explosion_pool:
+		if is_instance_valid(ex) and ex.visible:
+			count += 1
+	return count

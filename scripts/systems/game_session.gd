@@ -1658,8 +1658,10 @@ func _on_shot_fired(event: ShotFiredEvent) -> void:
 			&"pos": enemy.global_position,
 			&"radius": ENEMY_HIT_RADIUS,
 		})
-	var origin := view.global_position  # 权威发射点（host 模拟位置）
 	var muzzle_dir := event.aim_direction
+	# 权威发射点：玩家枪口世界坐标（角色中心 + 枪口局部偏移随瞄准旋转），而非身体中心
+	var origin := view.global_position \
+		+ PlayerView.MUZZLE_LOCAL_POS.rotated(muzzle_dir.angle())
 	var pellets := maxi(1, stats.pellets)
 	var hit_points: Array = []
 	for _i in pellets:

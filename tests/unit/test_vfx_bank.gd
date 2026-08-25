@@ -23,6 +23,7 @@ func test_explosion_sprite_frames_cached() -> void:
 	var sf2 := VfxBank.explosion_sprite_frames()
 	assert_same(sf1, sf2, "SpriteFrames 应只建一次（缓存）")
 	assert_gt(sf1.get_frame_count("default"), 0, "默认动画至少一帧")
+	assert_false(sf1.get_animation_loop("default"), "爆炸动画必须单次播放（播完即停）")
 	assert_almost_eq(sf1.get_animation_speed("default"),
 		VfxBank.EXPLOSION_FPS, 0.01, "动画速度对齐 0.35s 总时长")
 
