@@ -15,6 +15,12 @@ static func color_for_kind(kind: String) -> Color:
 		return Color(1.0, 0.62, 0.25)
 	return Color(0.62, 0.95, 0.38)
 
+## P1-15 敌方弹体走 Kenney 素材（VfxBank；狙击 = 暗弹，普通 = 红弹）
+static func _body_texture_for_kind(kind: String) -> Texture2D:
+	if kind == "snipe":
+		return VfxBank.bullet("dark")
+	return VfxBank.bullet("red")
+
 var _move_tween: Tween
 var _visual: Node2D
 
@@ -36,7 +42,7 @@ func setup(origin: Vector2, target_position: Vector2, speed: float, kind: String
 	_visual.add_child(glow)
 
 	var body := Sprite2D.new()
-	body.texture = FxBurst.get_pixel_texture()
+	body.texture = _body_texture_for_kind(kind)
 	body.scale = Vector2.ONE * BODY_SCALE
 	body.modulate = color
 	_visual.add_child(body)

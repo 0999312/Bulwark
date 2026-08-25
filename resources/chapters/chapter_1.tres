@@ -1,0 +1,90 @@
+[gd_resource type="Resource" script_class="ChapterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/wave_spawn_group_data.gd" id="1_pso21"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_uhvk2"]
+[ext_resource type="Script" path="res://scripts/data/chapter_definition.gd" id="3_21aux"]
+
+[sub_resource type="Resource" id="Resource_1ngcp"]
+script = ExtResource("1_pso21")
+directions = Array[int]([0])
+count_range = Vector2i(1, 1)
+enemy_location = "bulwark:enemy/elite_behemoth"
+
+[sub_resource type="Resource" id="Resource_sbm0w"]
+script = ExtResource("1_pso21")
+directions = Array[int]([0])
+count_range = Vector2i(3, 4)
+enemy_location = "bulwark:enemy/runner_fast"
+count_scale = 1.2
+
+[sub_resource type="Resource" id="Resource_ipefn"]
+script = ExtResource("2_uhvk2")
+id = "boss_1104"
+seed = 1104
+groups = Array[ExtResource("1_pso21")]([SubResource("Resource_1ngcp"), SubResource("Resource_sbm0w")])
+warn_duration = 3.5
+spawn_interval = 0.9
+burst_chance = 0.18
+is_elite_wave = true
+
+[sub_resource type="Resource" id="Resource_kmmf5"]
+script = ExtResource("1_pso21")
+directions = Array[int]([0, 2])
+
+[sub_resource type="Resource" id="Resource_rx4h6"]
+script = ExtResource("2_uhvk2")
+id = "chapter/1/wave/1"
+seed = 1101
+groups = Array[ExtResource("1_pso21")]([SubResource("Resource_kmmf5")])
+warn_duration = 3.5
+spawn_interval = 0.8
+burst_chance = 0.18
+
+[sub_resource type="Resource" id="Resource_7vchd"]
+script = ExtResource("1_pso21")
+directions = Array[int]([0, 2])
+count_range = Vector2i(3, 5)
+
+[sub_resource type="Resource" id="Resource_6kutu"]
+script = ExtResource("1_pso21")
+directions = Array[int]([4, 6])
+count_range = Vector2i(3, 5)
+enemy_location = "bulwark:enemy/runner_fast"
+
+[sub_resource type="Resource" id="Resource_t1on5"]
+script = ExtResource("2_uhvk2")
+id = "chapter/1/wave/2"
+seed = 1102
+groups = Array[ExtResource("1_pso21")]([SubResource("Resource_7vchd"), SubResource("Resource_6kutu")])
+warn_duration = 3.5
+spawn_interval = 0.8
+burst_chance = 0.18
+
+[sub_resource type="Resource" id="Resource_8yu8u"]
+script = ExtResource("1_pso21")
+directions = Array[int]([0, 2])
+count_range = Vector2i(2, 4)
+enemy_location = "bulwark:enemy/self_destruct"
+
+[sub_resource type="Resource" id="Resource_7baed"]
+script = ExtResource("1_pso21")
+directions = Array[int]([4, 6])
+count_range = Vector2i(2, 4)
+enemy_location = "bulwark:enemy/spitter"
+
+[sub_resource type="Resource" id="Resource_wmcqj"]
+script = ExtResource("2_uhvk2")
+id = "chapter/1/wave/3"
+seed = 1103
+groups = Array[ExtResource("1_pso21")]([SubResource("Resource_8yu8u"), SubResource("Resource_7baed")])
+warn_duration = 3.5
+spawn_interval = 0.8
+burst_chance = 0.18
+
+[resource]
+script = ExtResource("3_21aux")
+id = "chapter/1"
+display_name = "第 1 章 · 前哨周边"
+waves = Array[ExtResource("2_uhvk2")]([SubResource("Resource_rx4h6"), SubResource("Resource_t1on5"), SubResource("Resource_wmcqj")])
+boss_wave = SubResource("Resource_ipefn")
+round_reward_pool = Array[String](["power/ammo", "power/material", "power/heal", "power/fire_rate", "power/pellets"])

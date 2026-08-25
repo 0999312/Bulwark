@@ -44,12 +44,34 @@ func _refresh_texts() -> void:
 				title_label.text = tr("result.defeat_player")
 	var stats: Dictionary = _data.get("stats", {})
 	if not stats.is_empty():
-		stats_label.text = UiText.text("result.stats", [
+		var lines: Array[String] = []
+		lines.append(UiText.text("result.stats", [
 			int(stats.get("wave", 0)),
 			int(stats.get("kills", 0)),
 			int(stats.get("credits", 0)),
 			int(stats.get("material", 0)),
-		])
+		]))
+		# P1-10：分数/连击/用时 + 本机 Top10
+		lines.append(UiText.text("result.score", [int(stats.get("score", 0))]))
+		lines.append(UiText.text("result.combo", [int(stats.get("combo", 0))]))
+		lines.append(UiText.text("result.time", ["%.1f" % float(stats.get("time", 0.0))]))
+		var rank := int(stats.get("highscore_rank", -1))
+		if rank > 0:
+			lines.append(UiText.text("result.highscore_rank", [rank]))
+		var highscores: Array = stats.get("highscores", [])
+		if not highscores.is_empty():
+			lines.append("")
+			lines.append(UiText.text("result.highscores", [HighScoreStore.MAX_ENTRIES]))
+			var show := mini(highscores.size(), 5)
+			for i in show:
+				var entry: Dictionary = highscores[i]
+				lines.append(UiText.text("result.highscore_entry", [
+					i + 1,
+					int(entry.get("score", 0)),
+					int(entry.get("combo", 0)),
+					"%.1f" % float(entry.get("time", 0.0)),
+				]))
+		stats_label.text = "\n".join(lines)
 	else:
 		stats_label.text = ""
 

@@ -240,6 +240,11 @@ func _make_tracer() -> Node:
 	core.end_cap_mode = Line2D.LINE_CAP_ROUND
 	core.antialiased = true
 	tracer.add_child(core)
+	# P1-15 玩家弹体：Kenney bulletGreen（沿弹道方向旋转）
+	var bullet := Sprite2D.new()
+	bullet.texture = VfxBank.bullet("green")
+	bullet.scale = Vector2(1.3, 1.3)
+	tracer.add_child(bullet)
 	return tracer
 
 ## 散布应用：方向旋转随机偏移角（度）。纯函数，headless 可测
@@ -458,6 +463,11 @@ func _show_tracer(from: Vector2, to: Vector2) -> void:
 		var line := child as Line2D
 		if line != null:
 			line.points = PackedVector2Array([from, to])
+		elif child is Sprite2D:
+			# P1-15：弹体精灵按弹道方向旋转并从出膛点出发
+			var bullet := child as Sprite2D
+			bullet.global_position = from
+			bullet.rotation = (to - from).angle()
 	tracer.modulate.a = 1.0
 	# 挂在世界层（全局坐标直接可用）
 	get_parent().add_child(tracer)

@@ -163,9 +163,21 @@ func apply_bonus(attr: StringName, amount: float, multiplicative: bool = false) 
 	attribute_set.add_modifier(attr, amount, multiplicative)
 	recompute_health()
 
+## P1-6 道具到期：移除临时修正（与 apply_bonus 对称）
+func remove_bonus(attr: StringName, amount: float, multiplicative: bool = false) -> void:
+	attribute_set.remove_modifier(attr, amount, multiplicative)
+	recompute_health()
+
 ## 重算生命上限（购买生命强化后调用；满血时同步上限差额）
 func recompute_health() -> void:
 	_recompute_health()
+	EventBus.publish(PlayerHealthChangedEvent.new(health, max_health, player_id))
+
+## P1-6 道具治疗：回复至多 amount（不超上限；死亡/复活中不生效）
+func heal(amount: float) -> void:
+	if amount <= 0.0 or is_incapacitated():
+		return
+	health = minf(health + amount, max_health)
 	EventBus.publish(PlayerHealthChangedEvent.new(health, max_health, player_id))
 
 ## 复活（P7/P20：ReviveSystem CD 结束后由装配层调用；满血回场 + 短时无敌帧）

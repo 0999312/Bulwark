@@ -15,6 +15,7 @@ const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const ENEMY_PROJECTILE_SCENE := preload("res://scenes/vfx/enemy_projectile.tscn")
 const TURRET_TRACER_SCENE := preload("res://scenes/vfx/turret_tracer.tscn")
 const TURRET_SCENE := preload("res://scenes/base/turret.tscn")
+const POWERUP_PICKUP_SCENE := preload("res://scenes/power/power_up_pickup.tscn")
 
 const BASE_DURABILITY := 400.0
 const BULLET_RESERVE := 120
@@ -122,6 +123,13 @@ var _client_started := false
 var _result_data: Dictionary = {}
 ## M5e：本局统计（击杀/波次/资源）
 var _run_stats: Dictionary = {}
+## P1 街机化：分数/连击/道具/Boss
+var arcade_scores: Array[ArcadeScore] = []
+var power_up_system: PowerUpSystem
+var _run_start_ms := 0
+var _wave_perfect := true
+## 道具掉落（P1-6）：击杀后按权重 roll，几率为 POWERUP_DROP_CHANCE
+const POWERUP_DROP_CHANCE := 0.12
 
 ## M3 问题 2：全队同意暂停——
 ## - host 维护暂停请求集合（player_id -> 请求中）；全员请求才正式暂停树，任一取消即恢复（D-M3-1）
@@ -130,6 +138,8 @@ var _pause_requests: Dictionary = {}
 var _local_pause_requested := false
 ## HUD 覆盖层引用（暂停请求提示 / 资源行 per-player 刷新）
 var _hud: Hud
+## P1-8 章节地面色调（main.tscn Ground Polygon2D）
+var _ground_node: Node2D
 
 ## M3 方案 B：命中判定逻辑化——散布 RNG（裁决侧 host/OFFLINE 独占，与表现层手感解耦）
 var _shot_rng := RandomNumberGenerator.new()
@@ -142,6 +152,7 @@ func _ready() -> void:
 	_shot_rng.randomize()
 	ContentBootstrap.register_all()
 	_build_navigation()
+	_ground_node = get_node_or_null("Ground") as Node2D
 	_setup_smoke()
 	if Net.is_client():
 		# client 镜像装配依赖 host 分配的玩家 id（ENet peer id 随机，不能本地推导）；
@@ -185,6 +196,10 @@ func _physics_process(delta: float) -> void:
 		rs.tick(delta)
 	wave_director.tick(delta)
 	_tick_turrets(delta)
+	for score in arcade_scores:
+		score.tick(delta)
+	if power_up_system != null:
+		power_up_system.tick(delta)
 	if Net.is_host():
 		_snapshot_timer -= delta
 		if _snapshot_timer <= 0.0:
@@ -319,6 +334,13 @@ func _setup_backend_host() -> void:
 		ss.setup(shop_pool, shop_fixed, arsenals[i].owned_models)
 		shop_systems.append(ss)
 
+	# P1 街机化：每玩家一分（host 权威；HUD 按 player_id 过滤）
+	for i in player_count:
+		arcade_scores.append(ArcadeScore.new(i))
+	power_up_system = PowerUpSystem.new()
+	power_up_system.setup(_apply_power_up, _expire_power_up)
+	_build_power_up_pool()
+
 	# 兼容别名（单机语义 = players[0]；既有测试/代码引用）
 	player_controller = players[0]
 	weapon_slots = weapon_slots_list[0]
@@ -411,6 +433,10 @@ func _subscribe_events() -> void:
 	EventBus.subscribe(&"PlayerDiedEvent", _on_player_died)
 	EventBus.subscribe(&"RevivedEvent", _on_revived)
 	EventBus.subscribe(&"WaveClearedEvent", _on_wave_cleared)
+	EventBus.subscribe(&"WaveStartedEvent", _on_wave_started_for_score)
+	EventBus.subscribe(&"WaveWarningEvent", _on_wave_warning_theme)
+	EventBus.subscribe(&"BaseDurabilityChangedEvent", _on_base_durability_for_score)
+	EventBus.subscribe(&"PowerUpPickupEvent", _on_power_up_pickup)
 	EventBus.subscribe(&"BarricadeDestroyedEvent", _on_barricade_destroyed)
 	# M3 方案 B：命中判定在装配层裁决（core 几何判定；host/OFFLINE 均订阅，client 不裁决）
 	EventBus.subscribe(&"ShotFiredEvent", _on_shot_fired)
@@ -435,6 +461,11 @@ func _subscribe_events() -> void:
 		EventBus.subscribe(&"EnemyRangedAttackEvent", _relay_enemy_ranged_attack)
 		EventBus.subscribe(&"EnemyAoEEvent", _relay_enemy_aoe)
 		EventBus.subscribe(&"TurretFiredEvent", _relay_turret_fired)
+		# P1 街机化中继
+		EventBus.subscribe(&"ScoreChangedEvent", _relay_score_changed)
+		EventBus.subscribe(&"PowerUpPickupEvent", _relay_power_up_pickup)
+		EventBus.subscribe(&"PowerUpExpiredEvent", _relay_power_up_expired)
+		EventBus.subscribe(&"EnemyHealthChangedEvent", _relay_enemy_health)
 
 # ─── 装配（client：只读镜像） ───
 
@@ -711,7 +742,11 @@ func _on_turret_fired(event: TurretFiredEvent) -> void:
 		if enemy == null or enemy.net_id != event.target_net_id:
 			continue
 		var aim_dir := (event.target_position - event.origin).normalized()
-		enemy.apply_turret_hit(event.damage, aim_dir)
+		var dmg_result: DamageResult = enemy.apply_turret_hit(event.damage, aim_dir)
+		if dmg_result != null and dmg_result.damage > 0.0:
+			FxBurst.spawn_damage_number(
+				enemy.global_position + Vector2(0, -22),
+				str(roundi(dmg_result.damage)), Color(0.6, 0.9, 1.0))
 		break
 	_spawn_turret_tracer(event)
 
@@ -732,6 +767,86 @@ func _on_enemy_died(event: EnemyDiedEvent) -> void:
 			run_states[killer].add_material(1)
 		if randf() < KILL_AMMO_CHANCE:
 			_grant_bullets(KILL_AMMO_AMOUNT, killer)
+	# P1-10 分数/连击：基础分 × 连击倍率 × 道具加倍
+	if killer < arcade_scores.size():
+		var score_backend := arcade_scores[killer]
+		score_backend.set_external_multiplier(
+			power_up_system.score_multiplier(killer) if power_up_system != null else 1.0)
+		var base_score := _score_for_enemy(event.enemy_location)
+		if base_score > 0:
+			score_backend.register_kill(base_score)
+	_run_stats["score"] = arcade_scores[0].score if not arcade_scores.is_empty() else 0
+	# P1-6 道具掉落：击杀位置视觉化掉落
+	if randf() < POWERUP_DROP_CHANCE:
+		_spawn_power_up_pickup(event.position)
+
+## 敌人基础分（P1-10；后续可移到 EnemyData 数据字段）
+func _score_for_enemy(enemy_location: String) -> int:
+	var short := enemy_location.get_slice("enemy/", 1)
+	match short:
+		"runner":
+			return 50
+		"self_destruct":
+			return 90
+		"runner_fast":
+			return 80
+		"flying":
+			return 120
+		"runner_tough":
+			return 100
+		"spitter":
+			return 120
+		"armored":
+			return 150
+		"sniper":
+			return 140
+		"elite_behemoth":
+			return 1000
+	return 25
+
+## 掉落池（装配层加载一次；P1-6）
+var _power_up_pool: Array[PowerUpData] = []
+
+func _build_power_up_pool() -> void:
+	_power_up_pool.clear()
+	var dir := DirAccess.open("res://resources/powerups")
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var file := dir.get_next()
+	while not file.is_empty():
+		if file.ends_with(".tres"):
+			var data: PowerUpData = load("res://resources/powerups/%s" % file)
+			if data != null:
+				_power_up_pool.append(data)
+		file = dir.get_next()
+	dir.list_dir_end()
+
+func _roll_power_up() -> PowerUpData:
+	if _power_up_pool.is_empty():
+		return null
+	var total := 0.0
+	for data: PowerUpData in _power_up_pool:
+		total += maxf(0.0, data.weight)
+	if total <= 0.0:
+		return null
+	var roll := randf() * total
+	var acc := 0.0
+	for data: PowerUpData in _power_up_pool:
+		acc += maxf(0.0, data.weight)
+		if roll < acc:
+			return data
+	return _power_up_pool.back()
+
+func _spawn_power_up_pickup(pos: Vector2) -> void:
+	var data := _roll_power_up()
+	if data == null:
+		return
+	var pickup: Node = POWERUP_PICKUP_SCENE.instantiate() as Node
+	pickup.set("power_data", data)
+	pickup.set("player_id", -1)
+	get_parent().add_child(pickup)
+	pickup.global_position = pos
 
 ## 补充子弹备弹并广播弹药事件（掉弹/商店弹药箱共用；HUD 只订阅事件刷新 reserve）
 ## M3 问题 4：补给落入指定玩家（默认 0 = 单机/本地）的弹药池
@@ -750,6 +865,81 @@ func _grant_ammo(ammo_type: int, amount: int, p_player_id: int = 0) -> void:
 
 func _grant_bullets(amount: int, p_player_id: int = 0) -> void:
 	_grant_ammo(WeaponTypeData.AmmoType.BULLET, amount, p_player_id)
+
+# ─── P1 街机化：分数/连击 perfect-wave / 道具 ───
+
+## 波开始：perfect 标记复位（本波基地未掉耐久 + 玩家未阵亡 = PERFECT WAVE）
+func _on_wave_started_for_score(_event: WaveStartedEvent) -> void:
+	_wave_perfect = true
+	_last_base_durability = base_core.durability if base_core != null else -1.0
+
+## P1-8 章节地面色调：章首波切换 main.tscn 地面颜色（host/单机）
+func _on_wave_warning_theme(event: WaveWarningEvent) -> void:
+	if event.chapter_index < 0 or _ground_node == null \
+			or wave_director.run_definition == null:
+		return
+	if event.chapter_index >= wave_director.run_definition.chapters.size():
+		return
+	var chapter: ChapterDefinition = wave_director.run_definition.chapters[event.chapter_index]
+	_ground_node.color = chapter.theme_rgb
+
+var _last_base_durability := -1.0
+
+## 基地耐久下降检测：perfect 波被打破
+func _on_base_durability_for_score(event: BaseDurabilityChangedEvent) -> void:
+	if _last_base_durability >= 0.0 and event.current < _last_base_durability - 0.001:
+		_wave_perfect = false
+	_last_base_durability = event.current
+
+## 道具拾取（host/OFFLINE 裁决；client 不订阅）
+func _on_power_up_pickup(event: PowerUpPickupEvent) -> void:
+	if event == null or power_up_system == null:
+		return
+	var data := _get_power_up(event.power_id)
+	if data != null:
+		power_up_system.activate(data, event.player_id)
+
+func _get_power_up(power_id: String) -> PowerUpData:
+	for data: PowerUpData in _power_up_pool:
+		if data.id == power_id:
+			return data
+	return null
+
+## 道具效果应用（即时 + 计时首次；多人在单玩家上分别应用）
+func _apply_power_up(data: PowerUpData, pid: int) -> void:
+	if data == null or pid < 0 or pid >= players.size():
+		return
+	match data.effect:
+		PowerUpData.EffectKind.AMMO:
+			_grant_ammo(WeaponTypeData.AmmoType.BULLET, maxi(1, int(data.amount)), pid)
+		PowerUpData.EffectKind.MATERIAL:
+			run_states[pid].add_material(maxi(1, int(data.amount)))
+		PowerUpData.EffectKind.HEAL:
+			players[pid].heal(data.amount)
+		PowerUpData.EffectKind.FIRE_RATE:
+			run_states[pid].bonus.add_modifier(WeaponStats.KEY_FIRE_RATE, maxf(0.01, data.amount), true)
+		PowerUpData.EffectKind.PELLETS:
+			run_states[pid].bonus.add_modifier(WeaponStats.KEY_PELLETS, data.amount, false)
+		PowerUpData.EffectKind.SHIELD:
+			players[pid].apply_bonus(AttributeSet.ARMOR, data.amount, false)
+		PowerUpData.EffectKind.SCORE_MULT:
+			pass  # 倍率由 PowerUpSystem.score_multiplier 实时读取
+		PowerUpData.EffectKind.RESERVE:
+			run_states[pid].add_reserve(maxi(1, int(data.amount)))
+
+## 计时 buff 到期：移除修正（对称）
+func _expire_power_up(data: PowerUpData, pid: int) -> void:
+	if data == null or pid < 0 or pid >= players.size():
+		return
+	match data.effect:
+		PowerUpData.EffectKind.FIRE_RATE:
+			run_states[pid].bonus.remove_modifier(WeaponStats.KEY_FIRE_RATE, maxf(0.01, data.amount), true)
+		PowerUpData.EffectKind.PELLETS:
+			run_states[pid].bonus.remove_modifier(WeaponStats.KEY_PELLETS, data.amount, false)
+		PowerUpData.EffectKind.SHIELD:
+			players[pid].remove_bonus(AttributeSet.ARMOR, data.amount, false)
+		_:
+			pass
 
 ## M5a：敌人远程弹体视觉（host/client 事件驱动；纯表现，不做逐帧快照）
 func _spawn_enemy_projectile(event: EnemyRangedAttackEvent) -> void:
@@ -778,6 +968,7 @@ func _spawn_turret_tracer(event: TurretFiredEvent) -> void:
 ## 玩家阵亡（M1 复活系统，P7/P20）：储备充足 → 复活 CD；耗尽 → 失败结算
 ## M2 双人：每玩家独立复活 CD；M3 问题 4：储备独立（个人储备耗尽 → 判负，多人规则 M6 细化）
 func _on_player_died(event: PlayerDiedEvent) -> void:
+	_wave_perfect = false
 	var pid := event.player_id if event != null else 0
 	if pid < 0 or pid >= revive_systems.size():
 		pid = 0
@@ -802,12 +993,28 @@ func _on_revived(event: RevivedEvent) -> void:
 	if Net.is_host():
 		Net.send_event(NetCodec.EVT_REVIVED, {NetCodec.KEY_PLAYER_ID: pid})
 
+## P1-10 波清/章清奖励：PERFECT WAVE +500×波系数；章清 +2000×章系数
+func _grant_wave_score(event: WaveClearedEvent) -> void:
+	if arcade_scores.is_empty() or event == null:
+		return
+	var wave_scale := DifficultyCurve.get_wave_scale(event.wave_index)
+	for score_backend: ArcadeScore in arcade_scores:
+		score_backend.on_wave_cleared(_wave_perfect, wave_scale)
+	# 章末精英波且非最后一章 → 章清奖励
+	if event.is_boss_wave and wave_director.run_definition != null \
+			and event.chapter_index >= 0 \
+			and event.chapter_index < wave_director.run_definition.chapters.size() - 1:
+		var chapter: ChapterDefinition = wave_director.run_definition.chapters[event.chapter_index]
+		for score_backend: ArcadeScore in arcade_scores:
+			score_backend.on_chapter_cleared(chapter.chapter_scale)
+
 ## 波间商店（M1）：清场 → 刷新商品 → 打开面板 + 暂停（host 裁决；client 跟随 ui_state）
 ## M3 问题 4：每玩家独立商店（同 seed 刷新同商品集；面板绑定 host 本地玩家 = 玩家 0）
 ## M4.1：最后一波清场直接结算，不再打开波间商店（无需波间购买）
 func _on_wave_cleared(event: WaveClearedEvent) -> void:
 	if _run_finished:
 		return
+	_grant_wave_score(event)
 	var total := wave_director.waves.size()
 	if event.wave_index >= total:
 		# 末波：INTERMISSION 直接续到下一波 → WaveDirector 发现无下一波 → VICTORY
@@ -1063,9 +1270,20 @@ func _tick_turrets(delta: float) -> void:
 		turret.tick(delta, enemies)
 
 func _start_run() -> void:
+	_run_start_ms = Time.get_ticks_msec()
 	_begin_waves()
 
+const ARCADE_RUN_PATH := "res://resources/runs/arcade_run.tres"
+
 func _begin_waves() -> void:
+	# P1-8：街机模式 = RunDefinition（4 章 × 3+1 波）；legacy 单章 6 波回退（既有测试/CLI 兼容）
+	if RunConfig.is_arcade():
+		var run: RunDefinition = load(ARCADE_RUN_PATH)
+		if run == null or run.chapters.is_empty():
+			push_error("GameSession: 街机 RunDefinition 缺失 %s" % ARCADE_RUN_PATH)
+			return
+		wave_director.start_run(run)
+		return
 	var wave_reg: WaveRegistry = RegistryManager.get_registry(Bulwark.REG_WAVE)
 	var waves: Array[WaveData] = []
 	for wave_id: String in Bulwark.WAVE_IDS:
@@ -1133,13 +1351,39 @@ func _collect_run_stats() -> Dictionary:
 		stats["credits"] = run_states[0].credits
 		stats["material"] = run_states[0].material
 		stats["reserve"] = run_states[0].reserve
+	if not arcade_scores.is_empty():
+		stats["score"] = arcade_scores[0].score
+		stats["combo"] = arcade_scores[0].max_combo
+		stats["time"] = (Time.get_ticks_msec() - _run_start_ms) / 1000.0
 	return stats
+
+## P1-10 结算：写入本地 Top10 并把排行榜带入结果面板
+func _attach_score_result() -> void:
+	if arcade_scores.is_empty():
+		return
+	var sc := arcade_scores[0]
+	var stats: Dictionary = _result_data.get("stats", {})
+	stats["score"] = sc.score
+	stats["combo"] = sc.max_combo
+	var time_sec := (Time.get_ticks_msec() - _run_start_ms) / 1000.0
+	stats["time"] = time_sec
+	var entry := {
+		"score": sc.score,
+		"combo": sc.max_combo,
+		"kills": int(_run_stats.get("kills", 0)),
+		"time": time_sec,
+		"name": "",
+	}
+	stats["highscore_rank"] = HighScoreStore.save_entry(entry)
+	stats["highscores"] = HighScoreStore.load_top()
+	_result_data["stats"] = stats
 
 func _finish_run_victory() -> void:
 	if _run_finished:
 		return
 	_run_finished = true
 	_result_data = {"victory": true, "stats": _collect_run_stats()}
+	_attach_score_result()
 	# 清掉可能残留的波间商店面板（最后波清场后商店刚打开即胜利）
 	if UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_SHOP)):
 		UIManager.close_panel(Bulwark.loc(Bulwark.UI_SHOP))
@@ -1153,6 +1397,7 @@ func _finish_run(reason: int) -> void:
 		return
 	_run_finished = true
 	_result_data = {"victory": false, "reason": reason, "stats": _collect_run_stats()}
+	_attach_score_result()
 	if UIManager.is_panel_open(Bulwark.loc(Bulwark.UI_SHOP)):
 		UIManager.close_panel(Bulwark.loc(Bulwark.UI_SHOP))
 	get_tree().paused = true
@@ -1424,9 +1669,20 @@ func _on_shot_fired(event: ShotFiredEvent) -> void:
 		if res.get(&"hit", false):
 			var hit_enemy: EnemyView = target_enemies[res.get(&"index", 0)]
 			# 伤害（killer_id = 射击者；镜像/单机同路径）
-			hit_enemy.apply_player_hit(stats, dir, pid)
+			var dmg_result: DamageResult = hit_enemy.apply_player_hit(stats, dir, pid)
 			# M4：裁决命中点火花（host/OFFLINE；client 由 EVT_ENEMY_HIT 闪白承担，不重复生成）
 			FxBurst.spawn_hit_spark(end)
+			# P1-11 伤害数字：白=普通 / 黄=暴击 / 紫=弱点（host/单机）
+			if dmg_result != null and dmg_result.damage > 0.0:
+				var dmg_color := Color.WHITE
+				if dmg_result.critical:
+					dmg_color = Color(1.0, 0.85, 0.3)
+				elif hit_enemy.controller != null and hit_enemy.controller.data != null \
+						and hit_enemy.controller.data.has_weak_point:
+					dmg_color = Color(0.85, 0.45, 1.0)
+				FxBurst.spawn_damage_number(
+					hit_enemy.global_position + Vector2(0, -22),
+					str(roundi(dmg_result.damage)), dmg_color)
 			# 受击反馈中继（host → client 镜像闪白）
 			if Net.is_host():
 				Net.send_event(NetCodec.EVT_ENEMY_HIT, {
@@ -1509,17 +1765,25 @@ func _relay_wave_warning(event: WaveWarningEvent) -> void:
 		NetCodec.KEY_TIERS: event.direction_tiers,
 		NetCodec.KEY_THREAT_TIER: event.threat_tier,
 		NetCodec.KEY_HAS_ELITE: event.has_elite,
+		NetCodec.KEY_CHAPTER_INDEX: event.chapter_index,
+		NetCodec.KEY_CHAPTER_NAME: event.chapter_name,
+		NetCodec.KEY_WAVE_IN_CHAPTER: event.wave_in_chapter,
+		NetCodec.KEY_IS_BOSS: event.is_boss_wave,
 	})
 
 func _relay_wave_started(event: WaveStartedEvent) -> void:
 	_relay(NetCodec.EVT_WAVE_STARTED, {
 		NetCodec.KEY_WAVE_INDEX: event.wave_index,
 		NetCodec.KEY_WAVE_TOTAL: event.wave_total,
+		NetCodec.KEY_CHAPTER_INDEX: event.chapter_index,
+		NetCodec.KEY_IS_BOSS: event.is_boss_wave,
 	})
 
 func _relay_wave_cleared(event: WaveClearedEvent) -> void:
 	_relay(NetCodec.EVT_WAVE_CLEARED, {
 		NetCodec.KEY_WAVE_INDEX: event.wave_index,
+		NetCodec.KEY_CHAPTER_INDEX: event.chapter_index,
+		NetCodec.KEY_IS_BOSS: event.is_boss_wave,
 	})
 
 func _relay_barricade_placed(event: BarricadePlacedEvent) -> void:
@@ -1566,6 +1830,40 @@ func _relay_turret_fired(event: TurretFiredEvent) -> void:
 		NetCodec.KEY_TARGET_POS: NetCodec.vec_to_arr(event.target_position),
 		NetCodec.KEY_ENEMY_ID: event.target_net_id,
 		NetCodec.KEY_DAMAGE: event.damage,
+	})
+
+# ─── P1 街机化中继（host → client 镜像/HUD） ───
+
+func _relay_score_changed(event: ScoreChangedEvent) -> void:
+	_relay(NetCodec.EVT_SCORE_CHANGED, {
+		NetCodec.KEY_PLAYER_ID: event.player_id,
+		NetCodec.KEY_SCORE: event.score,
+		NetCodec.KEY_COMBO: event.combo,
+		NetCodec.KEY_MULTIPLIER: event.multiplier,
+	})
+
+func _relay_power_up_pickup(event: PowerUpPickupEvent) -> void:
+	_relay(NetCodec.EVT_POWERUP_PICKUP, {
+		NetCodec.KEY_PLAYER_ID: event.player_id,
+		NetCodec.KEY_POWER_ID: event.power_id,
+		NetCodec.KEY_DURATION: event.duration,
+		NetCodec.KEY_POS: NetCodec.vec_to_arr(event.position),
+	})
+
+func _relay_power_up_expired(event: PowerUpExpiredEvent) -> void:
+	_relay(NetCodec.EVT_POWERUP_EXPIRED, {
+		NetCodec.KEY_PLAYER_ID: event.player_id,
+		NetCodec.KEY_POWER_ID: event.power_id,
+	})
+
+func _relay_enemy_health(event: EnemyHealthChangedEvent) -> void:
+	_relay(NetCodec.EVT_ENEMY_HEALTH, {
+		NetCodec.KEY_ENEMY_ID: event.enemy_id,
+		NetCodec.KEY_DATA_ID: event.data_id,
+		NetCodec.KEY_CURRENT: event.current,
+		NetCodec.KEY_MAX: event.max_value,
+		NetCodec.KEY_IS_ELITE: event.is_elite,
+		NetCodec.KEY_POS: NetCodec.vec_to_arr(event.position),
 	})
 
 # ─── 多人 client：快照应用 / 事件路由（镜像） ───
@@ -1697,14 +1995,22 @@ func _on_net_event(event_name: StringName, payload: Dictionary) -> void:
 				null,
 				payload.get(NetCodec.KEY_TIERS, {}),
 				str(payload.get(NetCodec.KEY_THREAT_TIER, "")),
-				bool(payload.get(NetCodec.KEY_HAS_ELITE, false))))
+				bool(payload.get(NetCodec.KEY_HAS_ELITE, false)),
+				int(payload.get(NetCodec.KEY_CHAPTER_INDEX, -1)),
+				str(payload.get(NetCodec.KEY_CHAPTER_NAME, "")),
+				int(payload.get(NetCodec.KEY_WAVE_IN_CHAPTER, -1)),
+				bool(payload.get(NetCodec.KEY_IS_BOSS, false))))
 		NetCodec.EVT_WAVE_STARTED:
 			EventBus.publish(WaveStartedEvent.new(
 				int(payload.get(NetCodec.KEY_WAVE_INDEX, 0)),
-				int(payload.get(NetCodec.KEY_WAVE_TOTAL, 0))))
+				int(payload.get(NetCodec.KEY_WAVE_TOTAL, 0)),
+				int(payload.get(NetCodec.KEY_CHAPTER_INDEX, -1)),
+				bool(payload.get(NetCodec.KEY_IS_BOSS, false))))
 		NetCodec.EVT_WAVE_CLEARED:
 			EventBus.publish(WaveClearedEvent.new(
-				int(payload.get(NetCodec.KEY_WAVE_INDEX, 0))))
+				int(payload.get(NetCodec.KEY_WAVE_INDEX, 0)),
+				int(payload.get(NetCodec.KEY_CHAPTER_INDEX, -1)),
+				bool(payload.get(NetCodec.KEY_IS_BOSS, false))))
 		NetCodec.EVT_PLAYER_HEALTH:
 			EventBus.publish(PlayerHealthChangedEvent.new(
 				float(payload.get(NetCodec.KEY_CURRENT, 0.0)),
@@ -1851,6 +2157,31 @@ func _on_net_event(event_name: StringName, payload: Dictionary) -> void:
 					_client_arsenals[arsenal_pid].append(str(loc))
 		NetCodec.EVT_TURRET_PLACED:
 			_apply_turret_placed(payload)
+		NetCodec.EVT_SCORE_CHANGED:
+			EventBus.publish(ScoreChangedEvent.new(
+				int(payload.get(NetCodec.KEY_SCORE, 0)),
+				int(payload.get(NetCodec.KEY_COMBO, 0)),
+				float(payload.get(NetCodec.KEY_MULTIPLIER, 1.0)),
+				int(payload.get(NetCodec.KEY_PLAYER_ID, 0))))
+		NetCodec.EVT_POWERUP_PICKUP:
+			# client 镜像：HUD buff 计时条/音效（效果由 host 权威应用）
+			EventBus.publish(PowerUpPickupEvent.new(
+				str(payload.get(NetCodec.KEY_POWER_ID, "")),
+				int(payload.get(NetCodec.KEY_PLAYER_ID, 0)),
+				NetCodec.arr_to_vec(payload.get(NetCodec.KEY_POS, [0.0, 0.0])),
+				float(payload.get(NetCodec.KEY_DURATION, 0.0))))
+		NetCodec.EVT_POWERUP_EXPIRED:
+			EventBus.publish(PowerUpExpiredEvent.new(
+				str(payload.get(NetCodec.KEY_POWER_ID, "")),
+				int(payload.get(NetCodec.KEY_PLAYER_ID, 0))))
+		NetCodec.EVT_ENEMY_HEALTH:
+			EventBus.publish(EnemyHealthChangedEvent.new(
+				int(payload.get(NetCodec.KEY_ENEMY_ID, -1)),
+				str(payload.get(NetCodec.KEY_DATA_ID, "")),
+				float(payload.get(NetCodec.KEY_CURRENT, 0.0)),
+				float(payload.get(NetCodec.KEY_MAX, 0.0)),
+				bool(payload.get(NetCodec.KEY_IS_ELITE, false)),
+				NetCodec.arr_to_vec(payload.get(NetCodec.KEY_POS, [0.0, 0.0]))))
 		NetCodec.EVT_UI_STATE:
 			_apply_ui_state(payload)
 

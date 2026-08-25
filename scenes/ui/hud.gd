@@ -14,6 +14,11 @@ const INFINITE_TEXT := "∞"
 @onready var banner_label: Label = %BannerLabel
 @onready var banner_bg: Panel = %BannerBG
 @onready var compass_label: Label = %CompassLabel
+@onready var score_label: Label = %ScoreLabel
+@onready var combo_label: Label = %ComboLabel
+@onready var buff_label: Label = %BuffLabel
+@onready var boss_bar: ProgressBar = %BossBar
+@onready var boss_label: Label = %BossLabel
 @onready var ammo_row: HBoxContainer = %AmmoLabel
 @onready var ammo_title_label: Label = %AmmoTitle
 @onready var ammo_mag_label: Label = %AmmoMag
@@ -45,6 +50,10 @@ var _cached_wave: Dictionary = {}
 var _cached_facility_type: int = DefenseFacilityData.FacilityType.BARRICADE
 var _cached_pause_requests: Array = []
 var _cached_pause_total := 2
+## P1 街机化缓存
+var _cached_score: Dictionary = {"score": 0, "combo": 0, "mult": 1.0}
+var _buff_timers: Dictionary = {}  # power_id -> {remaining, duration}
+var _boss_name := ""
 ## M2 多人：本 HUD 只显示该玩家 id 的数据（host/单机 = 0；client = 1）
 var _local_player_id := 0
 
@@ -97,6 +106,10 @@ func _ready() -> void:
 	EventBus.subscribe(&"ReviveStartedEvent", _on_revive_started)
 	EventBus.subscribe(&"RevivedEvent", _on_revived)
 	EventBus.subscribe(&"LanguageChangedEvent", _on_language_changed)
+	EventBus.subscribe(&"ScoreChangedEvent", _on_score_changed)
+	EventBus.subscribe(&"PowerUpPickupEvent", _on_power_up_pickup)
+	EventBus.subscribe(&"PowerUpExpiredEvent", _on_power_up_expired)
+	EventBus.subscribe(&"EnemyHealthChangedEvent", _on_enemy_health)
 	_update_slot_highlight()
 	_apply_static_texts()
 
@@ -125,6 +138,16 @@ func _process(delta: float) -> void:
 	if _revive_active:
 		_revive_timer = maxf(0.0, _revive_timer - delta)
 		revive_label.text = _format_seconds("hud.revive", _revive_timer)
+	if not _buff_timers.is_empty():
+		var expired: Array[String] = []
+		for key: String in _buff_timers.keys():
+			var entry: Dictionary = _buff_timers[key]
+			entry["remaining"] = float(entry["remaining"]) - delta
+			if float(entry["remaining"]) <= 0.0:
+				expired.append(key)
+		for key: String in expired:
+			_buff_timers.erase(key)
+		_refresh_buff_label()
 
 # ─── 事件订阅 ───
 
@@ -199,8 +222,14 @@ func _on_wave_warning(event: WaveWarningEvent) -> void:
 	if not direction_text.is_empty():
 		compass_label.text = "%s · %s" % [compass_label.text, direction_text]
 	compass_label.visible = true
-	_show_banner(UiText.text("hud.banner_wave_warning",
-		[event.wave_index, tier_text, elite_text]), 2.5)
+	if event.wave_in_chapter == 0 and event.chapter_index >= 0 \
+			and not event.chapter_name.is_empty():
+		# P1-13 章节横幅：章首波替代常规波次标题
+		_show_banner(UiText.text("hud.banner_chapter",
+			[event.chapter_name, event.wave_index]), 3.0)
+	else:
+		_show_banner(UiText.text("hud.banner_wave_warning",
+			[event.wave_index, tier_text, elite_text]), 2.5)
 
 static func _tier_text(tier: String) -> String:
 	match tier:
@@ -250,6 +279,64 @@ func _on_wave_started(_event: WaveStartedEvent) -> void:
 
 func _on_wave_cleared(event: WaveClearedEvent) -> void:
 	_show_banner(UiText.text("hud.banner_wave_cleared", [event.wave_index]), 2.0)
+
+# ─── P1 街机化：分数/连击 / buff 计时 / Boss 血条 ───
+
+func _on_score_changed(event: ScoreChangedEvent) -> void:
+	if event.player_id != _local_player_id:
+		return
+	_cached_score = {"score": event.score, "combo": event.combo, "mult": event.multiplier}
+	_refresh_score_texts()
+
+func _on_power_up_pickup(event: PowerUpPickupEvent) -> void:
+	if event.player_id != _local_player_id or event.duration <= 0.0:
+		return
+	_buff_timers[event.power_id] = {"remaining": event.duration, "duration": event.duration}
+	_refresh_buff_label()
+
+func _on_power_up_expired(event: PowerUpExpiredEvent) -> void:
+	if event.player_id != _local_player_id:
+		return
+	_buff_timers.erase(event.power_id)
+	_refresh_buff_label()
+
+func _refresh_buff_label() -> void:
+	if _buff_timers.is_empty():
+		buff_label.text = ""
+		return
+	var parts: Array[String] = []
+	for key: String in _buff_timers.keys():
+		var entry: Dictionary = _buff_timers[key]
+		var remaining := int(ceilf(float(entry["remaining"])))
+		var name := UiText.content_name(key, key)
+		parts.append(UiText.text("hud.buff_item", [name, remaining]))
+	buff_label.text = " · ".join(parts)
+
+func _refresh_score_texts() -> void:
+	if score_label == null:
+		return
+	score_label.text = UiText.text("hud.score", [int(_cached_score.get("score", 0))])
+	if int(_cached_score.get("combo", 0)) > 0:
+		combo_label.text = UiText.text("hud.combo", [
+			int(_cached_score.get("combo", 0)),
+			"%.1f" % float(_cached_score.get("mult", 1.0))])
+		combo_label.visible = true
+	else:
+		combo_label.text = ""
+		combo_label.visible = false
+
+func _on_enemy_health(event: EnemyHealthChangedEvent) -> void:
+	if not event.is_elite:
+		return
+	if boss_bar == null:
+		return
+	boss_bar.max_value = maxf(1.0, event.max_value)
+	boss_bar.value = maxf(0.0, event.current)
+	boss_bar.visible = event.current > 0.0
+	if not event.data_id.is_empty():
+		_boss_name = UiText.content_name(event.data_id, event.data_id)
+		boss_label.text = _boss_name
+	boss_label.visible = event.current > 0.0
 
 func _on_player_died(event: PlayerDiedEvent) -> void:
 	if event.player_id != _local_player_id:
@@ -302,6 +389,8 @@ func _apply_static_texts() -> void:
 		else UiText.text("hud.facility_hint", [_facility_name(_cached_facility_type)])
 	_refresh_ammo_label()
 	_refresh_pause_hint()
+	_refresh_score_texts()
+	_refresh_buff_label()
 
 func _refresh_cached_texts() -> void:
 	_apply_static_texts()

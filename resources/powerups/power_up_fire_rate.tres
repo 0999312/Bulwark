@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PowerUpData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/power_up_data.gd" id="1_sw0vx"]
+
+[resource]
+script = ExtResource("1_sw0vx")
+id = "power/fire_rate"
+display_name = "急速射击"
+effect = 3
+amount = 1.5
+duration = 6.0
+weight = 4.0
+vfx_key = "shotOrange"
+icon_color = Color(0.35, 0.9, 0.85, 1)

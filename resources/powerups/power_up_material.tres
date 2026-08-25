@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PowerUpData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/power_up_data.gd" id="1_8yp7o"]
+
+[resource]
+script = ExtResource("1_8yp7o")
+id = "power/material"
+display_name = "建材包"
+effect = 1
+amount = 1.0
+weight = 8.0
+vfx_key = "crateWood"
+icon_color = Color(0.72, 0.52, 0.3, 1)

@@ -19,6 +19,7 @@ const FRONTAL_DOT_THRESHOLD := 0.5
 
 var data: EnemyData
 var health: float = 0.0
+var max_health: float = 0.0
 var state: State = State.CHASE
 var attack_timer: float = 0.0
 ## 当前攻击目标（近战：路障优先；null = 基地）
@@ -32,6 +33,7 @@ var _dead_reported := false
 func _init(p_data: EnemyData, p_hp_scale: float = 1.0) -> void:
 	data = p_data
 	health = data.max_hp * maxf(p_hp_scale, 0.01)
+	max_health = health
 	# 首次出招前给玩家一个完整攻击间隔的反应时间（不再落地即咬）
 	attack_timer = data.attack_interval
 	if data.windup_time > 0.0:

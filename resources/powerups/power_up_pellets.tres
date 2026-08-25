@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PowerUpData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/power_up_data.gd" id="1_ci3bs"]
+
+[resource]
+script = ExtResource("1_ci3bs")
+id = "power/pellets"
+display_name = "三连弹"
+effect = 4
+amount = 2.0
+duration = 6.0
+weight = 4.0
+vfx_key = "bulletGreen1"
+icon_color = Color(0.4, 0.95, 0.45, 1)

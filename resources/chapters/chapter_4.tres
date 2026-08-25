@@ -1,0 +1,119 @@
+[gd_resource type="Resource" script_class="ChapterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/wave_spawn_group_data.gd" id="1_whki2"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_apocx"]
+[ext_resource type="Script" path="res://scripts/data/chapter_definition.gd" id="3_qaa0p"]
+
+[sub_resource type="Resource" id="Resource_3ebfb"]
+script = ExtResource("1_whki2")
+directions = Array[int]([0])
+count_range = Vector2i(1, 1)
+enemy_location = "bulwark:enemy/elite_behemoth"
+
+[sub_resource type="Resource" id="Resource_3hmm5"]
+script = ExtResource("1_whki2")
+directions = Array[int]([0])
+count_range = Vector2i(2, 3)
+enemy_location = "bulwark:enemy/runner_tough"
+count_scale = 1.3
+
+[sub_resource type="Resource" id="Resource_gk4op"]
+script = ExtResource("1_whki2")
+directions = Array[int]([2])
+count_range = Vector2i(1, 2)
+enemy_location = "bulwark:enemy/spitter"
+count_scale = 1.2
+
+[sub_resource type="Resource" id="Resource_m2v47"]
+script = ExtResource("2_apocx")
+id = "boss_1404"
+seed = 1404
+groups = Array[ExtResource("1_whki2")]([SubResource("Resource_3ebfb"), SubResource("Resource_3hmm5"), SubResource("Resource_gk4op")])
+warn_duration = 3.5
+spawn_interval = 0.9
+burst_chance = 0.18
+is_elite_wave = true
+
+[sub_resource type="Resource" id="Resource_qd5xr"]
+script = ExtResource("1_whki2")
+directions = Array[int]([0, 2])
+count_range = Vector2i(2, 4)
+enemy_location = "bulwark:enemy/runner_tough"
+
+[sub_resource type="Resource" id="Resource_t6ol1"]
+script = ExtResource("1_whki2")
+directions = Array[int]([4, 6])
+count_range = Vector2i(2, 4)
+enemy_location = "bulwark:enemy/runner_fast"
+
+[sub_resource type="Resource" id="Resource_dbn2k"]
+script = ExtResource("2_apocx")
+id = "chapter/4/wave/1"
+seed = 1401
+groups = Array[ExtResource("1_whki2")]([SubResource("Resource_qd5xr"), SubResource("Resource_t6ol1")])
+warn_duration = 3.5
+spawn_interval = 0.8
+burst_chance = 0.18
+
+[sub_resource type="Resource" id="Resource_u85yx"]
+script = ExtResource("1_whki2")
+directions = Array[int]([0, 2])
+count_range = Vector2i(3, 5)
+
+[sub_resource type="Resource" id="Resource_bngvd"]
+script = ExtResource("1_whki2")
+directions = Array[int]([4, 6])
+count_range = Vector2i(2, 4)
+enemy_location = "bulwark:enemy/spitter"
+
+[sub_resource type="Resource" id="Resource_0hl58"]
+script = ExtResource("1_whki2")
+directions = Array[int]([2, 6])
+count_range = Vector2i(1, 3)
+enemy_location = "bulwark:enemy/armored"
+
+[sub_resource type="Resource" id="Resource_0waeu"]
+script = ExtResource("2_apocx")
+id = "chapter/4/wave/2"
+seed = 1402
+groups = Array[ExtResource("1_whki2")]([SubResource("Resource_u85yx"), SubResource("Resource_bngvd"), SubResource("Resource_0hl58")])
+warn_duration = 3.5
+spawn_interval = 0.8
+burst_chance = 0.18
+
+[sub_resource type="Resource" id="Resource_dlnvq"]
+script = ExtResource("1_whki2")
+directions = Array[int]([0, 4])
+count_range = Vector2i(2, 4)
+enemy_location = "bulwark:enemy/self_destruct"
+
+[sub_resource type="Resource" id="Resource_bky88"]
+script = ExtResource("1_whki2")
+directions = Array[int]([2, 6])
+count_range = Vector2i(2, 4)
+enemy_location = "bulwark:enemy/flying"
+
+[sub_resource type="Resource" id="Resource_0kf5e"]
+script = ExtResource("1_whki2")
+directions = Array[int]([0, 6])
+count_range = Vector2i(1, 2)
+enemy_location = "bulwark:enemy/sniper"
+
+[sub_resource type="Resource" id="Resource_gpx45"]
+script = ExtResource("2_apocx")
+id = "chapter/4/wave/3"
+seed = 1403
+groups = Array[ExtResource("1_whki2")]([SubResource("Resource_dlnvq"), SubResource("Resource_bky88"), SubResource("Resource_0kf5e")])
+warn_duration = 3.5
+spawn_interval = 0.8
+burst_chance = 0.18
+
+[resource]
+script = ExtResource("3_qaa0p")
+id = "chapter/4"
+display_name = "第 4 章 · 巢穴"
+theme_rgb = Color(0.52, 0.18, 0.2, 1)
+waves = Array[ExtResource("2_apocx")]([SubResource("Resource_dbn2k"), SubResource("Resource_0waeu"), SubResource("Resource_gpx45")])
+boss_wave = SubResource("Resource_m2v47")
+chapter_scale = 1.8
+round_reward_pool = Array[String](["power/shield", "power/score", "power/reserve", "power/fire_rate", "power/pellets"])

@@ -4,9 +4,11 @@ extends Node
 
 var _frames := 0
 var _cap_size := "1280x720"
+var _showcase := false
 
 func _ready() -> void:
-	call_deferred("_add_showcase")
+	if _showcase:
+		call_deferred("_add_showcase")
 
 func _add_showcase() -> void:
 	## 采证用临时舞台：炮塔（VfxBank 拼接）+ 枪口焰 + 爆炸 5 帧 + 玩家/敌方弹体
@@ -46,6 +48,14 @@ func _add_showcase() -> void:
 
 func _process(_delta: float) -> void:
 	_frames += 1
+	# showcase 模式：注入 HUD 街机化演示事件（分数/连击/buff/Boss 血条）
+	if _showcase and _frames == 70:
+		var event_bus: Node = get_tree().root.get_node_or_null("EventBus")
+		if event_bus != null:
+			event_bus.call("publish", ScoreChangedEvent.new(12345, 7, 2.75, 0))
+			event_bus.call("publish", EnemyHealthChangedEvent.new(
+				999, "bulwark:enemy/elite_behemoth", 620.0, 1000.0, true, Vector2.ZERO))
+			event_bus.call("publish", PowerUpPickupEvent.new("power/fire_rate", 0, Vector2.ZERO, 6.0))
 	match _frames:
 		90:
 			_capture("arcade_hud_warning_%s" % _cap_size)

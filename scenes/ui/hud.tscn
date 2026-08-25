@@ -201,6 +201,44 @@ theme_override_colors/font_color = Color(1, 0.75, 0.4, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 
+[node name="ScoreLabel" type="Label" parent="TopRight/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 30
+
+[node name="ComboLabel" type="Label" parent="TopRight/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.35, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+
+[node name="BuffLabel" type="Label" parent="TopRight/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.55, 0.9, 0.8, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+
+[node name="BossBar" type="ProgressBar" parent="TopRight/VBox"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(300, 14)
+max_value = 100.0
+value = 100.0
+show_percentage = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_base_fill")
+
+[node name="BossLabel" type="Label" parent="TopRight/VBox"]
+unique_name_in_owner = true
+visible = false
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(1, 0.45, 0.4, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+
 [node name="BottomLeft" type="PanelContainer" parent="."]
 anchors_preset = 2
 anchor_top = 1.0

@@ -75,6 +75,11 @@ const EVT_TURRET_FIRED := "turret_fired"
 const EVT_TURRET_PLACED := "turret_placed"
 const EVT_ARSENAL_CHANGED := "arsenal_changed"
 const EVT_UI_STATE := "ui_state"
+## P1 街机化：分数/连击、道具拾取/到期、Boss 血量（host → client 镜像）
+const EVT_SCORE_CHANGED := "score_changed"
+const EVT_POWERUP_PICKUP := "powerup_pickup"
+const EVT_POWERUP_EXPIRED := "powerup_expired"
+const EVT_ENEMY_HEALTH := "enemy_health"
 
 ## 事件负载键（各事件通用）
 const KEY_PLAYER_ID := "player_id"
@@ -127,6 +132,17 @@ const KEY_PROJECTILE_KIND := "projectile_kind"
 const KEY_SPEED := "speed"
 const KEY_RADIUS := "radius"
 const KEY_DAMAGE := "damage"
+## P1 街机化负载键
+const KEY_SCORE := "score"
+const KEY_COMBO := "combo"
+const KEY_MULTIPLIER := "multiplier"
+const KEY_POWER_ID := "power_id"
+const KEY_DATA_ID := "data_id"
+const KEY_IS_ELITE := "is_elite"
+const KEY_CHAPTER_INDEX := "chapter_index"
+const KEY_CHAPTER_NAME := "chapter_name"
+const KEY_IS_BOSS := "is_boss"
+const KEY_WAVE_IN_CHAPTER := "wave_in_chapter"
 
 # ─── 编解码 ───
 

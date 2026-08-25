@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RunDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/chapter_definition.gd" id="1_ntnd6"]
+[ext_resource type="Resource" path="res://resources/chapters/chapter_1.tres" id="2_6l0p8"]
+[ext_resource type="Resource" path="res://resources/chapters/chapter_2.tres" id="3_7q1w3"]
+[ext_resource type="Resource" path="res://resources/chapters/chapter_3.tres" id="4_g45im"]
+[ext_resource type="Resource" path="res://resources/chapters/chapter_4.tres" id="5_rwcgf"]
+[ext_resource type="Script" path="res://scripts/data/run_definition.gd" id="6_adjqm"]
+
+[resource]
+script = ExtResource("6_adjqm")
+id = "run/arcade"
+display_name = "街机章节模式"
+chapters = Array[ExtResource("1_ntnd6")]([ExtResource("2_6l0p8"), ExtResource("3_7q1w3"), ExtResource("4_g45im"), ExtResource("5_rwcgf")])
+highscore_key = "arcade"

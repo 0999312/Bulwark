@@ -64,6 +64,28 @@ def build_content_zh() -> dict:
                 out[ckey(cid, "desc")] = ds.group(1)
     for sid, name in [("muzzle", "枪口"), ("sight", "瞄具"), ("mag", "弹匣"), ("stock", "枪托")]:
         out[f"content.attachment_slot_{sid}.name"] = name
+    # P1 街机化：道具 / 章节 / 运行定义 / 精英敌人（中文回退源 = 资源字段）
+    for p in pathlib.Path("resources/powerups").glob("power_up_*.tres"):
+        text = p.read_text(encoding="utf-8")
+        idm = re.search(r'^id = "([^"]+)"', text, re.M)
+        nm = re.search(r'^display_name = "([^"]+)"', text, re.M)
+        if idm and nm:
+            out[ckey(idm.group(1), "name")] = nm.group(1)
+    for p in pathlib.Path("resources/chapters").glob("chapter_*.tres"):
+        text = p.read_text(encoding="utf-8")
+        blocks = text.split("[resource]")
+        tail = blocks[-1] if len(blocks) > 1 else text
+        idm = re.search(r'^id = "([^"]+)"', tail, re.M)
+        nm = re.search(r'^display_name = "([^"]+)"', tail, re.M)
+        if idm and nm:
+            out[ckey(idm.group(1), "name")] = nm.group(1)
+    run_text = pathlib.Path("resources/runs/arcade_run.tres").read_text(encoding="utf-8")
+    run_id = re.search(r'^id = "([^"]+)"', run_text, re.M)
+    run_name = re.search(r'^display_name = "([^"]+)"', run_text, re.M)
+    if run_id and run_name:
+        out[ckey(run_id.group(1), "name")] = run_name.group(1)
+    for p in pathlib.Path("resources/enemies").glob("enemy_*.tres"):
+        add_zh_resource(out, "bulwark:enemy/" + p.stem[6:], str(p))
     return out
 
 
@@ -127,6 +149,34 @@ def build_content_en() -> dict:
         for idx, name in enumerate(names, start):
             out.update(cc(f"shop/item/weapon_crate_{typ}_{idx}", f"Weapon Crate · {name}",
                           "Adds the model to your personal arsenal; equip it at the workbench."))
+    # P1 街机化：道具 / 章节 / 运行定义 / 精英敌人英文
+    for power_id, name in [
+        ("power/ammo", "Ammo Box"), ("power/material", "Materials"),
+        ("power/heal", "Medkit"), ("power/fire_rate", "Rapid Fire"),
+        ("power/pellets", "Triple Shot"), ("power/shield", "Shield"),
+        ("power/score", "Score Boost"), ("power/reserve", "Extra Life"),
+    ]:
+        out.update(cc(power_id, name))
+    for chapter_id, name in [
+        ("chapter/1", "Chapter 1 · Outpost Edge"),
+        ("chapter/2", "Chapter 2 · Ruined Town"),
+        ("chapter/3", "Chapter 3 · Contaminated Zone"),
+        ("chapter/4", "Chapter 4 · Nest"),
+    ]:
+        out.update(cc(chapter_id, name))
+    out.update(cc("run/arcade", "Arcade Chapters"))
+    for stem, name in {
+        "enemy_runner": "Runner",
+        "enemy_runner_fast": "Fast Runner",
+        "enemy_runner_tough": "Tough Runner",
+        "enemy_self_destruct": "Self-Destruct",
+        "enemy_spitter": "Spitter",
+        "enemy_armored": "Armored Beast",
+        "enemy_flying": "Flyer",
+        "enemy_sniper": "Sniper",
+        "enemy_elite_behemoth": "Elite Behemoth",
+    }.items():
+        out.update(cc("bulwark:enemy/" + stem[6:], name))
     return out
 
 
@@ -163,6 +213,11 @@ STRUCT_ZH = {
     "shop.feedback_model_changed": "已更换为 {0}", "shop.bag_empty": "背包是空的。", "shop.equip": "装配", "shop.unequip": "卸下",
     "shop.rarity_rare": "[稀有] ", "shop.rarity_epic": "[史诗] ", "shop.rarity_legendary": "[传说] ",
     "result.stats": "到达波次 {0} · 击杀 {1} · 货币 {2} · 建材 {3}",
+    "hud.score": "分数 {0}", "hud.combo": "连击 {0} · ×{1}", "hud.buff_item": "{0} {1}s",
+    "hud.banner_chapter": "{0} · 第 {1} 波",
+    "result.score": "总分：{0}", "result.combo": "最高连击：{0}", "result.time": "用时：{0}s",
+    "result.highscores": "—— 本机 Top {0} ——", "result.highscore_entry": "{0}. {1}分 · 连击{2} · {3}s",
+    "result.highscore_rank": "本局名次：第 {0} 名",
     "menu.subtitle": "FRONTLINE BULWARK",
     "settings.key.aim": "瞄准",
     "settings.key.cycle_facility": "切换设施",
@@ -211,6 +266,11 @@ STRUCT_EN = {
     "shop.feedback_model_changed": "Switched to {0}", "shop.bag_empty": "Bag is empty.", "shop.equip": "Equip", "shop.unequip": "Unequip",
     "shop.rarity_rare": "[Rare] ", "shop.rarity_epic": "[Epic] ", "shop.rarity_legendary": "[Legendary] ",
     "result.stats": "Waves {0} · Kills {1} · Credits {2} · Materials {3}",
+    "hud.score": "Score {0}", "hud.combo": "Combo {0} · x{1}", "hud.buff_item": "{0} {1}s",
+    "hud.banner_chapter": "{0} · Wave {1}",
+    "result.score": "Total score: {0}", "result.combo": "Best combo: {0}", "result.time": "Time: {0}s",
+    "result.highscores": "—— Local Top {0} ——", "result.highscore_entry": "{0}. {1} pts · combo {2} · {3}s",
+    "result.highscore_rank": "This run ranked: #{0}",
     "menu.subtitle": "FRONTLINE BULWARK",
     "settings.key.aim": "Aim",
     "settings.key.cycle_facility": "Cycle Facility",

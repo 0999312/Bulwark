@@ -172,12 +172,12 @@ func _check_player_ram() -> void:
 ## M3 修复：client 镜像敌人（mirror_mode，controller=null）命中只做闪白反馈
 ## （纯表现；伤害由 host 权威裁决——镜像不结算，否则会与 host 双重伤害）
 func apply_player_hit(stats: WeaponStats, aim_dir: Vector2, killer_id: int = 0,
-		weak_point_hit: bool = false) -> void:
+		weak_point_hit: bool = false) -> DamageResult:
 	if mirror_mode:
 		_flash_hit()
-		return
+		return null
 	if controller == null or controller.is_dead():
-		return
+		return null
 	var ctx := DamageContext.create(Faction.Type.PLAYER, Faction.Type.MUTANT, stats.damage)
 	ctx.crit_chance = stats.crit_chance
 	ctx.crit_multiplier = stats.crit_multiplier
@@ -189,23 +189,41 @@ func apply_player_hit(stats: WeaponStats, aim_dir: Vector2, killer_id: int = 0,
 		if aim_dir.normalized().dot(enemy_facing) < 0.0:
 			weak_hit = true
 	var result := controller.take_damage(ctx, killer_id, aim_dir, weak_hit)
-	if result.damage > 0.0:
+	if result != null and result.damage > 0.0:
 		_flash_hit()
 		_apply_hit_knock(aim_dir)
+		_publish_health(result)
+	return result
 
 ## M5b：自动炮塔命中（host 裁决；伤害管道同玩家命中，来源=玩家阵营）
-func apply_turret_hit(damage: float, aim_dir: Vector2) -> void:
+func apply_turret_hit(damage: float, aim_dir: Vector2) -> DamageResult:
 	if mirror_mode:
 		_flash_hit()
-		return
+		return null
 	if controller == null or controller.is_dead():
-		return
+		return null
 	var ctx := DamageContext.create(Faction.Type.PLAYER, Faction.Type.MUTANT, damage)
 	ctx.defense = controller.data.armor
 	var result := controller.take_damage(ctx, 0, aim_dir)
-	if result.damage > 0.0:
+	if result != null and result.damage > 0.0:
 		_flash_hit()
 		_apply_hit_knock(aim_dir)
+		_publish_health(result)
+	return result
+
+## P1-13 精英/Boss 血量上报（host 权威；client 中继 → BossBar）
+func _publish_health(_result: DamageResult) -> void:
+	if controller == null or controller.data == null:
+		return
+	if not controller.data.is_elite and controller.data.threat_mode != EnemyData.ThreatMode.ELITE:
+		return
+	EventBus.publish(EnemyHealthChangedEvent.new(
+		net_id,
+		Bulwark.loc(controller.data.id).to_string(),
+		controller.health,
+		controller.max_health,
+		true,
+		global_position))
 
 ## 变种视觉：仅缩放 Body（碰撞体保持 1:1），并按 body_color 配色（含死亡粒子渐变）
 func _apply_visual_variation() -> void:
@@ -230,6 +248,51 @@ func _apply_visual(p_data: EnemyData) -> void:
 	death_particles.modulate = Color.WHITE
 	death_particles.scale_amount_min = 0.5
 	death_particles.scale_amount_max = 1.0
+	_apply_outline(p_data)
+
+## P1-14 敌人轮廓差异化：用 Kenney 坦克素材为 5 类威胁加装轮廓部件
+## （装甲 = 铁甲底盘 / 狙击 = 长炮管 / 飞行 = 载具剪影 / 自爆 = 红色炸弹 / 精英 = 巨兽+弱点）
+func _apply_outline(p_data: EnemyData) -> void:
+	if p_data == null or visual == null:
+		return
+	var short := p_data.id.get_slice("enemy/", 1)
+	match short:
+		"armored":
+			_add_outline_part(VfxBank.turret_base("dark"), 0.95,
+				Color(0.35, 0.32, 0.38, 0.92), true, Vector2(0, 2), 0.0)
+		"sniper":
+			_add_outline_part(VfxBank.turret_barrel(2), 0.55,
+				Color(0.5, 0.45, 0.42, 0.95), false, Vector2(16, 0), 0.0)
+		"flying":
+			_add_outline_part(VfxBank.tank_body_full("blue"), 0.62,
+				Color(0.45, 0.55, 0.85, 0.75), true, Vector2(0, 3), 0.0)
+		"self_destruct":
+			_add_outline_part(VfxBank.bullet("red"), 2.2,
+				Color(1.0, 0.3, 0.22, 0.9), true, Vector2(0, 1), 0.0)
+		"elite_behemoth":
+			_add_outline_part(VfxBank.tank_part("tank_huge"), 0.9,
+				Color(0.62, 0.15, 0.16, 0.95), true, Vector2(0, 4), 0.0)
+			# 背部弱点光点（视觉提示；与 data.has_weak_point 对应）
+			var weak := Polygon2D.new()
+			weak.polygon = PackedVector2Array([-3, -3, 3, -3, 3, 3, -3, 3])
+			weak.color = Color(1.0, 0.25, 0.2, 0.95)
+			weak.position = Vector2(-_base_visual_scale * 10.0, 0)
+			visual.add_child(weak)
+			visual.move_child(weak, 0)
+
+func _add_outline_part(texture: Texture2D, scale_mult: float, color: Color,
+		behind: bool, offset: Vector2, rotation_deg: float) -> void:
+	if texture == null:
+		return
+	var part := Sprite2D.new()
+	part.texture = texture
+	part.scale = Vector2.ONE * (_base_visual_scale * scale_mult)
+	part.modulate = color
+	part.position = offset * _base_visual_scale
+	part.rotation = deg_to_rad(rotation_deg)
+	visual.add_child(part)
+	if behind:
+		visual.move_child(part, 0)
 
 ## 受击闪白（M3 方案 B：host 命中后经 EVT_ENEMY_HIT 驱动 client 镜像闪白；
 ## 本地命中路径仍由 apply_player_hit 调用）
@@ -284,6 +347,8 @@ func _play_death_feedback() -> void:
 		death_particles.amount = maxi(2, roundi(death_particles.amount * MIRROR_PARTICLE_SCALE))
 	death_particles.restart()
 	death_particles.emitting = true
+	# P1-15 死亡爆炸 5 帧动画（Tier2；池化，host/client 同表现）
+	FxBurst.spawn_explosion(global_position, maxf(1.2, _base_visual_scale * 1.6))
 	# M4：死亡爆炸闪光（池化，host/client 同播；粒子数量本身已按镜像降级）
 	FxBurst.spawn_flare(global_position)
 	var tw := create_tween()

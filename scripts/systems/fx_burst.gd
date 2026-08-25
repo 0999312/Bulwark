@@ -7,12 +7,18 @@ extends Node
 ##   （设计依据：particles-vfx / godot-particles / tween-animation 三技能组合）
 
 const SPARK_POOL_SIZE := 32
+const DAMAGE_POOL_SIZE := 24
+const EXPLOSION_POOL_SIZE := 10
 const PIXEL_SIZE := 8
 const GLOW_SIZE := 32
 
 var _root: Node2D
 var _spark_pool: Array[CPUParticles2D] = []
+var _damage_pool: Array[DamageNumber] = []
+var _explosion_pool: Array[AnimatedSprite2D] = []
 var _pool_cursor := 0
+var _damage_cursor := 0
+var _explosion_cursor := 0
 var _pixel_texture: ImageTexture
 var _glow_texture: ImageTexture
 
@@ -67,6 +73,19 @@ func _ensure_root() -> void:
 		var particles := _make_spark()
 		_root.add_child(particles)
 		_spark_pool.append(particles)
+	for i in DAMAGE_POOL_SIZE:
+		var dn := DamageNumber.new()
+		dn.visible = false
+		_root.add_child(dn)
+		_damage_pool.append(dn)
+	# P1-15 爆炸 5 帧动画池（0.35s，只建一次；死亡/自爆/AoE/Boss 击杀）
+	for i in EXPLOSION_POOL_SIZE:
+		var ex := AnimatedSprite2D.new()
+		ex.sprite_frames = VfxBank.explosion_sprite_frames()
+		ex.visible = false
+		ex.animation_finished.connect(func() -> void: ex.visible = false)
+		_root.add_child(ex)
+		_explosion_pool.append(ex)
 
 func _make_spark() -> CPUParticles2D:
 	var particles := CPUParticles2D.new()
@@ -136,3 +155,24 @@ func spawn_impact_ring(world_pos: Vector2, color: Color,
 	var ring := PixelRing.new()
 	_root.add_child(ring)
 	ring.setup(world_pos, color, max_radius, duration)
+
+## P1-11 伤害数字（池化，只借不建；普通命中/暴击/弱点/连击分色）
+func spawn_damage_number(world_pos: Vector2, text: String, color: Color) -> void:
+	if _root == null or _damage_pool.is_empty() or text.is_empty():
+		return
+	var dn := _damage_pool[_damage_cursor % _damage_pool.size()]
+	_damage_cursor += 1
+	dn.setup(text, color, world_pos)
+
+## P1-15 爆炸 5 帧动画（0.35s；池化借用，播完自动隐藏；Tier2）
+func spawn_explosion(world_pos: Vector2, scale: float = 1.0) -> void:
+	if _root == null or _explosion_pool.is_empty():
+		return
+	var ex := _explosion_pool[_explosion_cursor % _explosion_pool.size()]
+	_explosion_cursor += 1
+	ex.global_position = world_pos
+	ex.scale = Vector2.ONE * maxf(0.2, scale)
+	ex.modulate = Color.WHITE
+	ex.frame = 0
+	ex.visible = true
+	ex.play("default")

@@ -24,6 +24,14 @@ var intermission_waits_for_shop := false
 ## P0-7：本局随机种子偏移（run_seed 注入；默认 0 保持 WaveData.seed 原样 → 既有测试确定性）
 var run_seed_offset: int = 0
 
+## P1-8：章节制运行定义（null = 遗留 flat 波次，测试兼容）
+var run_definition: RunDefinition = null
+## 单波同屏上限（建议 ≤40）：超限暂停刷出，保低端机不掉帧
+const MAX_ON_SCREEN := 40
+var current_chapter_index: int = -1
+var current_wave_in_chapter: int = -1
+var current_is_boss_wave: bool = false
+
 var waves: Array[WaveData] = []
 var phase: Phase = Phase.IDLE
 var current_wave_index: int = -1
@@ -47,6 +55,52 @@ func start(waves_list: Array[WaveData]) -> void:
 	waves = waves_list
 	_started = true
 	_begin_next_wave()
+
+## P1-8：章节制启动（RunDefinition → 扁平波次流：每章 waves + boss_wave）
+func start_run(run: RunDefinition) -> void:
+	if _started:
+		return
+	run_definition = run
+	var flat: Array[WaveData] = []
+	if run != null:
+		for chapter: ChapterDefinition in run.chapters:
+			for wave: WaveData in chapter.waves:
+				flat.append(wave)
+			if chapter.boss_wave != null:
+				flat.append(chapter.boss_wave)
+	if flat.is_empty():
+		push_error("WaveDirector.start_run: RunDefinition 无章节/波次")
+		_started = true
+		phase = Phase.VICTORY
+		EventBus.publish(RunVictoryEvent.new())
+		return
+	waves = flat
+	_started = true
+	_begin_next_wave()
+
+## 由扁平索引推导章节/章内波次（0-based；flat 序列 = [ch.waves..., boss, ...]）
+func _chapter_info_for_flat(flat_index: int) -> Dictionary:
+	if run_definition == null or flat_index < 0:
+		return {"chapter": -1, "wave_in_chapter": -1, "is_boss": false}
+	var remaining := flat_index
+	for ci in run_definition.chapters.size():
+		var chapter: ChapterDefinition = run_definition.chapters[ci]
+		var chapter_total := chapter.waves.size() + 1
+		if remaining < chapter_total:
+			return {
+				"chapter": ci,
+				"wave_in_chapter": remaining,
+				"is_boss": remaining == chapter.waves.size(),
+			}
+		remaining -= chapter_total
+	return {"chapter": run_definition.chapters.size() - 1,
+		"wave_in_chapter": -1, "is_boss": false}
+
+## 章名回退（中文数据字段；UI 显示走 UiText.content_name）
+func _chapter_name(ci: int) -> String:
+	if run_definition == null or ci < 0 or ci >= run_definition.chapters.size():
+		return ""
+	return run_definition.chapters[ci].display_name
 
 ## 每帧驱动（预警计时 / 流式刷怪 / 波间计时；AI Director 动态调压预留在此扩展）
 func tick(delta: float) -> void:
@@ -113,14 +167,25 @@ func _begin_next_wave() -> void:
 		return
 
 	var wave_data := waves[current_wave_index]
+	# P1-8：章节信息（legacy 下 chapter=-1 保持向后兼容）
+	var chapter_info := _chapter_info_for_flat(current_wave_index)
+	current_chapter_index = int(chapter_info.get("chapter", -1))
+	current_wave_in_chapter = int(chapter_info.get("wave_in_chapter", -1))
+	current_is_boss_wave = bool(chapter_info.get("is_boss", false))
+	# 难度：chapter_scale × DifficultyCurve.wave_scale（P1-8；legacy 只乘 wave_scale）
+	var wave_scale := DifficultyCurve.get_wave_scale(current_wave_in_chapter + 1)
+	if run_definition != null and current_chapter_index >= 0:
+		wave_scale *= run_definition.chapters[current_chapter_index].chapter_scale
 	# 每波独立种子（WaveData.seed + 本局运行偏移），确定性可复现
 	_rng.set_seed(wave_data.seed + run_seed_offset)
-	var composition := WaveGenerator.generate(wave_data, _rng)
+	var composition := WaveGenerator.generate(wave_data, _rng, wave_scale)
 
 	phase = Phase.WARNING
 	_timer = wave_data.warn_duration
 	EventBus.publish(WaveWarningEvent.new(current_wave_index + 1, waves.size(), composition,
-		composition.summarize_tiers(), composition.threat_tier(), composition.has_elite()))
+		composition.summarize_tiers(), composition.threat_tier(), composition.has_elite(),
+		current_chapter_index, _chapter_name(current_chapter_index),
+		current_wave_in_chapter, current_is_boss_wave))
 	# 预警构成暂存，ACTIVE 时发出刷怪请求
 	_pending_composition = composition
 
@@ -128,7 +193,8 @@ var _pending_composition: WaveComposition
 
 func _activate_wave() -> void:
 	phase = Phase.ACTIVE
-	EventBus.publish(WaveStartedEvent.new(current_wave_index + 1, waves.size()))
+	EventBus.publish(WaveStartedEvent.new(
+		current_wave_index + 1, waves.size(), current_chapter_index, current_is_boss_wave))
 	var composition := _pending_composition
 	_pending_composition = null
 	if composition == null:
@@ -168,6 +234,14 @@ func _spawn_next() -> void:
 	if wave.burst_chance > 0.0 and _rng.randf() < wave.burst_chance:
 		count = maxi(2, wave.burst_size)
 	count = mini(count, _spawn_remaining[direction])
+	# P1-8 同屏上限：超限暂停刷出（短间隔重试，不丢刷怪池）
+	var capacity := MAX_ON_SCREEN - (alive_enemies + pending_spawns)
+	if capacity <= 0:
+		_spawn_timer = minf(wave.spawn_interval, 0.25)
+		return
+	count = mini(count, capacity)
+	if count <= 0:
+		return
 	_spawn_remaining[direction] -= count
 	pending_spawns += count
 	EventBus.publish(SpawnRequestEvent.new(
@@ -181,4 +255,5 @@ func _check_wave_cleared() -> void:
 	if _is_spawn_pool_empty() and pending_spawns <= 0 and alive_enemies <= 0:
 		phase = Phase.INTERMISSION
 		_timer = WAVE_INTERMISSION_DURATION
-		EventBus.publish(WaveClearedEvent.new(current_wave_index + 1))
+		EventBus.publish(WaveClearedEvent.new(
+			current_wave_index + 1, current_chapter_index, current_is_boss_wave))
