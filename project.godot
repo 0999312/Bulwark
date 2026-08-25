@@ -35,6 +35,7 @@ AudioDirector="*res://scripts/systems/audio_director.gd"
 CursorStateMachine="*res://scripts/systems/cursor_state_machine.gd"
 LightingManager="*res://scripts/systems/lighting_manager.gd"
 FxBurst="*res://scripts/systems/fx_burst.gd"
+RunConfig="*res://scripts/systems/run_config.gd"
 SceneNavigator="*res://scripts/systems/scene_navigator.gd"
 
 [display]

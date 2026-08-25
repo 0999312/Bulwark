@@ -32,6 +32,11 @@ const OUTLINE_WIDTH := 3.0         # 描边宽度（px）
 func setup(p_controller: BarricadeController) -> void:
 	controller = p_controller
 	visual.texture = BARRICADE_TEXTURE
+	# Kenney 沙袋/木/板条箱碎片（P0-2）：替换旧高清软粒子尘土贴图
+	if destroy_particles != null:
+		destroy_particles.texture = VfxBank.debris("sandbagBrown")
+		destroy_particles.scale_amount_min = 0.4
+		destroy_particles.scale_amount_max = 0.9
 	EventBus.subscribe(&"BarricadeDamagedEvent", _on_damaged)
 	EventBus.subscribe(&"BarricadeDestroyedEvent", _on_destroyed)
 
@@ -103,10 +108,12 @@ func _on_destroyed(event: BarricadeDestroyedEvent) -> void:
 	if _destroyed_freed:
 		return
 	_destroyed_freed = true
-	# 拆除反馈：碎片爆发 + 短暂放大 + 整体淡出后移除（GameSession 也会清理引用）
+	# 拆除反馈：Kenney 碎片爆发 + 8px 像素爆点 + 短暂放大 + 整体淡出后移除
 	if destroy_particles != null:
 		destroy_particles.restart()
 		destroy_particles.emitting = true
+	FxBurst.spawn_pixel_burst(global_position, Color(0.62, 0.45, 0.22), 12,
+		170.0, 0.4, 260.0)
 	var tw := create_tween()
 	tw.tween_property(self, "scale", Vector2(1.4, 1.4), 0.15)
 	tw.parallel().tween_property(self, "modulate:a", 0.0, 0.15)

@@ -7,6 +7,7 @@ const BLINK_SPEED := 8.0     # 低耐久核心闪烁频率
 
 @onready var visual: Sprite2D = $Visual
 @onready var core_visual: Polygon2D = $Visual/Core
+@onready var core_light: PointLight2D = $Visual/CoreLight
 @onready var smoke: CPUParticles2D = $Smoke
 
 var core: BaseCore
@@ -15,6 +16,14 @@ var _blink_t := 0.0
 
 func setup(p_core: BaseCore) -> void:
 	core = p_core
+	# Kenney 低耐久告警爆烟（低频单帧）+ 运行时径向光斑（替换旧 512px 软粒子）
+	if core_light != null:
+		core_light.texture = FxBurst.get_glow_texture()
+	if smoke != null:
+		smoke.texture = VfxBank.smoke()
+		smoke.scale_amount_min = 0.5
+		smoke.scale_amount_max = 1.1
+		smoke.color = Color(0.75, 0.3, 0.22, 0.5)
 	EventBus.subscribe(&"BaseDurabilityChangedEvent", _on_durability_changed)
 	_update_visual(core.durability, core.max_durability)
 
@@ -24,6 +33,8 @@ func _process(delta: float) -> void:
 	_blink_t += delta
 	var a := 0.45 + 0.55 * (0.5 + 0.5 * sin(_blink_t * BLINK_SPEED))
 	core_visual.self_modulate = Color(1.0, 0.45, 0.3, a)
+	if core_light != null:
+		core_light.energy = 0.7 + 0.5 * a
 
 func _on_durability_changed(event: BaseDurabilityChangedEvent) -> void:
 	_update_visual(event.current, event.max_value)

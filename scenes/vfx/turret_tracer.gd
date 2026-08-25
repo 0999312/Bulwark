@@ -5,7 +5,6 @@ extends Node2D
 ## 弹道不再使用飞行弹体，视觉与裁决一致。
 
 const DURATION := 0.12
-const FLASH_TEXTURE := preload("res://temp_assets/turret/turret_flash.svg")
 
 func setup(from: Vector2, to: Vector2) -> void:
 	z_index = 60
@@ -17,14 +16,14 @@ func setup(from: Vector2, to: Vector2) -> void:
 	var core := _make_line(4.0, Color(0.9, 1.0, 1.0, 1.0), from, to)
 	add_child(core)
 
-	# 枪口/命中点闪光（用 temp_assets 临时素材）
+	# 枪口/命中点闪光（Kenney shotLarge，经 VfxBank）
 	var muzzle := Sprite2D.new()
-	muzzle.texture = FLASH_TEXTURE
+	muzzle.texture = VfxBank.muzzle("large")
 	muzzle.position = from
 	muzzle.scale = Vector2(0.7, 0.7)
 	add_child(muzzle)
 	var hit := Sprite2D.new()
-	hit.texture = FLASH_TEXTURE
+	hit.texture = VfxBank.muzzle("large")
 	hit.position = to
 	hit.scale = Vector2(0.45, 0.45)
 	add_child(hit)

@@ -332,6 +332,8 @@ func _setup_backend_host() -> void:
 
 	base_core = BaseCore.new(BASE_DURABILITY)
 	wave_director = WaveDirector.new()
+	# P0-7：本局随机种子（波次 + 商店共源；Offline/主机权威侧注入）
+	wave_director.set_run_seed(RunConfig.run_seed)
 	# 波间商店：清场后等待商店关闭再开下一波（M1）
 	wave_director.intermission_waits_for_shop = true
 
@@ -811,7 +813,7 @@ func _on_wave_cleared(event: WaveClearedEvent) -> void:
 		# 末波：INTERMISSION 直接续到下一波 → WaveDirector 发现无下一波 → VICTORY
 		wave_director.resume_from_intermission()
 		return
-	var seed := event.wave_index * 1000 + 7
+	var seed := event.wave_index * 1000 + 7 + RunConfig.run_seed
 	for ss: ShopSystem in shop_systems:
 		ss.refresh(seed)
 	get_tree().paused = true

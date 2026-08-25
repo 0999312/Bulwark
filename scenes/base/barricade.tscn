@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/base/barricade_view.gd" id="1_view"]
-[ext_resource type="Texture2D" path="res://assets/particles/dirt_01.png" id="2_dirt"]
 
 [sub_resource type="ConcavePolygonShape2D" id="ConcavePolygonShape2D_arc"]
 segments = PackedVector2Array(-16, -16, 16, -16, 16, -16, 0, 16, 0, 16, -16, -16)
@@ -37,4 +36,3 @@ initial_velocity_min = 50.0
 initial_velocity_max = 180.0
 scale_amount_min = 0.03
 scale_amount_max = 0.07
-texture = ExtResource("2_dirt")

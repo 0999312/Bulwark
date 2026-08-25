@@ -65,7 +65,6 @@ const POSE_OFFSETS := {
 }
 ## 枪口焰局部位置（枪口基线朝 +X；以固定枢轴为原点，machine/gun 帧枪口实测）
 const MUZZLE_LOCAL_POS := Vector2(22.0, 7.0)
-const MUZZLE_TEXTURE := preload("res://assets/particles/muzzle_02.png")
 
 var visual_pack := "soldier1"
 var _pose_textures: Dictionary = {}
@@ -108,7 +107,7 @@ func setup(p_controller: PlayerController, p_actions: Dictionary) -> void:
 	_tracer_pool = ObjectPool.new(_make_tracer)
 	_build_pose_library()
 	if muzzle_flash != null:
-		muzzle_flash.texture = MUZZLE_TEXTURE
+		muzzle_flash.texture = VfxBank.muzzle("orange")
 		muzzle_flash.position = MUZZLE_LOCAL_POS
 	EventBus.subscribe(&"ShotFiredEvent", _on_shot_fired)
 	EventBus.subscribe(&"PlayerHealthChangedEvent", _on_health_changed)
@@ -358,7 +357,7 @@ func _flash_muzzle() -> void:
 	if _muzzle_tween != null and _muzzle_tween.is_valid():
 		_muzzle_tween.kill()
 	muzzle_flash.visible = true
-	# muzzle_02（512px 星芒焰）：0.08→0.04 即约 41px→20px 的枪口焰（与 32px 角色匹配）
+	# Kenney shotOrange（Default size）：0.08→0.04 缩放拍成短闪现（与 32px 角色匹配）
 	muzzle_flash.scale = Vector2(0.08, 0.08)
 	muzzle_flash.modulate = Color(1.0, 0.92, 0.7, 1.0)
 	_muzzle_tween = create_tween()

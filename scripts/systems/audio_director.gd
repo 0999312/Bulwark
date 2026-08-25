@@ -105,11 +105,21 @@ func _on_shot_fired(event: ShotFiredEvent) -> void:
 	var pitch := _rng.randf_range(0.95, 1.05)
 	var model: WeaponModelData = ContentBootstrap.get_entry(
 		Bulwark.REG_WEAPON_MODEL, event.model_location)
-	if model != null and model.type_id.ends_with("pistol"):
-		stream = load(SFX_PATH % "handgun_shoot")
-	elif model != null and model.type_id.ends_with("shotgun"):
-		# 无霰弹素材：smg_shoot 降调（0.75~0.85）模拟低频爆响
-		pitch = _rng.randf_range(0.75, 0.85)
+	# 修复死代码：type_id 实际为 weapon/type/hg|sg|lmg|er，按类型分支（P0-6）
+	var type_id := model.type_id if model != null else ""
+	match type_id:
+		Bulwark.WEAPON_TYPE_HG:
+			stream = load(SFX_PATH % "handgun_shoot")
+		Bulwark.WEAPON_TYPE_SG:
+			# 无霰弹素材：smg_shoot 降调（0.75~0.85）模拟低频爆响
+			pitch = _rng.randf_range(0.75, 0.85)
+		Bulwark.WEAPON_TYPE_LMG:
+			# 重机枪：更低更厚（0.68~0.78），与突击步枪拉开区别
+			pitch = _rng.randf_range(0.68, 0.78)
+		Bulwark.WEAPON_TYPE_ER:
+			# 能量步枪：高音亮色（1.3~1.45）
+			stream = load(SFX_PATH % "handgun_shoot")
+			pitch = _rng.randf_range(1.3, 1.45)
 	play_sfx(stream, pitch)
 
 func _on_reload_started(event: ReloadStartedEvent) -> void:

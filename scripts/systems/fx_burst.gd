@@ -8,11 +8,13 @@ extends Node
 
 const SPARK_POOL_SIZE := 32
 const PIXEL_SIZE := 8
+const GLOW_SIZE := 32
 
 var _root: Node2D
 var _spark_pool: Array[CPUParticles2D] = []
 var _pool_cursor := 0
 var _pixel_texture: ImageTexture
+var _glow_texture: ImageTexture
 
 ## 共享像素纹理（8px 硬边白块 + 低透明度外圈；颜色由 CPUParticles2D.color 乘算）
 func get_pixel_texture() -> ImageTexture:
@@ -32,6 +34,24 @@ func get_pixel_texture() -> ImageTexture:
 				img.set_pixel(x, y, Color(0, 0, 0, 0))
 	_pixel_texture = ImageTexture.create_from_image(img)
 	return _pixel_texture
+
+## 共享径向渐变光斑（32×32，白→透明）：替换旧 512px 软粒子动态光贴图
+## 用途：PointLight2D.texture / 基地核心光 / 短促闪光（P0-2）
+func get_glow_texture() -> ImageTexture:
+	if _glow_texture != null:
+		return _glow_texture
+	var img := Image.create(GLOW_SIZE, GLOW_SIZE, false, Image.FORMAT_RGBA8)
+	var center := (GLOW_SIZE - 1) * 0.5
+	for y in GLOW_SIZE:
+		for x in GLOW_SIZE:
+			var d := Vector2(x, y).distance_to(Vector2(center, center)) / center
+			if d >= 1.0:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+			else:
+				var a := pow(1.0 - d, 2.2)
+				img.set_pixel(x, y, Color(1.0, 1.0, 1.0, a))
+	_glow_texture = ImageTexture.create_from_image(img)
+	return _glow_texture
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS

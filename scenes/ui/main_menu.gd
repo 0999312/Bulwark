@@ -87,6 +87,7 @@ func _show_main() -> void:
 
 func _on_single_pressed() -> void:
 	Net.stop_session()
+	RunConfig.prepare_arcade()
 	_enter_battle()
 
 func _on_multi_pressed() -> void:
@@ -167,6 +168,7 @@ func _on_join_pressed() -> void:
 
 func _on_go_pressed() -> void:
 	AudioDirector.play_ui_select()
+	RunConfig.prepare_arcade()
 	_enter_battle()
 
 func _on_host_started() -> void:

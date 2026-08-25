@@ -187,12 +187,17 @@ func _on_wave_warning(event: WaveWarningEvent) -> void:
 		"index": event.wave_index,
 		"tier": event.threat_tier,
 		"elite": event.has_elite,
+		"tiers": event.direction_tiers.duplicate(),
 	}
 	wave_label.text = UiText.text("hud.wave", [event.wave_index])
 	# M5d（D-M5-13）：只报数量档 + 精英标记，不再显示箭头/逐方向
 	var tier_text := _tier_text(event.threat_tier)
 	var elite_text := UiText.text("hud.elite_warning") if event.has_elite else ""
 	compass_label.text = UiText.text("hud.incoming", [tier_text, elite_text])
+	# P0-8 方向罗盘最短版：叠加 N/E/S/W+斜向箭头（大量/少量分组）
+	var direction_text := _format_direction_tiers(event)
+	if not direction_text.is_empty():
+		compass_label.text = "%s · %s" % [compass_label.text, direction_text]
 	compass_label.visible = true
 	_show_banner(UiText.text("hud.banner_wave_warning",
 		[event.wave_index, tier_text, elite_text]), 2.5)
@@ -213,13 +218,18 @@ static func _tier_text(tier: String) -> String:
 ## direction_tiers 为空时回退旧逻辑（逐方向箭头罗列；composition 可能为 null（client 镜像））
 static func _format_direction_tiers(event: WaveWarningEvent) -> String:
 	var tiers := event.direction_tiers
+	if not tiers.is_empty():
+		return _format_direction_dict(tiers)
+	if event.composition == null:
+		return ""
+	var parts: Array[String] = []
+	for group: WaveComposition.SpawnGroup in event.composition.groups:
+		parts.append(DirectionUtils.arrow(group.direction))
+	return " ".join(parts)
+
+static func _format_direction_dict(tiers: Dictionary) -> String:
 	if tiers.is_empty() or not (tiers.get("heavy", []) is Array):
-		if event.composition == null:
-			return ""
-		var parts: Array[String] = []
-		for group: WaveComposition.SpawnGroup in event.composition.groups:
-			parts.append(DirectionUtils.arrow(group.direction))
-		return " ".join(parts)
+		return ""
 	var sections: Array[String] = []
 	var heavy: Array = tiers.get("heavy", [])
 	var light: Array = tiers.get("light", [])
@@ -305,6 +315,9 @@ func _refresh_cached_texts() -> void:
 		var tier_text := _tier_text(str(_cached_wave.get("tier", "")))
 		var elite_text := UiText.text("hud.elite_warning") if bool(_cached_wave.get("elite", false)) else ""
 		compass_label.text = UiText.text("hud.incoming", [tier_text, elite_text])
+		var direction_text := _format_direction_dict(_cached_wave.get("tiers", {}))
+		if not direction_text.is_empty():
+			compass_label.text = "%s · %s" % [compass_label.text, direction_text]
 
 func _facility_name(facility_type: int) -> String:
 	match facility_type:

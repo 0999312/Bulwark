@@ -21,6 +21,9 @@ const WAVE_INTERMISSION_DURATION := 5.0
 ## （商店关闭后调用）；默认 false 保持 M0 自动计时（测试兼容）
 var intermission_waits_for_shop := false
 
+## P0-7：本局随机种子偏移（run_seed 注入；默认 0 保持 WaveData.seed 原样 → 既有测试确定性）
+var run_seed_offset: int = 0
+
 var waves: Array[WaveData] = []
 var phase: Phase = Phase.IDLE
 var current_wave_index: int = -1
@@ -88,6 +91,13 @@ func resume_from_intermission() -> void:
 		return
 	_begin_next_wave()
 
+## P0-7：注入本局随机种子（波次构成差异化；同类刷新/生成共用偏移）
+func set_run_seed(seed: int) -> void:
+	run_seed_offset = seed
+
+func get_run_seed_offset() -> int:
+	return run_seed_offset
+
 func get_wave_progress() -> String:
 	return "%d/%d" % [current_wave_index + 1, waves.size()]
 
@@ -103,8 +113,8 @@ func _begin_next_wave() -> void:
 		return
 
 	var wave_data := waves[current_wave_index]
-	# 每波独立种子（WaveData.seed），确定性可复现
-	_rng.set_seed(wave_data.seed)
+	# 每波独立种子（WaveData.seed + 本局运行偏移），确定性可复现
+	_rng.set_seed(wave_data.seed + run_seed_offset)
 	var composition := WaveGenerator.generate(wave_data, _rng)
 
 	phase = Phase.WARNING

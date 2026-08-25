@@ -5,7 +5,6 @@ extends Node
 ## - 性能纪律：闪光到期立即停用回池；M5 昼夜/动态光衰减在此扩展
 
 const FLASH_LIGHT_MAX := 8
-const FLASH_TEXTURE := preload("res://assets/particles/light_01.png")
 
 const ENV_DAY := 0
 const ENV_NIGHT := 1
@@ -70,7 +69,7 @@ func request_flash(world_pos: Vector2, color: Color = Color(1.0, 0.82, 0.45),
 func _acquire_light() -> PointLight2D:
 	if _flash_pool.size() < FLASH_LIGHT_MAX:
 		var light := PointLight2D.new()
-		light.texture = FLASH_TEXTURE
+		light.texture = FxBurst.get_glow_texture()
 		light.shadow_enabled = false
 		light.enabled = false
 		light.energy = 0.0

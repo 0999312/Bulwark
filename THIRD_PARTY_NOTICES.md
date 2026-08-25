@@ -7,7 +7,7 @@
 | 资源 | 来源 | 协议 |
 |---|---|---|
 | `assets/sprites/**` | Kenney Topdown (Shooter) Pack | CC0 |
-| `assets/particles/**` | Kenney Particle Pack | CC0 |
+| `assets/sprites/turret/**`、`assets/vfx/kenney/**`、`assets/sprites/props/**` | Kenney Top-down Tanks (Remastered) | CC0（详见 `assets/CREDITS.md`） |
 | `assets/cursors/**` | Kenney Cursor Pack | CC0 |
 | `assets/audio/sfx/**`、`assets/audio/ui/**` | 用户确认：除音乐外均为公共素材 | CC0 / Public Domain（待最终发布前复核） |
 
