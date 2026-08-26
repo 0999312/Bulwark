@@ -127,6 +127,8 @@ func _process(delta: float) -> void:
 		_banner_timer -= delta
 		if _banner_timer <= 0.0:
 			banner_label.visible = false
+			if banner_lore_label != null:
+				banner_lore_label.visible = false
 			banner_bg.visible = false
 	if _reload_timer > 0.0:
 		_reload_timer -= delta

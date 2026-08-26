@@ -398,4 +398,4 @@ CanvasLayer(layer=1)              # 已有 Hud → 建议改造
 | 19（P2） | done | `scripts/core/events/chapter_reward_picked_event.gd`、`scenes/ui/chapter_reward_panel.{gd,tscn}`、`scripts/systems/{content_bootstrap,game_session}.gd`、`scripts/core/registry/bulwark.gd` | 章间三选一：Boss 波（非最终/无尽）暂停弹三选一面板（复用 PowerUp 池，3 选 1 即时生效），选择后恢复；host 权威；截图人工复核通过 |
 | 20（P2） | done | `locales/zh.json`、`locales/en.json`、`tools/update_locales.py`、`scenes/ui/hud.gd`、`scenes/ui/chapter_reward_panel.gd` | 叙事便签：4 章开场白 `lore.chapter.1..4` 双语；章首横幅第二行显示便签，章末三选一面板副标题复用；i18n zh/en 309/309 校验通过 |
 | P2 回归 | done | — | GUT 53 脚本 / 318 用例 / 318 通过（新增 endless 2、meta_progress 3）；headless 冒烟 `--quit-after 60` EXIT=0；i18n zh/en 各 309 键（键集差异 0）；截图：主菜单（无尽按钮+战功 7 全解锁）与章间三选一面板（read_image 已复核）|
-| 横幅排版反馈 | done | `scenes/ui/hud.tscn`、`scenes/ui/hud.gd` | 叙事便签改为独立小字号（14px）半透明行，与章节标题（26px 金色）明确区分；横幅加宽增高（1120×100）并加 VBox 排版，完整容纳“章节标题 + 第 N 波 + 便签”不再裁切；GUT 318/318、headless 冒烟 EXIT=0、截图复核通过 |
+| 横幅排版反馈 | done | `scenes/ui/hud.tscn`、`scenes/ui/hud.gd` | 叙事便签独立为 14px 半透明小字；章节标题横幅收窄为居中 560×64 的“标题条”，便签拆到横幅正下方（760×36）独立小字条，完整显示且不再压住右上 HUD；复活横幅下移避免重叠；GUT 318/318、headless 冒烟 EXIT=0、1280 截图复核通过 |
