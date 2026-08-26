@@ -12,6 +12,7 @@ const INFINITE_TEXT := "∞"
 @onready var base_label: Label = %BaseLabel
 @onready var wave_label: Label = %WaveLabel
 @onready var banner_label: Label = %BannerLabel
+@onready var banner_lore_label: Label = %BannerLoreLabel
 @onready var banner_bg: Panel = %BannerBG
 @onready var compass_label: Label = %CompassLabel
 @onready var score_label: Label = %ScoreLabel
@@ -223,13 +224,13 @@ func _on_wave_warning(event: WaveWarningEvent) -> void:
 	compass_label.visible = true
 	if event.wave_in_chapter == 0 and event.chapter_index >= 0 \
 			and not event.chapter_name.is_empty():
-		# P1-13/P2-20 章节横幅 + 叙事便签：章首波替代常规波次标题
+		# P1-13/P2-20 章节横幅（标题大字） + 叙事便签（小字半透明，独立样式）
 		var lore_key := "lore.chapter.%d" % (event.chapter_index + 1)
 		var lore_text := tr(lore_key)
 		if lore_text == lore_key:
 			lore_text = ""
-		_show_banner(UiText.text("hud.banner_chapter_lore",
-			[event.chapter_name, event.wave_index, lore_text]), 3.5)
+		_show_banner(UiText.text("hud.banner_chapter",
+			[event.chapter_name, event.wave_index]), 3.5, lore_text)
 	else:
 		_show_banner(UiText.text("hud.banner_wave_warning",
 			[event.wave_index, tier_text, elite_text]), 2.5)
@@ -458,8 +459,11 @@ func _update_slot_highlight() -> void:
 	slot_sub_label.modulate = Color(1, 1, 1, 1) if _current_slot_type == WeaponTypeData.SlotType.SUB else Color(1, 1, 1, 0.45)
 	slot_pistol_label.modulate = Color(1, 1, 1, 1) if _current_slot_type == WeaponTypeData.SlotType.PISTOL else Color(1, 1, 1, 0.45)
 
-func _show_banner(text: String, duration: float) -> void:
+func _show_banner(text: String, duration: float, sub_text: String = "") -> void:
 	banner_label.text = text
 	banner_label.visible = true
+	if banner_lore_label != null:
+		banner_lore_label.text = sub_text
+		banner_lore_label.visible = not sub_text.is_empty()
 	banner_bg.visible = true
 	_banner_timer = duration
