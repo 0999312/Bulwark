@@ -26,8 +26,13 @@ var run_seed_offset: int = 0
 
 ## P1-8：章节制运行定义（null = 遗留 flat 波次，测试兼容）
 var run_definition: RunDefinition = null
+## P2-17：无尽轮次（4 章循环；永不判胜；每循环难度 ×1.15）
+var infinite_loop := false
+var cycle_index := 0
+var difficulty_cycle_scale := 1.0
 ## 单波同屏上限（建议 ≤40）：超限暂停刷出，保低端机不掉帧
 const MAX_ON_SCREEN := 40
+const ENDLESS_CYCLE_SCALE := 1.15
 var current_chapter_index: int = -1
 var current_wave_in_chapter: int = -1
 var current_is_boss_wave: bool = false
@@ -162,9 +167,15 @@ func _begin_next_wave() -> void:
 		return
 	current_wave_index += 1
 	if current_wave_index >= waves.size():
-		phase = Phase.VICTORY
-		EventBus.publish(RunVictoryEvent.new())
-		return
+		if infinite_loop:
+			# P2-17 无尽：回到第 1 波继续；难度与种子随循环上抬
+			current_wave_index = 0
+			cycle_index += 1
+			difficulty_cycle_scale *= ENDLESS_CYCLE_SCALE
+		else:
+			phase = Phase.VICTORY
+			EventBus.publish(RunVictoryEvent.new())
+			return
 
 	var wave_data := waves[current_wave_index]
 	# P1-8：章节信息（legacy 下 chapter=-1 保持向后兼容）
@@ -176,8 +187,10 @@ func _begin_next_wave() -> void:
 	var wave_scale := DifficultyCurve.get_wave_scale(current_wave_in_chapter + 1)
 	if run_definition != null and current_chapter_index >= 0:
 		wave_scale *= run_definition.chapters[current_chapter_index].chapter_scale
-	# 每波独立种子（WaveData.seed + 本局运行偏移），确定性可复现
-	_rng.set_seed(wave_data.seed + run_seed_offset)
+	if infinite_loop:
+		wave_scale *= difficulty_cycle_scale
+	# 每波独立种子（WaveData.seed + 本局运行偏移 + 循环偏差），确定性可复现
+	_rng.set_seed(wave_data.seed + run_seed_offset + cycle_index * 1000)
 	var composition := WaveGenerator.generate(wave_data, _rng, wave_scale)
 
 	phase = Phase.WARNING
@@ -185,7 +198,7 @@ func _begin_next_wave() -> void:
 	EventBus.publish(WaveWarningEvent.new(current_wave_index + 1, waves.size(), composition,
 		composition.summarize_tiers(), composition.threat_tier(), composition.has_elite(),
 		current_chapter_index, _chapter_name(current_chapter_index),
-		current_wave_in_chapter, current_is_boss_wave))
+		current_wave_in_chapter, current_is_boss_wave, cycle_index))
 	# 预警构成暂存，ACTIVE 时发出刷怪请求
 	_pending_composition = composition
 
@@ -194,7 +207,8 @@ var _pending_composition: WaveComposition
 func _activate_wave() -> void:
 	phase = Phase.ACTIVE
 	EventBus.publish(WaveStartedEvent.new(
-		current_wave_index + 1, waves.size(), current_chapter_index, current_is_boss_wave))
+		current_wave_index + 1, waves.size(), current_chapter_index,
+		current_is_boss_wave, cycle_index))
 	var composition := _pending_composition
 	_pending_composition = null
 	if composition == null:

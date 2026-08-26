@@ -143,6 +143,7 @@ const KEY_CHAPTER_INDEX := "chapter_index"
 const KEY_CHAPTER_NAME := "chapter_name"
 const KEY_IS_BOSS := "is_boss"
 const KEY_WAVE_IN_CHAPTER := "wave_in_chapter"
+const KEY_CYCLE_INDEX := "cycle_index"
 
 # ─── 编解码 ───
 

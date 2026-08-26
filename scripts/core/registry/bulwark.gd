@@ -153,6 +153,7 @@ const UI_RESULT := "ui/result"
 const UI_PAUSE := "ui/pause"
 const UI_SHOP := "ui/shop"
 const UI_SETTINGS := "ui/settings"   # M4 战斗内设置面板
+const UI_CHAPTER_REWARD := "ui/chapter_reward"  # P2-19 章间三选一
 
 ## 构造 bulwark 命名空间下的 ResourceLocation
 static func loc(path: String) -> ResourceLocation:

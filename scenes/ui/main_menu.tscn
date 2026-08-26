@@ -89,6 +89,19 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 46)
 text = ""
 
+[node name="EndlessButton" type="Button" parent="Center/MainVBox/MainButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 46)
+text = ""
+
+[node name="MetaLabel" type="Label" parent="Center/MainVBox/MainButtons"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 0.9)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = ""
+
 [node name="MultiButton" type="Button" parent="Center/MainVBox/MainButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 46)

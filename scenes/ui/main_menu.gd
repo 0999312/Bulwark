@@ -6,6 +6,8 @@ extends Control
 ## - 文案全部走 tr()（locales/zh.json、en.json），语言切换即时生效
 
 @onready var main_buttons: VBoxContainer = %MainButtons
+@onready var endless_button: Button = %EndlessButton
+@onready var meta_label: Label = %MetaLabel
 @onready var room_panel: PanelContainer = %RoomPanel
 @onready var mode_option: OptionButton = %ModeOption
 @onready var create_port_edit: LineEdit = %CreatePortEdit
@@ -24,6 +26,7 @@ func _ready() -> void:
 	EventBus.subscribe(&"LanguageChangedEvent", _on_language_changed)
 	_apply_texts()
 	%SingleButton.pressed.connect(_on_single_pressed)
+	%EndlessButton.pressed.connect(_on_endless_pressed)
 	%MultiButton.pressed.connect(_on_multi_pressed)
 	%SettingsButton.pressed.connect(_on_settings_pressed)
 	%QuitButton.pressed.connect(_on_quit_pressed)
@@ -54,10 +57,12 @@ func _apply_texts() -> void:
 	%TitleLabel.text = tr("menu.title")
 	%SubLabel.text = UiText.text("menu.subtitle")
 	%SingleButton.text = tr("menu.single")
+	%EndlessButton.text = tr("menu.endless")
 	%MultiButton.text = tr("menu.multi")
 	%SettingsButton.text = tr("menu.settings")
 	%QuitButton.text = tr("menu.quit")
 	%VersionLabel.text = tr("menu.version")
+	_refresh_meta_text()
 	%RoomTitle.text = tr("room.title")
 	%ModeLabel.text = tr("room.mode_label")
 	%CreateTitle.text = tr("room.create_title")
@@ -89,6 +94,20 @@ func _on_single_pressed() -> void:
 	Net.stop_session()
 	RunConfig.prepare_arcade()
 	_enter_battle()
+
+func _on_endless_pressed() -> void:
+	Net.stop_session()
+	RunConfig.prepare_endless()
+	_enter_battle()
+
+## P2-18 meta 进度展示（货币 + 下一个未解锁起始武器）
+func _refresh_meta_text() -> void:
+	var credits := MetaProgress.get_meta_credits()
+	var next := MetaProgress.get_next_unlock_name()
+	if next.is_empty():
+		meta_label.text = UiText.text("menu.meta_all_unlocked", [credits])
+	else:
+		meta_label.text = UiText.text("menu.meta_progress", [credits, next])
 
 func _on_multi_pressed() -> void:
 	main_buttons.visible = false

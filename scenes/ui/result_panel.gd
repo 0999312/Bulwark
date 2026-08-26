@@ -55,6 +55,7 @@ func _refresh_texts() -> void:
 		lines.append(UiText.text("result.score", [int(stats.get("score", 0))]))
 		lines.append(UiText.text("result.combo", [int(stats.get("combo", 0))]))
 		lines.append(UiText.text("result.time", ["%.1f" % float(stats.get("time", 0.0))]))
+		lines.append(UiText.text("result.meta_gain", [int(stats.get("meta_gain", 0))]))
 		var rank := int(stats.get("highscore_rank", -1))
 		if rank > 0:
 			lines.append(UiText.text("result.highscore_rank", [rank]))

@@ -6,20 +6,33 @@ extends SceneTree
 func _initialize() -> void:
 	var cap_size := "1280x720"
 	var showcase := false
+	var menu_mode := false
+	var endless_mode := false
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--cap-size="):
 			cap_size = arg.trim_prefix("--cap-size=")
 		elif arg == "--showcase":
 			showcase = true
+		elif arg == "--menu":
+			menu_mode = true
+		elif arg == "--endless":
+			endless_mode = true
 	if cap_size == "1920x1080":
 		root.size = Vector2i(1920, 1080)
 		if DisplayServer.get_name() != "headless":
 			DisplayServer.window_set_size(Vector2i(1920, 1080))
-	var run_config: Node = root.get_node_or_null("RunConfig")
-	if run_config != null:
-		run_config.call("prepare_arcade")
-	var game: PackedScene = load("res://scenes/world/main.tscn")
-	root.add_child(game.instantiate())
+	if menu_mode:
+		var menu: PackedScene = load("res://scenes/ui/main_menu.tscn")
+		root.add_child(menu.instantiate())
+	else:
+		var run_config: Node = root.get_node_or_null("RunConfig")
+		if run_config != null:
+			if endless_mode:
+				run_config.call("prepare_endless")
+			else:
+				run_config.call("prepare_arcade")
+		var game: PackedScene = load("res://scenes/world/main.tscn")
+		root.add_child(game.instantiate())
 	var runner: Node = load("res://tools/capture_runner.gd").new()
 	runner.set("_cap_size", cap_size)
 	runner.set("_showcase", showcase)

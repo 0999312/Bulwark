@@ -16,12 +16,14 @@ var chapter_index: int = -1
 var chapter_name: String = ""
 var wave_in_chapter: int = -1
 var is_boss_wave: bool = false
+## P2-17 无尽循环号（0 = 章节制首循环/legacy）
+var cycle_index: int = 0
 
 func _init(p_wave_index: int, p_wave_total: int, p_composition: WaveComposition,
 		p_direction_tiers: Dictionary = {}, p_threat_tier: String = "",
 		p_has_elite: bool = false, p_chapter_index: int = -1,
 		p_chapter_name: String = "", p_wave_in_chapter: int = -1,
-		p_is_boss_wave: bool = false) -> void:
+		p_is_boss_wave: bool = false, p_cycle_index: int = 0) -> void:
 	wave_index = p_wave_index
 	wave_total = p_wave_total
 	composition = p_composition
@@ -32,3 +34,4 @@ func _init(p_wave_index: int, p_wave_total: int, p_composition: WaveComposition,
 	chapter_name = p_chapter_name
 	wave_in_chapter = p_wave_in_chapter
 	is_boss_wave = p_is_boss_wave
+	cycle_index = p_cycle_index

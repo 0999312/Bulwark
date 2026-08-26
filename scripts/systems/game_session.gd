@@ -293,12 +293,17 @@ func _setup_backend_host() -> void:
 		run_states.append(rs)
 		var bag: Array[String] = []
 		attachment_bags.append(bag)
-		arsenals.append(Arsenal.new([
+		var starter_models: Array[String] = [
 			Bulwark.loc(Bulwark.WEAPON_MODEL_AR_1).to_string(),
 			Bulwark.loc(Bulwark.WEAPON_MODEL_SG_1).to_string(),
 			Bulwark.loc(Bulwark.WEAPON_MODEL_HG_1).to_string(),
 			Bulwark.loc(Bulwark.WEAPON_MODEL_HG_4).to_string(),
-		]))
+		]
+		# P2-18 meta 解锁的起始武器追加进个人军械库（改枪台可直接装备）
+		for model_str: String in MetaProgress.get_unlocked_models():
+			if not starter_models.has(model_str):
+				starter_models.append(model_str)
+		arsenals.append(Arsenal.new(starter_models))
 
 		var ammo := AmmoSystem.new()
 		ammo.set_count(WeaponTypeData.AmmoType.BULLET, BULLET_RESERVE)
@@ -437,6 +442,7 @@ func _subscribe_events() -> void:
 	EventBus.subscribe(&"WaveWarningEvent", _on_wave_warning_theme)
 	EventBus.subscribe(&"BaseDurabilityChangedEvent", _on_base_durability_for_score)
 	EventBus.subscribe(&"PowerUpPickupEvent", _on_power_up_pickup)
+	EventBus.subscribe(&"ChapterRewardPickedEvent", _on_chapter_reward_picked)
 	EventBus.subscribe(&"BarricadeDestroyedEvent", _on_barricade_destroyed)
 	# M3 方案 B：命中判定在装配层裁决（core 几何判定；host/OFFLINE 均订阅，client 不裁决）
 	EventBus.subscribe(&"ShotFiredEvent", _on_shot_fired)
@@ -905,6 +911,43 @@ func _get_power_up(power_id: String) -> PowerUpData:
 			return data
 	return null
 
+# ─── P2-19 章间三选一 ───
+
+## 章末精英波后：从本章奖励池抽 3 个道具，暂停并弹选择面板
+func _open_chapter_reward(event: WaveClearedEvent) -> void:
+	if wave_director.run_definition == null:
+		return
+	var chapter: ChapterDefinition = wave_director.run_definition.chapters[event.chapter_index]
+	var candidates: Array[PowerUpData] = []
+	for id: String in chapter.round_reward_pool:
+		var data := _get_power_up(id)
+		if data != null:
+			candidates.append(data)
+	var choices: Array[PowerUpData] = []
+	while choices.size() < 3 and not candidates.is_empty():
+		var idx := randi_range(0, candidates.size() - 1)
+		choices.append(candidates[idx])
+		candidates.remove_at(idx)
+	get_tree().paused = true
+	var lore_key := "lore.chapter.%d" % (event.chapter_index + 1)
+	UIManager.open_panel(Bulwark.loc(Bulwark.UI_CHAPTER_REWARD), {
+		"choices": choices,
+		"chapter_index": event.chapter_index,
+		"chapter_name": chapter.display_name,
+		"lore_text": tr(lore_key) if tr(lore_key) != lore_key else "",
+	})
+
+func _on_chapter_reward_picked(event: ChapterRewardPickedEvent) -> void:
+	if event == null or _run_finished:
+		return
+	var data := _get_power_up(event.power_id)
+	if data != null:
+		# 章间奖励落地给 host 本地玩家（单机语义 pid=0；多人后续可扩展为每玩家选择）
+		_apply_power_up(data, 0)
+	UIManager.close_panel(Bulwark.loc(Bulwark.UI_CHAPTER_REWARD))
+	wave_director.resume_from_intermission()
+	_evaluate_pause()
+
 ## 道具效果应用（即时 + 计时首次；多人在单玩家上分别应用）
 func _apply_power_up(data: PowerUpData, pid: int) -> void:
 	if data == null or pid < 0 or pid >= players.size():
@@ -1016,10 +1059,19 @@ func _on_wave_cleared(event: WaveClearedEvent) -> void:
 		return
 	_grant_wave_score(event)
 	var total := wave_director.waves.size()
-	if event.wave_index >= total:
+	var is_last := not wave_director.infinite_loop and event.wave_index >= total
+	if is_last:
 		# 末波：INTERMISSION 直接续到下一波 → WaveDirector 发现无下一波 → VICTORY
 		wave_director.resume_from_intermission()
 		return
+	# P2-19 章间三选一：章末精英波（非最后一章/无尽）先奖励再进入下一章
+	if event.is_boss_wave and wave_director.run_definition != null \
+			and event.chapter_index >= 0:
+		var is_final_chapter := not wave_director.infinite_loop \
+			and event.chapter_index >= wave_director.run_definition.chapters.size() - 1
+		if not is_final_chapter:
+			_open_chapter_reward(event)
+			return
 	var seed := event.wave_index * 1000 + 7 + RunConfig.run_seed
 	for ss: ShopSystem in shop_systems:
 		ss.refresh(seed)
@@ -1276,6 +1328,15 @@ func _start_run() -> void:
 const ARCADE_RUN_PATH := "res://resources/runs/arcade_run.tres"
 
 func _begin_waves() -> void:
+	# P2-17 无尽：4 章循环 + 每循环 ×1.15 难度（永不判胜，失败入榜）
+	if RunConfig.is_endless():
+		var run: RunDefinition = load(ARCADE_RUN_PATH)
+		if run == null or run.chapters.is_empty():
+			push_error("GameSession: 无尽 RunDefinition 缺失 %s" % ARCADE_RUN_PATH)
+			return
+		wave_director.start_run(run)
+		wave_director.infinite_loop = true
+		return
 	# P1-8：街机模式 = RunDefinition（4 章 × 3+1 波）；legacy 单章 6 波回退（既有测试/CLI 兼容）
 	if RunConfig.is_arcade():
 		var run: RunDefinition = load(ARCADE_RUN_PATH)
@@ -1376,6 +1437,10 @@ func _attach_score_result() -> void:
 	}
 	stats["highscore_rank"] = HighScoreStore.save_entry(entry)
 	stats["highscores"] = HighScoreStore.load_top()
+	# P2-18 meta 货币：每局至少 +1，进度 = floor(score/1000)
+	var meta_gain := maxi(1, int(sc.score / 1000.0))
+	MetaProgress.add_meta_credits(meta_gain)
+	stats["meta_gain"] = meta_gain
 	_result_data["stats"] = stats
 
 func _finish_run_victory() -> void:
@@ -1771,6 +1836,7 @@ func _relay_wave_warning(event: WaveWarningEvent) -> void:
 		NetCodec.KEY_CHAPTER_NAME: event.chapter_name,
 		NetCodec.KEY_WAVE_IN_CHAPTER: event.wave_in_chapter,
 		NetCodec.KEY_IS_BOSS: event.is_boss_wave,
+		NetCodec.KEY_CYCLE_INDEX: event.cycle_index,
 	})
 
 func _relay_wave_started(event: WaveStartedEvent) -> void:
@@ -1779,6 +1845,7 @@ func _relay_wave_started(event: WaveStartedEvent) -> void:
 		NetCodec.KEY_WAVE_TOTAL: event.wave_total,
 		NetCodec.KEY_CHAPTER_INDEX: event.chapter_index,
 		NetCodec.KEY_IS_BOSS: event.is_boss_wave,
+		NetCodec.KEY_CYCLE_INDEX: event.cycle_index,
 	})
 
 func _relay_wave_cleared(event: WaveClearedEvent) -> void:
@@ -2001,13 +2068,15 @@ func _on_net_event(event_name: StringName, payload: Dictionary) -> void:
 				int(payload.get(NetCodec.KEY_CHAPTER_INDEX, -1)),
 				str(payload.get(NetCodec.KEY_CHAPTER_NAME, "")),
 				int(payload.get(NetCodec.KEY_WAVE_IN_CHAPTER, -1)),
-				bool(payload.get(NetCodec.KEY_IS_BOSS, false))))
+				bool(payload.get(NetCodec.KEY_IS_BOSS, false)),
+				int(payload.get(NetCodec.KEY_CYCLE_INDEX, 0))))
 		NetCodec.EVT_WAVE_STARTED:
 			EventBus.publish(WaveStartedEvent.new(
 				int(payload.get(NetCodec.KEY_WAVE_INDEX, 0)),
 				int(payload.get(NetCodec.KEY_WAVE_TOTAL, 0)),
 				int(payload.get(NetCodec.KEY_CHAPTER_INDEX, -1)),
-				bool(payload.get(NetCodec.KEY_IS_BOSS, false))))
+				bool(payload.get(NetCodec.KEY_IS_BOSS, false)),
+				int(payload.get(NetCodec.KEY_CYCLE_INDEX, 0))))
 		NetCodec.EVT_WAVE_CLEARED:
 			EventBus.publish(WaveClearedEvent.new(
 				int(payload.get(NetCodec.KEY_WAVE_INDEX, 0)),

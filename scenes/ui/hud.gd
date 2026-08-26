@@ -210,8 +210,12 @@ func _on_wave_warning(event: WaveWarningEvent) -> void:
 		"index": event.wave_index,
 		"tier": event.threat_tier,
 		"elite": event.has_elite,
+		"cycle": event.cycle_index,
 	}
-	wave_label.text = UiText.text("hud.wave", [event.wave_index])
+	if event.cycle_index > 0:
+		wave_label.text = UiText.text("hud.wave_endless", [event.cycle_index, event.wave_index])
+	else:
+		wave_label.text = UiText.text("hud.wave", [event.wave_index])
 	# 只报数量档 + 精英标记（玩家要求：方向罗盘/文字雷达从游戏剔除）
 	var tier_text := _tier_text(event.threat_tier)
 	var elite_text := UiText.text("hud.elite_warning") if event.has_elite else ""
@@ -219,9 +223,13 @@ func _on_wave_warning(event: WaveWarningEvent) -> void:
 	compass_label.visible = true
 	if event.wave_in_chapter == 0 and event.chapter_index >= 0 \
 			and not event.chapter_name.is_empty():
-		# P1-13 章节横幅：章首波替代常规波次标题
-		_show_banner(UiText.text("hud.banner_chapter",
-			[event.chapter_name, event.wave_index]), 3.0)
+		# P1-13/P2-20 章节横幅 + 叙事便签：章首波替代常规波次标题
+		var lore_key := "lore.chapter.%d" % (event.chapter_index + 1)
+		var lore_text := tr(lore_key)
+		if lore_text == lore_key:
+			lore_text = ""
+		_show_banner(UiText.text("hud.banner_chapter_lore",
+			[event.chapter_name, event.wave_index, lore_text]), 3.5)
 	else:
 		_show_banner(UiText.text("hud.banner_wave_warning",
 			[event.wave_index, tier_text, elite_text]), 2.5)
@@ -372,8 +380,11 @@ func _apply_static_texts() -> void:
 		else UiText.text("hud.health", [_cached_health.get("current", 0), _cached_health.get("max", 0)])
 	base_label.text = UiText.text("hud.base_placeholder") if _cached_base.is_empty() \
 		else UiText.text("hud.base", [_cached_base.get("current", 0), _cached_base.get("max", 0)])
-	wave_label.text = UiText.text("hud.wave", [_cached_wave.get("index", -1)]) if not _cached_wave.is_empty() \
-		else UiText.text("hud.wave_placeholder")
+	wave_label.text = UiText.text("hud.wave_endless",
+		[int(_cached_wave.get("cycle", 0)), int(_cached_wave.get("index", -1))]) \
+		if int(_cached_wave.get("cycle", 0)) > 0 else (
+		UiText.text("hud.wave", [int(_cached_wave.get("index", -1))]) \
+		if not _cached_wave.is_empty() else UiText.text("hud.wave_placeholder"))
 	ammo_title_label.text = UiText.text("hud.ammo_title")
 	slot_main_label.text = UiText.text("hud.slot_badge", [1, UiText.text("common.slot_main")])
 	slot_sub_label.text = UiText.text("hud.slot_badge", [2, UiText.text("common.slot_sub")])

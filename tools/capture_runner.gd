@@ -7,6 +7,7 @@ var _cap_size := "1280x720"
 var _showcase := false
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	if _showcase:
 		call_deferred("_add_showcase")
 
@@ -57,6 +58,21 @@ func _process(_delta: float) -> void:
 			event_bus.call("publish", EnemyHealthChangedEvent.new(
 				999, "bulwark:enemy/elite_behemoth", 620.0, 1000.0, true, Vector2.ZERO))
 			event_bus.call("publish", PowerUpPickupEvent.new("power/fire_rate", 0, Vector2.ZERO, 6.0))
+	# showcase 模式：打开章间三选一面板（视觉采证）
+	if _showcase and _frames == 80:
+		var ui: Node = get_tree().root.get_node_or_null("UIManager")
+		if ui != null:
+			var choices: Array = [
+				load("res://resources/powerups/power_up_ammo.tres"),
+				load("res://resources/powerups/power_up_fire_rate.tres"),
+				load("res://resources/powerups/power_up_score.tres"),
+			]
+			ui.call("open_panel", Bulwark.loc(Bulwark.UI_CHAPTER_REWARD), {
+				"choices": choices,
+				"chapter_index": 0,
+				"chapter_name": "第 1 章 · 前哨周边",
+				"lore_text": "前哨的防线还撑得住——但哨塔那边正在冒黑烟。",
+			})
 	match _frames:
 		90:
 			_capture("arcade_hud_warning_%s" % _cap_size)

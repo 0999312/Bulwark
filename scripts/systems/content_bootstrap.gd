@@ -88,6 +88,10 @@ static func register_ui() -> void:
 		Bulwark.loc(Bulwark.UI_SETTINGS),
 		load("res://scenes/ui/settings_panel.tscn"),
 		UILayer.POPUP)
+	registry.register_panel(
+		Bulwark.loc(Bulwark.UI_CHAPTER_REWARD),
+		load("res://scenes/ui/chapter_reward_panel.tscn"),
+		UILayer.POPUP)
 	RegistryManager.register_registry(Bulwark.REG_UI, registry)
 
 static func register_attachments() -> void:

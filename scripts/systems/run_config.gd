@@ -7,6 +7,7 @@ extends Node
 enum Mode {
 	LEGACY = 0,
 	ARCADE = 1,
+	ENDLESS = 2,
 }
 
 const DEFAULT_MODE := Mode.LEGACY
@@ -18,9 +19,19 @@ var _seed_prepared := false
 func is_arcade() -> bool:
 	return mode == Mode.ARCADE
 
+func is_endless() -> bool:
+	return mode == Mode.ENDLESS
+
 ## 菜单进入本局前调用：生成新种子并设为街机模式（host/单机；client 无需）
 func prepare_arcade() -> int:
 	mode = Mode.ARCADE
+	run_seed = randi()
+	_seed_prepared = true
+	return run_seed
+
+## P2-17 无尽轮次：4 章循环、难度逐循环上抬（永不胜利）
+func prepare_endless() -> int:
+	mode = Mode.ENDLESS
 	run_seed = randi()
 	_seed_prepared = true
 	return run_seed
