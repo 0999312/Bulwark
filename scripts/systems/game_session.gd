@@ -954,7 +954,10 @@ func _apply_power_up(data: PowerUpData, pid: int) -> void:
 		return
 	match data.effect:
 		PowerUpData.EffectKind.AMMO:
+			# 泛用补给箱：子弹 +100%，能量弹 +50%（能量武器不再缺弹）
 			_grant_ammo(WeaponTypeData.AmmoType.BULLET, maxi(1, int(data.amount)), pid)
+			_grant_ammo(WeaponTypeData.AmmoType.ENERGY,
+				maxi(1, roundi(data.amount * 0.5)), pid)
 		PowerUpData.EffectKind.MATERIAL:
 			run_states[pid].add_material(maxi(1, int(data.amount)))
 		PowerUpData.EffectKind.HEAL:
@@ -1119,6 +1122,10 @@ func _shop_effect_handler(item: ShopItemData, p_player_id: int = 0) -> void:
 			run_states[pid].add_reserve(item.reserve_count)
 		ShopItemData.Category.AMMO:
 			_grant_ammo(item.ammo_type, item.ammo_amount, pid)
+			# 泛用补给：子弹箱同时补能量弹（能量武器波间补给修复）
+			if item.ammo_type == WeaponTypeData.AmmoType.BULLET:
+				_grant_ammo(WeaponTypeData.AmmoType.ENERGY,
+					maxi(1, roundi(item.ammo_amount * 0.5)), pid)
 		ShopItemData.Category.WEAPON_CRATE:
 			if not item.model_location.is_empty() and pid < arsenals.size():
 				if arsenals[pid].add_model(item.model_location):

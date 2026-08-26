@@ -261,7 +261,7 @@
 	"content.shop_item_reserve.name": "Emergency Reserve +1",
 	"content.shop_item_reserve.desc": "Revive resource +1 (auto-revive after death; very scarce)",
 	"content.shop_item_ammo_crate.name": "Ammo Crate +30",
-	"content.shop_item_ammo_crate.desc": "Bullet reserve +30 (intermission supply)",
+	"content.shop_item_ammo_crate.desc": "Bullet +30 · Energy +15 (intermission supply)",
 	"content.shop_item_weapon_crate_ar_2.name": "Weapon Crate · AR-2 Assault Rifle",
 	"content.shop_item_weapon_crate_ar_2.desc": "Adds the model to your personal arsenal; equip it at the workbench.",
 	"content.shop_item_weapon_crate_ar_3.name": "Weapon Crate · AR-3 Assault Rifle",

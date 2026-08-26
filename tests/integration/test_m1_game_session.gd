@@ -84,6 +84,28 @@ func test_shop_ammo_crate_replenishes_bullets() -> void:
 	assert_eq(_session.ammo_system.get_count(WeaponTypeData.AmmoType.BULLET),
 		reserve_before + 30, "备弹 +30")
 
+func test_shop_ammo_crate_also_refills_energy() -> void:
+	# 回归：能量武器从弹药箱得不到补给；固定物资弹药箱应同时补能量 +15
+	_session.shop_system.refresh(4)
+	var crate_location := Bulwark.loc(Bulwark.SHOP_AMMO_CRATE).to_string()
+	var energy_before := _session.ammo_system.get_count(WeaponTypeData.AmmoType.ENERGY)
+	_session.run_state.add_credits(10000)
+	assert_true(_session.shop_system.try_purchase(crate_location, _session._shop_effect_handler),
+		"购买弹药箱")
+	assert_eq(_session.ammo_system.get_count(WeaponTypeData.AmmoType.ENERGY),
+		energy_before + 15, "能量备弹 +15（泛用补给）")
+
+func test_power_up_ammo_box_also_refills_energy() -> void:
+	# 波中道具“弹药箱”：同样补子弹 +30 / 能量 +15
+	var data: PowerUpData = load("res://resources/powerups/power_up_ammo.tres")
+	var before_bullet := _session.ammo_system.get_count(WeaponTypeData.AmmoType.BULLET)
+	var before_energy := _session.ammo_system.get_count(WeaponTypeData.AmmoType.ENERGY)
+	_session._apply_power_up(data, 0)
+	assert_eq(_session.ammo_system.get_count(WeaponTypeData.AmmoType.BULLET),
+		before_bullet + 30, "波中弹药箱子弹 +30")
+	assert_eq(_session.ammo_system.get_count(WeaponTypeData.AmmoType.ENERGY),
+		before_energy + 15, "波中弹药箱能量 +15")
+
 func test_barricade_placement_consumes_material() -> void:
 	var material_before: int = _session.run_state.material
 	if material_before <= 0:

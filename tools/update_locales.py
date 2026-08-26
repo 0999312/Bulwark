@@ -134,7 +134,7 @@ def build_content_en() -> dict:
         "light_stock": ("Light Stock (Attachment)", "Stock slot: reload time ×0.8"),
         "barricade": ("Barricade Kit ×1", "Gain 1 barricade kit (place near base with E to block enemies)"),
         "reserve": ("Emergency Reserve +1", "Revive resource +1 (auto-revive after death; very scarce)"),
-        "ammo_crate": ("Ammo Crate +30", "Bullet reserve +30 (intermission supply)"),
+        "ammo_crate": ("Ammo Crate +30", "Bullet +30 · Energy +15 (intermission supply)"),
     }
     for sid, (name, desc) in shop_en.items():
         out.update(cc("shop/item/" + sid, name, desc))

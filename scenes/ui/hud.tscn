@@ -66,29 +66,31 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_hud")
 
-[node name="BannerBG" type="Panel" parent="."]
-unique_name_in_owner = true
-visible = false
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -280.0
+[node name="BannerTop" type="MarginContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
 offset_top = 84.0
-offset_right = 280.0
-offset_bottom = 176.0
+offset_bottom = 192.0
 grow_horizontal = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_banner_bg")
 
-[node name="BannerVBox" type="VBoxContainer" parent="BannerBG"]
+[node name="BannerCenter" type="CenterContainer" parent="BannerTop"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+
+[node name="BannerBG" type="PanelContainer" parent="BannerTop/BannerCenter"]
+unique_name_in_owner = true
+visible = false
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner_bg")
+
+[node name="BannerVBox" type="VBoxContainer" parent="BannerTop/BannerCenter/BannerBG"]
 theme_override_constants/separation = 2
 
-[node name="BannerLabel" type="Label" parent="BannerBG/BannerVBox"]
+[node name="BannerLabel" type="Label" parent="BannerTop/BannerCenter/BannerBG/BannerVBox"]
 unique_name_in_owner = true
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -96,7 +98,7 @@ theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 26
 
-[node name="BannerLoreLabel" type="Label" parent="BannerBG/BannerVBox"]
+[node name="BannerLoreLabel" type="Label" parent="BannerTop/BannerCenter/BannerBG/BannerVBox"]
 unique_name_in_owner = true
 horizontal_alignment = 1
 vertical_alignment = 1

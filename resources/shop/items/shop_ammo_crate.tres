@@ -6,7 +6,7 @@
 script = ExtResource("1_shop")
 id = "shop/item/ammo_crate"
 display_name = "弹药箱 +30"
-description = "子弹备弹 +30（波间补给）"
+description = "子弹 +30 · 能量 +15（波间补给）"
 category = 5
 rarity = 0
 base_price = 50

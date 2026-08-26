@@ -213,7 +213,7 @@
 	"content.facility_barricade.name": "路障",
 	"content.facility_turret.name": "自动炮塔",
 	"content.shop_item_ammo_crate.name": "弹药箱 +30",
-	"content.shop_item_ammo_crate.desc": "子弹备弹 +30（波间补给）",
+	"content.shop_item_ammo_crate.desc": "子弹 +30 · 能量 +15（波间补给）",
 	"content.shop_item_armor_up.name": "陶瓷插板（护甲 +5%）",
 	"content.shop_item_armor_up.desc": "玩家护甲 +5%",
 	"content.shop_item_barricade.name": "路障组件 ×1",
