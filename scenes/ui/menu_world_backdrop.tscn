@@ -17,7 +17,7 @@ zoom = Vector2(1.25, 1.25)
 [node name="Ground" type="Sprite2D" parent="."]
 position = Vector2(0, 0)
 scale = Vector2(30, 30)
-modulate = Color(0.5, 0.58, 0.46, 1)
+modulate = Color(0.4, 0.48, 0.38, 1)
 texture = ExtResource("4_grass")
 
 [node name="ZoneA" type="Sprite2D" parent="."]
@@ -59,25 +59,25 @@ color = Color(0.9, 0.62, 0.12, 0.12)
 [node name="SandA" type="Sprite2D" parent="."]
 position = Vector2(-160, -120)
 scale = Vector2(2.0, 2.0)
-modulate = Color(0.9, 0.88, 0.78, 0.85)
+modulate = Color(0.5, 0.52, 0.45, 0.55)
 texture = ExtResource("6_sand")
 
 [node name="SandB" type="Sprite2D" parent="."]
 position = Vector2(160, -120)
 scale = Vector2(2.0, 2.0)
-modulate = Color(0.9, 0.88, 0.78, 0.85)
+modulate = Color(0.5, 0.52, 0.45, 0.55)
 texture = ExtResource("6_sand")
 
 [node name="CrateA" type="Sprite2D" parent="."]
 position = Vector2(-300, 180)
 scale = Vector2(2.4, 2.4)
-modulate = Color(0.75, 0.72, 0.62, 0.9)
+modulate = Color(0.42, 0.44, 0.38, 0.6)
 texture = ExtResource("7_crate")
 
 [node name="CrateB" type="Sprite2D" parent="."]
 position = Vector2(300, 180)
 scale = Vector2(2.4, 2.4)
-modulate = Color(0.75, 0.72, 0.62, 0.9)
+modulate = Color(0.42, 0.44, 0.38, 0.6)
 texture = ExtResource("8_wood")
 
 [node name="WreckA" type="Sprite2D" parent="."]
@@ -95,5 +95,5 @@ texture = ExtResource("9_wreck")
 [node name="OilA" type="Sprite2D" parent="."]
 position = Vector2(-400, 60)
 scale = Vector2(2.8, 2.8)
-modulate = Color(0.6, 0.62, 0.56, 0.5)
+modulate = Color(0.4, 0.45, 0.4, 0.5)
 texture = ExtResource("10_oil")

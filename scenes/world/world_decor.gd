@@ -1,79 +1,65 @@
 class_name WorldDecor
 extends Node2D
-## M1 世界层轻量增色（第 2 轮修正：按章节变化装饰内容与色调，拒绝“散点杂物”）
-## 策略：少量、低饱和、融入地面的静态道具；每章一组固定素材 + 色调；WaveStartedEvent 驱动换章。
+## 世界层装饰（第 2/3 次修正：改用"地面印痕 + 暗色残骸剪影"，只做低对比地面装饰，
+## 不再放置亮色道具（沙袋/木箱曾被反馈为"悬空杂物"）；按章节更换素材组与色调。
 ## 仅素材层：不改玩法/网格/新素材包。
 
 const TEX := {
-	"sandbag": preload("res://assets/sprites/props/sandbagBeige.png"),
-	"crate": preload("res://assets/sprites/props/crateMetal.png"),
-	"wood": preload("res://assets/vfx/kenney/debris/crateWood.png"),
 	"oil": preload("res://assets/sprites/props/oilSpill_large.png"),
 	"tank": preload("res://assets/sprites/turret/tank/tank_huge.png"),
 	"tank_dark": preload("res://assets/sprites/turret/tank/tank_dark.png"),
 	"smoke": preload("res://assets/vfx/kenney/explosion_smoke/explosionSmoke1.png"),
 }
 
-## 每章装饰集：[材质key, 位置, 缩放, alpha]；色调见 CHAPTER_TINT（与章节主题同调）
+## 每章装饰集：[材质key, 位置, 缩放, alpha]；色调统一压暗（融入地面，避免"对象感"）
 const CHAPTER_SETS := [
-	{ # 第 1 章 · 前哨周边（草地/泥土）
-		"tint": Color(1.0, 1.0, 0.9),
+	{ # 第 1 章 · 前哨周边：油渍 + 轻烟 + 边缘残骸
+		"tint": Color(0.42, 0.44, 0.4),
 		"props": [
-			["sandbag", Vector2(-260, -140), 2.0, 0.95],
-			["sandbag", Vector2(-320, -40), 2.0, 0.95],
-			["sandbag", Vector2(-260, 60), 2.0, 0.95],
-			["sandbag", Vector2(260, -140), 2.0, 0.95],
-			["sandbag", Vector2(320, -40), 2.0, 0.95],
-			["crate", Vector2(-180, 200), 2.4, 0.9],
-			["wood", Vector2(180, 200), 2.4, 0.9],
-			["crate", Vector2(-820, -620), 2.6, 0.85],
-			["wood", Vector2(820, 620), 2.6, 0.85],
-			["tank_dark", Vector2(-1150, -900), 2.4, 0.5],
+			["oil", Vector2(-520, 260), 2.8, 0.4],
+			["oil", Vector2(560, -260), 2.8, 0.4],
+			["smoke", Vector2(-320, -40), 2.2, 0.3],
+			["smoke", Vector2(320, -40), 2.2, 0.3],
+			["tank_dark", Vector2(-1150, -900), 2.4, 0.35],
+			["tank_dark", Vector2(1150, 900), 2.4, 0.35],
 		],
 	},
-	{ # 第 2 章 · 废弃小镇（灰蓝）
-		"tint": Color(0.78, 0.84, 1.0),
+	{ # 第 2 章 · 废弃小镇：灰蓝残骸 + 油渍
+		"tint": Color(0.4, 0.46, 0.56),
 		"props": [
-			["crate", Vector2(-260, -140), 2.2, 0.85],
-			["wood", Vector2(-320, -40), 2.2, 0.85],
-			["tank_dark", Vector2(-260, 60), 1.8, 0.55],
-			["crate", Vector2(260, -140), 2.2, 0.85],
-			["wood", Vector2(320, -40), 2.2, 0.85],
-			["tank_dark", Vector2(260, 60), 1.8, 0.55],
-			["oil", Vector2(-520, 260), 2.8, 0.6],
-			["oil", Vector2(560, -260), 2.8, 0.6],
-			["tank", Vector2(-1150, 900), 2.4, 0.5],
-			["tank", Vector2(1150, -900), 2.4, 0.5],
+			["oil", Vector2(-520, 260), 3.0, 0.45],
+			["oil", Vector2(560, -260), 3.0, 0.45],
+			["tank_dark", Vector2(-260, -140), 1.8, 0.35],
+			["tank_dark", Vector2(260, -140), 1.8, 0.35],
+			["tank", Vector2(-1150, -900), 2.4, 0.4],
+			["tank", Vector2(1150, 900), 2.4, 0.4],
 		],
 	},
-	{ # 第 3 章 · 工业污染区（暗橙）
-		"tint": Color(1.0, 0.82, 0.62),
+	{ # 第 3 章 · 工业污染区：暗橙油渍 + 黑烟
+		"tint": Color(0.5, 0.4, 0.32),
 		"props": [
-			["crate", Vector2(-260, -140), 2.4, 0.9],
-			["crate", Vector2(260, -140), 2.4, 0.9],
-			["oil", Vector2(-520, 260), 3.0, 0.7],
-			["oil", Vector2(560, -260), 3.0, 0.7],
-			["oil", Vector2(-640, -250), 3.0, 0.7],
-			["smoke", Vector2(-320, -40), 2.2, 0.5],
-			["smoke", Vector2(320, -40), 2.2, 0.5],
-			["tank", Vector2(-1150, -900), 2.6, 0.55],
-			["tank", Vector2(1150, 900), 2.6, 0.55],
-			["wood", Vector2(-180, 200), 2.4, 0.85],
+			["oil", Vector2(-520, 260), 3.2, 0.5],
+			["oil", Vector2(560, -260), 3.2, 0.5],
+			["oil", Vector2(-640, -250), 3.0, 0.5],
+			["smoke", Vector2(-320, -40), 2.6, 0.4],
+			["smoke", Vector2(320, -40), 2.6, 0.4],
+			["tank", Vector2(-1150, -900), 2.6, 0.4],
+			["tank", Vector2(1150, 900), 2.6, 0.4],
 		],
 	},
-	{ # 第 4 章 · 巢穴（深红黑岩）
-		"tint": Color(0.9, 0.62, 0.58),
+	{ # 第 4 章 · 巢穴：深红黑岩剪影 + 暗油
+		"tint": Color(0.46, 0.32, 0.3),
 		"props": [
-			["tank_dark", Vector2(-260, -140), 2.0, 0.5],
-			["tank_dark", Vector2(260, -140), 2.0, 0.5],
-			["oil", Vector2(-520, 260), 3.2, 0.75],
-			["oil", Vector2(560, -260), 3.2, 0.75],
-			["smoke", Vector2(-320, -40), 2.6, 0.6],
-			["smoke", Vector2(320, -40), 2.6, 0.6],
-			["tank", Vector2(-1150, -900), 3.0, 0.6],
-			["tank", Vector2(1150, 900), 3.0, 0.6],
-			["tank", Vector2(1150, -900), 3.0, 0.6],
-			["tank", Vector2(-1150, 900), 3.0, 0.6],
+			["oil", Vector2(-520, 260), 3.4, 0.55],
+			["oil", Vector2(560, -260), 3.4, 0.55],
+			["tank_dark", Vector2(-260, -140), 2.0, 0.4],
+			["tank_dark", Vector2(260, -140), 2.0, 0.4],
+			["smoke", Vector2(-320, -40), 2.8, 0.45],
+			["smoke", Vector2(320, -40), 2.8, 0.45],
+			["tank", Vector2(-1150, -900), 3.0, 0.45],
+			["tank", Vector2(1150, 900), 3.0, 0.45],
+			["tank", Vector2(1150, -900), 3.0, 0.45],
+			["tank", Vector2(-1150, 900), 3.0, 0.45],
 		],
 	},
 ]

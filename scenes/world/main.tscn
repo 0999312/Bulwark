@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/game_session.gd" id="1_session"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -6,9 +6,15 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/tiles/tile_01.png" id="4_grass"]
 [ext_resource type="Texture2D" path="res://assets/sprites/tiles/tile_05.png" id="5_dirt"]
 [ext_resource type="Script" path="res://scenes/world/world_decor.gd" id="12_decor"]
+[ext_resource type="Script" path="res://scripts/ui/crosshair_view.gd" id="13_cross"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_session")
+
+[node name="CrosshairLayer" type="CanvasLayer" parent="."]
+layer = 40
+process_mode = 3
+script = ExtResource("13_cross")
 
 [node name="Ground" type="Polygon2D" parent="."]
 z_index = -20

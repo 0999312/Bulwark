@@ -87,3 +87,17 @@
 | 6 | 主菜单给世界背景 | 新 `scenes/ui/menu_world_backdrop.tscn`（Kenney 地面+基地轮廓+稀疏道具+暗调），经 `SubViewport` 渲染为 `main_menu.tscn` 背景 + 半透明压暗；去除纹章/警示条纹/侧条/HQ 标签 |
 
 **精修验证**：`RES_CHECK=PASS`（6 场景，含新背景场景）；`GUT`（见 §2 复跑结果）；截图 `m2_menu_v2_{1280x720,1920x1080}`（世界背景+浅色按钮）、`m1_after_settings|shop_1280x720`（浅色面板+可见滚动条）、`m3_hud_base_v2_1280x720`（深色原版 HUD+章节装饰）——均已 read_image 复核。
+
+---
+
+## 8. 第二轮精修（美学复批 + 手感反馈，2026-08-27 再补交）
+
+> 用户反馈：①亮色反而设计不当、字体冲突不可读；②装饰物效果仍不理想；③手感无明显差异，建议给准星加抖动以直观感受后坐冲击。
+
+| 反馈 | 处理 |
+|---|---|
+| 亮色不可读 | **回退深色**：`project.godot` 主题切回 `minimal_vector.tres`，删除 `military_light.tres`；主菜单/商店/设置截图复验：深底浅字，可读性恢复（`m2_menu_v3_1280x720.png`、`m1_after_shop_1280x720.png`） |
+| 装饰效果不理想 | 世界装饰第三次降噪：`world_decor.gd` 只保留**地面印痕/暗色残骸剪影**（油渍、坦克剪影、黑烟，α≤0.55），删除亮色沙袋/木箱；菜单背景道具同步压暗（`m3_hud_base_v3_1280x720.png`：装饰克制成暗轮廓） |
+| 准星抖动 | 新增 `scripts/ui/crosshair_view.gd`（CanvasLayer 40）绘制准星：随鼠标 + **每帧随机抖动**（幅度 = 1.6px + heat×1.9，热满约 9px）；heat≥2 时准星张开 + 变橙红 + 外圈微光；`CursorStateMachine` COMBAT 改隐藏 OS 光标并由本层绘制（面板/暂停/换弹时恢复）；仍保留热态帧 API 与测试 |
+
+**验证**：GUT **331/331**（54 脚本/3572 断言）；`ARCH_CHECK=PASS`；`RES_CHECK=PASS`（6 场景）；headless 冒烟 exit 0；截图 `m2_menu_v3_1280x720`（深色+世界背景）、`m1_after_shop_1280x720`（深色+可见滚动条）、`m3_hud_base_v3_1280x720`（深色 HUD+克制的暗色装饰）read_image 复核通过。

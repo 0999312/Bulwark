@@ -56,6 +56,15 @@ func set_heat_source(source: Callable) -> void:
 func set_combat_heat(value: float) -> void:
 	_combat_heat = maxf(0.0, value)
 
+## 供 CrosshairView 读取（每帧，属性访问）
+func get_combat_heat() -> float:
+	return _combat_heat
+
+## 战斗准星覆盖层是否应显示（COMBAT 且无面板/暂停/换弹）
+func is_combat_overlay_visible() -> bool:
+	return _combat_active and _open_panels <= 0 and not get_tree().paused \
+		and _reload_remaining <= 0.0 and _switch_remaining <= 0.0
+
 func _on_reload_started(event: ReloadStartedEvent) -> void:
 	if event == null or not _is_local_player(event.player_id):
 		return
@@ -109,12 +118,16 @@ func _refresh() -> void:
 	match _state:
 		State.DEFAULT:
 			Input.set_custom_mouse_cursor(null)
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			_last_progress_texture = null
 		State.COMBAT:
-			Input.set_custom_mouse_cursor(_combat_texture(), Input.CURSOR_ARROW, Vector2(16, 16))
+			# 准星由 CrosshairView 绘制（含后坐抖动/热态扩散），隐藏 OS 光标
+			Input.set_custom_mouse_cursor(null)
+			Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 			_last_progress_texture = null
 		State.PROGRESS:
 			_last_progress_texture = progress_texture
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			Input.set_custom_mouse_cursor(progress_texture, Input.CURSOR_ARROW, Vector2(16, 16))
 
 ## M4 热态帧：style=0 → target_a→target_round_b；style=1 → cross_small→cross_large；

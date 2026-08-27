@@ -54,7 +54,7 @@ enabled=PackedStringArray("res://addons/guide/plugin.cfg", "res://addons/gut/plu
 
 [gui]
 
-theme/custom="res://assets/theme/military_light.tres"
+theme/custom="res://assets/theme/minimal_vector.tres"
 
 [layer_names]
 
