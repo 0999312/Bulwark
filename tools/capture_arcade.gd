@@ -17,10 +17,12 @@ func _initialize() -> void:
 			menu_mode = true
 		elif arg == "--endless":
 			endless_mode = true
-	if cap_size == "1920x1080":
-		root.size = Vector2i(1920, 1080)
+	if cap_size != "1280x720":
+		var parts := cap_size.split("x")
+		var vs := Vector2i(int(parts[0]), int(parts[1]))
+		root.size = vs
 		if DisplayServer.get_name() != "headless":
-			DisplayServer.window_set_size(Vector2i(1920, 1080))
+			DisplayServer.window_set_size(vs)
 	if menu_mode:
 		var menu: PackedScene = load("res://scenes/ui/main_menu.tscn")
 		root.add_child(menu.instantiate())

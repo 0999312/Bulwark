@@ -7,6 +7,8 @@ const UI_SCENES := [
 	"res://scenes/ui/pause_panel.tscn",
 	"res://scenes/ui/result_panel.tscn",
 	"res://scenes/ui/shop_panel.tscn",
+	"res://scenes/ui/settings_panel.tscn",
+	"res://scenes/ui/chapter_reward_panel.tscn",
 ]
 
 const SIZES := [

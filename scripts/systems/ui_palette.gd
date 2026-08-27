@@ -37,3 +37,11 @@ const RARITY_COMMON := Color(0.84, 0.85, 0.87)
 const RARITY_RARE := Color(0.44, 0.72, 0.95)
 const RARITY_EPIC := Color(0.74, 0.5, 0.95)
 const RARITY_LEGENDARY := Color(1.0, 0.75, 0.3)
+
+# ─── M1 军事化扩展（B 方向：低清卡通扁平 + 军事 DNA） ───
+const STEEL := Color(0.42, 0.53, 0.67)        # 金属部件/纹章描边
+const OLIVE := Color(0.45, 0.51, 0.30)         # 世界增色点缀（沙袋/木箱基调）
+const HAZARD := Color(0.93, 0.62, 0.12)        # 警示斜纹/危险带（略深于 ACCENT）
+const PIXEL_DARK := Color(0.015, 0.022, 0.03)  # 槽位/像素纹底
+const HP_SAFE := Color(0.32, 0.75, 0.55)       # HP 条（与 SUCCESS 一致，HUD 专用别名）
+const BASE_GUARD := Color(0.87, 0.58, 0.22)    # 基地耐久条（HUD 专用别名，向 ACCENT 靠拢）

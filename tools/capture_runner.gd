@@ -74,6 +74,8 @@ func _process(_delta: float) -> void:
 				"lore_text": "前哨的防线还撑得住——但哨塔那边正在冒黑烟。",
 			})
 	match _frames:
+		40:
+			_capture("arcade_hud_base_%s" % _cap_size)
 		90:
 			_capture("arcade_hud_warning_%s" % _cap_size)
 		180:

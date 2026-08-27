@@ -326,32 +326,22 @@ func _build_offer_row(offer: ShopRefreshedEvent.Offer) -> Control:
 	var item := offer.item
 	var location := Bulwark.loc(item.id).to_string()
 
-	# 卡片：稀有度色边 + 深色底
+	# 卡片：稀有度色边 + 深色底（M1 迁移：Theme 变体 duplicate，不再 StyleBoxFlat.new）
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var card_style := StyleBoxFlat.new()
-	card_style.bg_color = UiPalette.BG_RAISED
-	card_style.border_width_left = 3
-	card_style.border_width_top = 1
-	card_style.border_width_right = 1
-	card_style.border_width_bottom = 1
+	var card_style: StyleBoxFlat = get_theme_stylebox("panel", "CardRare").duplicate()
 	card_style.border_color = RARITY_COLORS.get(item.rarity, UiPalette.BORDER)
-	card_style.corner_radius_top_left = 8
-	card_style.corner_radius_top_right = 8
-	card_style.corner_radius_bottom_right = 8
-	card_style.corner_radius_bottom_left = 8
-	card_style.content_margin_left = 12.0
-	card_style.content_margin_top = 8.0
-	card_style.content_margin_right = 12.0
-	card_style.content_margin_bottom = 8.0
-	card_style.shadow_color = Color(0, 0, 0, 0.25)
-	card_style.shadow_size = 4
+	card_style.border_width_left = 3
 	card.add_theme_stylebox_override("panel", card_style)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.add_child(row)
+
+	var icon_rect := TextureRect.new()
+	UiIcon.apply(icon_rect, _category_icon_key(item.category), Vector2(22, 22))
+	row.add_child(icon_rect)
 
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -378,28 +368,15 @@ func _build_offer_row(offer: ShopRefreshedEvent.Offer) -> Control:
 	actions.size_flags_horizontal = Control.SIZE_SHRINK_END
 	actions.add_theme_constant_override("separation", 2)
 
-	# 价格徽章
+	# 价格徽章（M1 迁移：Theme 变体 duplicate，不再 StyleBoxFlat.new）
 	var price_badge := PanelContainer.new()
 	price_badge.size_flags_horizontal = Control.SIZE_SHRINK_END
-	var price_style := StyleBoxFlat.new()
-	price_style.bg_color = UiPalette.BG_INSET
-	price_style.border_width_left = 1
-	price_style.border_width_top = 1
-	price_style.border_width_right = 1
-	price_style.border_width_bottom = 1
+	var price_style: StyleBoxFlat = get_theme_stylebox("panel", "SlotBadge").duplicate()
 	price_style.border_color = UiPalette.ACCENT_DIM
-	price_style.corner_radius_top_left = 6
-	price_style.corner_radius_top_right = 6
-	price_style.corner_radius_bottom_right = 6
-	price_style.corner_radius_bottom_left = 6
-	price_style.content_margin_left = 10.0
-	price_style.content_margin_top = 2.0
-	price_style.content_margin_right = 10.0
-	price_style.content_margin_bottom = 2.0
 	price_badge.add_theme_stylebox_override("panel", price_style)
 
 	var price_label := Label.new()
-	price_label.text = "¥%d" % _current_price(item)
+	price_label.text = UiText.text("shop.price", [_current_price(item)])
 	price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	price_label.add_theme_color_override("font_color", UiPalette.ACCENT_BRIGHT)
 	price_label.add_theme_font_override("font", FONT)
@@ -656,6 +633,23 @@ func _rarity_prefix(rarity: int) -> String:
 			return UiText.text("shop.rarity_legendary")
 		_:
 			return ""
+
+func _category_icon_key(category: int) -> String:
+	match category:
+		ShopItemData.Category.ATTACHMENT:
+			return "puzzle"
+		ShopItemData.Category.BARRICADE:
+			return "sandbag"
+		ShopItemData.Category.RESERVE:
+			return "crate"
+		ShopItemData.Category.WEAPON_CRATE:
+			return "tank"
+		ShopItemData.Category.AMMO:
+			return "bullet"
+		ShopItemData.Category.STAT_WEAPON:
+			return "bullet"
+		_:
+			return "trophy"
 
 
 func _show_feedback(text: String) -> void:
