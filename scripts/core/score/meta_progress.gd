@@ -8,12 +8,12 @@ extends RefCounted
 const VERSION := 1
 const SAVE_PATH := "user://meta.json"
 
-## 解锁表（顺序 = 门槛递增）
+## 解锁表（顺序 = 门槛递增；带 `bulwark:` 命名空间，改枪台/注册表可直接解析）
 const UNLOCK_MODELS := [
-	{"model": "weapon/model/ar_2", "cost": 1},
-	{"model": "weapon/model/sg_2", "cost": 2},
-	{"model": "weapon/model/lmg_1", "cost": 4},
-	{"model": "weapon/model/er_1", "cost": 6},
+	{"model": "bulwark:weapon/model/ar_2", "cost": 1},
+	{"model": "bulwark:weapon/model/sg_2", "cost": 2},
+	{"model": "bulwark:weapon/model/lmg_1", "cost": 4},
+	{"model": "bulwark:weapon/model/er_1", "cost": 6},
 ]
 
 static var _cache: Dictionary = {}
@@ -54,7 +54,9 @@ static func get_next_unlock_name() -> String:
 	if next.is_empty():
 		return ""
 	var model_str := str(next.get("model", ""))
-	return UiText.content_name(model_str, model_str)
+	# content 键按无命名空间 id 生成；展示时剥掉命名空间前缀
+	var display_id := model_str.trim_prefix("bulwark:")
+	return UiText.content_name(display_id, model_str)
 
 static func reset(path: String = SAVE_PATH) -> void:
 	_cache = {"version": VERSION, "credits": 0}

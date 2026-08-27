@@ -1,17 +1,24 @@
 extends Node
-## M4 光标状态机（议题 2，D-M4-9）：
+## M4 光标状态机（议题 2，D-M4-9 + M4 手感补全）：
 ## - DEFAULT：系统箭头（无 custom cursor）
 ## - COMBAT：战斗准星（combat_context 启用时；GameSession 挂钩 set_combat_active）
 ## - PROGRESS：装填/切枪进度准星（ReloadStartedEvent / WeaponSwitchStartedEvent 计时驱动）
 ## 优先级：树暂停或任意面板打开 → DEFAULT；计时进行中 → PROGRESS；combat_active → COMBAT。
-## 状态变化才调用 Input.set_custom_mouse_cursor（避免每帧重建光栅）。
+## M4 之后：COMBAT 支持热态（heat/HEAT_MAX → target_a→target_round_b 或 cross_small→cross_large），
+## heat 由 GameSession 注入 _heat_source（host 权威 / client 快照镜像）；状态变化才设置光标。
 
 const CROSS_TEXTURE := preload("res://assets/cursors/target_a.png")
+const CROSS_HOT := preload("res://assets/cursors/target_round_b.png")
+const CROSS_SMALL := preload("res://assets/cursors/cross_small.png")
+const CROSS_LARGE := preload("res://assets/cursors/cross_large.png")
 const PROGRESS_25 := preload("res://assets/cursors/progress_CCW_25.png")
 const PROGRESS_50 := preload("res://assets/cursors/progress_CCW_50.png")
 const PROGRESS_75 := preload("res://assets/cursors/progress_CCW_75.png")
 const PROGRESS_EMPTY := preload("res://assets/cursors/progress_empty.png")
 const PROGRESS_FULL := preload("res://assets/cursors/progress_full.png")
+
+## 热态切换阈值（heat 0~HEAT_MAX=4；超过一半进入热态扩散帧）
+const HEAT_BLOOM_THRESHOLD := 2.0
 
 enum State { DEFAULT, COMBAT, PROGRESS }
 
@@ -23,6 +30,8 @@ var _reload_total := 1.0
 var _switch_remaining := 0.0
 var _switch_total := 1.0
 var _last_progress_texture: Texture2D
+var _combat_heat := 0.0
+var _heat_source: Callable = Callable()
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -37,7 +46,15 @@ func set_combat_active(active: bool) -> void:
 	if not active:
 		_reload_remaining = 0.0
 		_switch_remaining = 0.0
+		_combat_heat = 0.0
 	_refresh()
+
+## M4：heat 数据源（GameSession 注入；host 权威 / client 快照镜像的属性读取）
+func set_heat_source(source: Callable) -> void:
+	_heat_source = source
+
+func set_combat_heat(value: float) -> void:
+	_combat_heat = maxf(0.0, value)
 
 func _on_reload_started(event: ReloadStartedEvent) -> void:
 	if event == null or not _is_local_player(event.player_id):
@@ -73,6 +90,8 @@ func _process(delta: float) -> void:
 		_switch_remaining = maxf(0.0, _switch_remaining - delta)
 		if _switch_remaining <= 0.0:
 			_refresh()
+	if _combat_active and _heat_source.is_valid():
+		_combat_heat = maxf(0.0, float(_heat_source.call()))
 	_refresh()
 
 func _refresh() -> void:
@@ -92,15 +111,23 @@ func _refresh() -> void:
 			Input.set_custom_mouse_cursor(null)
 			_last_progress_texture = null
 		State.COMBAT:
-			Input.set_custom_mouse_cursor(CROSS_TEXTURE, Input.CURSOR_ARROW, Vector2(16, 16))
+			Input.set_custom_mouse_cursor(_combat_texture(), Input.CURSOR_ARROW, Vector2(16, 16))
 			_last_progress_texture = null
 		State.PROGRESS:
 			_last_progress_texture = progress_texture
 			Input.set_custom_mouse_cursor(progress_texture, Input.CURSOR_ARROW, Vector2(16, 16))
 
+## M4 热态帧：style=0 → target_a→target_round_b；style=1 → cross_small→cross_large；
+## spread_visual 关闭时始终用基础帧（散布逻辑不变，仅可视化关闭）
+func _combat_texture() -> Texture2D:
+	var style := SettingsManager.get_cursor_style()
+	var spread_visual := SettingsManager.is_spread_visual_enabled()
+	var base: Texture2D = CROSS_SMALL if style == 1 else CROSS_TEXTURE
+	if not spread_visual or _combat_heat < HEAT_BLOOM_THRESHOLD:
+		return base
+	return CROSS_LARGE if style == 1 else CROSS_HOT
+
 ## 进度帧：按「已完成比例」选 空/25/50/75/满 五帧（Kenney progress_CCW 系列）。
-## BUG 修复：此前误用剩余比例，导致进度圈从满圈倒退为空圈（从有到无）；
-## 直觉应为从空到满（进度填充）。
 func _progress_texture() -> Texture2D:
 	var remaining_ratio := 0.0
 	if _reload_remaining > 0.0:

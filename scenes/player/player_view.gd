@@ -74,7 +74,6 @@ var _pose_reload_timer := 0.0
 var _pose_switch_timer := 0.0
 
 var _tracer_pool: ObjectPool
-var _recoil_angle := 0.0       # 后坐角（度）：每发脉冲累积，弹簧向 0 恢复
 var _shake_time := 0.0         # 相机震动剩余时间（秒）
 var _shake_axis := Vector2.ZERO # 震动主方向（后坐脉冲反方向单位向量）
 var _gun_tween: Tween          # 枪口回退恢复动画
@@ -274,7 +273,7 @@ func _process(delta: float) -> void:
 		# 鼠标纯自由瞄准（P9）：get_global_mouse_position 自动包含 Camera2D 变换
 		# （旧实现用 viewport canvas transform，不含相机平移/缩放，瞄准方向完全错位）
 		# 本机多窗口：键盘/鼠标输入属于有焦点的窗口，双端单套键位即可（M2 修订）
-		var aim := get_global_mouse_position() - global_position
+		var aim := (get_global_mouse_position() - global_position) * SettingsManager.get_sensitivity()
 		controller.set_aim_direction(aim)
 		if Net.is_client():
 			Net.send_intent(&"aim", [aim.normalized()])
@@ -321,16 +320,14 @@ func _tick_gunplay(delta: float) -> void:
 		_pose_switch_timer = maxf(0.0, _pose_switch_timer - delta)
 		if _pose_switch_timer <= 0.0:
 			_update_pose()
-	if absf(_recoil_angle) > 0.01:
-		_recoil_angle = move_toward(_recoil_angle, 0.0, RECOIL_RECOVER_SPEED * delta)
-	else:
-		_recoil_angle = 0.0
+	if _shake_time > 0.0 and not SettingsManager.is_shake_enabled():
+		_shake_time = 0.0
 	if _shake_time > 0.0:
 		_shake_time = maxf(0.0, _shake_time - delta)
 		# M3：相机震动仅作用于启用的本地相机（远端镜像视图相机已禁用，跳过避免无效偏移）
 		if camera != null and camera.enabled:
-			# 方向化震动：主分量沿后坐反方向（_shake_axis），幅度随时间衰减，叠加少量随机抖动
-			var amp := SHAKE_AMPLITUDE * (_shake_time / SHAKE_DURATION)
+			# 方向化震动：主分量沿反冲方向（_shake_axis），幅度随时间衰减 + 可调强度
+			var amp := SHAKE_AMPLITUDE * (_shake_time / SHAKE_DURATION) * SettingsManager.get_shake_strength()
 			camera.offset = _shake_axis * amp \
 				+ Vector2(_rng.randf_range(-amp, amp), _rng.randf_range(-amp, amp)) * 0.3
 	elif camera != null and camera.enabled and camera.offset != Vector2.ZERO:
@@ -339,9 +336,9 @@ func _tick_gunplay(delta: float) -> void:
 ## 每发子弹的手感反馈：方向化相机震动 + 枪口回退（纯表现，不影响后端命中判定）
 func _apply_recoil_feedback(recoil: Vector2, pulse: float, aim_dir: Vector2) -> void:
 	_shake_time = SHAKE_DURATION
-	# 震动主方向 = 后坐脉冲反方向（以 aim 方向为基准反向旋转 pulse 角）
+	# 震动主方向 = 后坐反冲方向（瞄准方向的反向；M4 修正：原实现仅为 ±0.6° 微旋转）
 	if aim_dir.length_squared() > 0.001:
-		_shake_axis = aim_dir.rotated(deg_to_rad(-pulse))
+		_shake_axis = -aim_dir.normalized()
 	else:
 		_shake_axis = Vector2.UP
 	if visual != null:
@@ -446,9 +443,8 @@ func _on_shot_fired(event: ShotFiredEvent) -> void:
 		if type_data != null:
 			recoil = type_data.recoil
 
-	# 每发后坐脉冲（随机方向，鸭科夫"瞄准点随机偏移"）；弹簧恢复由 _tick_gunplay 驱动
+	# 每发后坐脉冲（随机方向，鸭科夫"瞄准点随机偏移"）；后坐角已由 PlayerController 权威驱动
 	var pulse := _rng.randf_range(-RECOIL_PER_SHOT, RECOIL_PER_SHOT) * recoil.x
-	_recoil_angle += pulse
 	_apply_recoil_feedback(recoil, pulse, event.aim_direction)
 	_flash_muzzle()
 
@@ -524,9 +520,8 @@ func _tick_revive_blink(delta: float) -> void:
 	var a := 0.3 + 0.4 * (0.5 + 0.5 * sin(_blink_t * 10.0))
 	body.modulate = Color(1.0, 1.0, 1.0, a)
 
-## 枪械视觉复位：recoil/震动归零 + 枪口位置/可见性恢复
+## 枪械视觉复位：震动归零 + 枪口位置/可见性恢复
 func _reset_gunplay_visual() -> void:
-	_recoil_angle = 0.0
 	_shake_time = 0.0
 	if camera != null:
 		camera.offset = Vector2.ZERO

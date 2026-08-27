@@ -13,9 +13,9 @@ func test_add_credits_and_unlock_thresholds() -> void:
 	MetaProgress.add_meta_credits(2)
 	assert_eq(MetaProgress.get_meta_credits(), 2)
 	var unlocked := MetaProgress.get_unlocked_models()
-	assert_true(unlocked.has("weapon/model/ar_2"), "1 解锁 AR-2")
-	assert_true(unlocked.has("weapon/model/sg_2"), "2 解锁 SG-2")
-	assert_false(unlocked.has("weapon/model/lmg_1"), "4 未到，LMG-1 未解锁")
+	assert_true(unlocked.has("bulwark:weapon/model/ar_2"), "1 解锁 AR-2")
+	assert_true(unlocked.has("bulwark:weapon/model/sg_2"), "2 解锁 SG-2")
+	assert_false(unlocked.has("bulwark:weapon/model/lmg_1"), "4 未到，LMG-1 未解锁")
 
 func test_next_unlock_and_all_unlocked() -> void:
 	MetaProgress.add_meta_credits(99)
@@ -29,5 +29,5 @@ func test_persistence_roundtrip() -> void:
 	MetaProgress._cache.clear()
 	assert_eq(MetaProgress.get_meta_credits(), 5, "从磁盘读回战功")
 	MetaProgress._cache.clear()
-	assert_true(MetaProgress.get_unlocked_models().has("weapon/model/lmg_1"),
+	assert_true(MetaProgress.get_unlocked_models().has("bulwark:weapon/model/lmg_1"),
 		"重新加载后解锁状态保持")

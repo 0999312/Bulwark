@@ -20,12 +20,26 @@ extends UIPanel
 @onready var language_label: Label = %LanguageLabel
 @onready var language_option: OptionButton = %LanguageOption
 @onready var language_hint: Label = %LanguageHint
+@onready var sens_slider: HSlider = %SensSlider
+@onready var sens_value: Label = %SensValue
+@onready var shake_check: CheckBox = %ShakeCheck
+@onready var shake_strength_slider: HSlider = %ShakeStrengthSlider
+@onready var shake_strength_value: Label = %ShakeStrengthValue
+@onready var cursor_option: OptionButton = %CursorOption
+@onready var spread_check: CheckBox = %SpreadCheck
+
+var _enter_tween: Tween
 
 func _ready() -> void:
 	# UIManager 每次 open 都新建实例（CacheMode.NONE）：在入树后接线，无重复连接问题
 	language_option.item_selected.connect(_on_language_selected)
 	reset_all_button.pressed.connect(_on_reset_all_pressed)
 	%BackButton.pressed.connect(_on_back_pressed)
+	sens_slider.value_changed.connect(_on_sens_changed)
+	shake_check.toggled.connect(_on_shake_toggled)
+	shake_strength_slider.value_changed.connect(_on_shake_strength_changed)
+	cursor_option.item_selected.connect(_on_cursor_style_selected)
+	spread_check.toggled.connect(_on_spread_toggled)
 	InputSettings.bindings_changed.connect(_rebuild_key_rows)
 	SettingsManager.language_changed.connect(_on_language_changed)
 	_apply_texts()
@@ -35,9 +49,17 @@ func _apply_texts() -> void:
 	tabs.set_tab_title(0, tr("settings.tab_audio"))
 	tabs.set_tab_title(1, tr("settings.tab_keys"))
 	tabs.set_tab_title(2, tr("settings.tab_language"))
+	tabs.set_tab_title(3, tr("settings.tab_game"))
 	%MusicLabel.text = tr("settings.music")
 	%SfxLabel.text = tr("settings.sfx")
 	%UiLabel.text = tr("settings.ui")
+	%SensLabel.text = tr("settings.sens_label")
+	%ShakeCheck.text = tr("settings.shake_enabled")
+	%ShakeStrengthLabel.text = tr("settings.shake_strength")
+	%CursorLabel.text = tr("settings.cursor_style")
+	cursor_option.set_item_text(0, tr("settings.cursor_standard"))
+	cursor_option.set_item_text(1, tr("settings.cursor_hot"))
+	%SpreadCheck.text = tr("settings.spread_visual")
 	keys_hint.text = tr("settings.key_hint")
 	reset_all_button.text = tr("settings.key.reset_all")
 	language_label.text = tr("settings.language")
@@ -45,17 +67,37 @@ func _apply_texts() -> void:
 	%BackButton.text = tr("settings.back")
 
 func _on_open(_data: Dictionary = {}) -> void:
+	_play_enter()
 	music_slider.set_value_no_signal(SettingsManager.get_volume("Music"))
 	sfx_slider.set_value_no_signal(SettingsManager.get_volume("SFX"))
 	ui_slider.set_value_no_signal(SettingsManager.get_volume("UI"))
 	_refresh_labels()
 	_refresh_language_options()
+	_refresh_game_values()
 	_rebuild_key_rows()
 	tabs.current_tab = 0
 	%BackButton.grab_focus()
 
 func _on_close() -> void:
 	InputSettings.abort_detection()
+	if _enter_tween != null and _enter_tween.is_valid():
+		_enter_tween.kill()
+
+## M3：设置面板补进场动画（与 BaseModalPanel 一致：≤250ms，重入 kill）
+func _play_enter() -> void:
+	var card := get_node_or_null("Center/Panel") as Control
+	if card == null:
+		return
+	card.modulate.a = 0.0
+	card.scale = Vector2(0.96, 0.96)
+	if _enter_tween != null and _enter_tween.is_valid():
+		_enter_tween.kill()
+	_enter_tween = create_tween()
+	_enter_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_enter_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_enter_tween.set_parallel(true)
+	_enter_tween.tween_property(card, "modulate:a", 1.0, 0.22)
+	_enter_tween.tween_property(card, "scale", Vector2.ONE, 0.22)
 
 func _on_back_pressed() -> void:
 	AudioDirector.play_ui_select()
@@ -65,6 +107,32 @@ func _refresh_labels() -> void:
 	music_value.text = "%d%%" % roundi(music_slider.value * 100.0)
 	sfx_value.text = "%d%%" % roundi(sfx_slider.value * 100.0)
 	ui_value.text = "%d%%" % roundi(ui_slider.value * 100.0)
+
+func _refresh_game_values() -> void:
+	sens_slider.set_value_no_signal(SettingsManager.get_sensitivity())
+	sens_value.text = "%d%%" % roundi(SettingsManager.get_sensitivity() * 100.0)
+	shake_check.set_pressed_no_signal(SettingsManager.is_shake_enabled())
+	shake_strength_slider.set_value_no_signal(SettingsManager.get_shake_strength())
+	shake_strength_value.text = "%d%%" % roundi(SettingsManager.get_shake_strength() * 100.0)
+	cursor_option.select(SettingsManager.get_cursor_style())
+	spread_check.set_pressed_no_signal(SettingsManager.is_spread_visual_enabled())
+
+func _on_sens_changed(value: float) -> void:
+	SettingsManager.set_sensitivity(value)
+	sens_value.text = "%d%%" % roundi(value * 100.0)
+
+func _on_shake_toggled(toggled_on: bool) -> void:
+	SettingsManager.set_shake_enabled(toggled_on)
+
+func _on_shake_strength_changed(value: float) -> void:
+	SettingsManager.set_shake_strength(value)
+	shake_strength_value.text = "%d%%" % roundi(value * 100.0)
+
+func _on_cursor_style_selected(index: int) -> void:
+	SettingsManager.set_cursor_style(index)
+
+func _on_spread_toggled(toggled_on: bool) -> void:
+	SettingsManager.set_spread_visual(toggled_on)
 
 func _on_music_changed(value: float) -> void:
 	SettingsManager.set_volume("Music", value)
@@ -121,7 +189,7 @@ func _rebuild_key_rows() -> void:
 		row.add_child(key_button)
 
 		var reset := Button.new()
-		reset.text = "↺"
+		reset.text = tr("settings.key.reset_icon")
 		reset.tooltip_text = tr("settings.key.reset_one")
 		reset.focus_mode = Control.FOCUS_ALL
 		reset.pressed.connect(_on_key_reset_pressed.bind(item))

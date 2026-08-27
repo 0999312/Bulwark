@@ -299,7 +299,7 @@ func _setup_backend_host() -> void:
 			Bulwark.loc(Bulwark.WEAPON_MODEL_HG_1).to_string(),
 			Bulwark.loc(Bulwark.WEAPON_MODEL_HG_4).to_string(),
 		]
-		# P2-18 meta 解锁的起始武器追加进个人军械库（改枪台可直接装备）
+		# P2-18 meta 解锁的起始武器追加进个人军械库（UNLOCK_MODELS 已带 bulwark: 命名空间）
 		for model_str: String in MetaProgress.get_unlocked_models():
 			if not starter_models.has(model_str):
 				starter_models.append(model_str)
@@ -364,6 +364,12 @@ func _setup_backend_host() -> void:
 	# 波间商店：清场后等待商店关闭再开下一波（M1）
 	wave_director.intermission_waits_for_shop = true
 
+func _cursor_heat_source() -> float:
+	if players.is_empty():
+		return 0.0
+	var pid := _local_player_id if _local_player_id >= 0 else 0
+	return players[pid].heat
+
 func _setup_input() -> void:
 	_combat_context = load("res://input/contexts/combat_context.tres")
 	if _combat_context == null:
@@ -371,6 +377,7 @@ func _setup_input() -> void:
 		return
 	GUIDE.enable_mapping_context(_combat_context, false, 0)
 	CursorStateMachine.set_combat_active(true)
+	CursorStateMachine.set_heat_source(_cursor_heat_source)
 	for mapping: GUIDEActionMapping in _combat_context.mappings:
 		actions[mapping.action.name] = mapping.action
 
@@ -531,6 +538,7 @@ func _setup_client() -> void:
 	wave_director = WaveDirector.new()
 
 	_setup_input()
+	CursorStateMachine.set_heat_source(_cursor_heat_source)
 	_setup_scene_bindings_client()
 	_setup_hud(_local_player_id)
 
@@ -1623,6 +1631,7 @@ func _send_snapshot() -> void:
 			NetCodec.PLAYER_HP: players[i].health,
 			NetCodec.PLAYER_MAX_HP: players[i].max_health,
 			NetCodec.PLAYER_STATE: players[i].state,
+			NetCodec.KEY_HEAT: players[i].heat,
 		}
 	# M3 问题 4：per-player 资源表（credits/material/reserve/bag 各玩家独立）
 	var resources: Dictionary = {}
@@ -2014,6 +2023,7 @@ func _apply_player_snapshot(pid: int, pdata: Dictionary) -> void:
 	var max_hp := float(pdata.get(NetCodec.PLAYER_MAX_HP, 100.0))
 	players[pid].health = hp
 	players[pid].max_health = max_hp
+	players[pid].heat = float(pdata.get(NetCodec.KEY_HEAT, players[pid].heat))
 	# M3 本地预测：同步后端状态（DEAD/REVIVING 等）——本地模拟依赖 is_incapacitated 停止移动
 	players[pid].state = int(pdata.get(NetCodec.PLAYER_STATE, players[pid].state))
 	var key := str(pid)

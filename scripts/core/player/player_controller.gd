@@ -35,6 +35,9 @@ const INVINCIBLE_DURATION := 2.0
 const HEAT_MAX := 4.0             # 连射热度上限（度；草案 §3 "上限 4°"）
 const HEAT_DECAY := 3.0           # 停火热度衰减速度（度/秒）
 const HEAT_PER_SHOT := 0.15       # 每发连射热度增量（度，乘 type.recoil.x）
+const RECOIL_PER_SHOT := 0.6      # 每发后坐脉冲（度，乘 type.recoil.x；M4 入裁决）
+const RECOIL_RECOVER_SPEED := 3.0 # 后坐角弹簧恢复速度（度/秒）
+const RECOIL_ANGLE_MAX := 6.0     # 后坐角上限（度）
 
 var player_id: int = 0
 var attribute_set: AttributeSet
@@ -45,6 +48,14 @@ var max_health: float = 100.0
 var state: State = State.IDLE
 ## 连射热度（0 ~ HEAT_MAX；裁决侧散布计算用；视图可读用于表现）
 var heat := 0.0
+## M4 后坐角（度）：host 权威每发脉冲累积、弹簧恢复；弹道与准星热态据此偏移
+var recoil_angle := 0.0
+
+## 纯函数：后坐角旋转瞄准方向（供弹道/测试复用）
+static func aim_after_recoil(aim: Vector2, recoil_angle_deg: float) -> Vector2:
+	if absf(recoil_angle_deg) < 0.001 or aim.length_squared() < 0.001:
+		return aim
+	return aim.rotated(deg_to_rad(recoil_angle_deg))
 
 ## 意图状态（前端每帧喂入）
 var move_direction: Vector2 = Vector2.ZERO
@@ -105,14 +116,29 @@ func tick(delta: float) -> void:
 	# 连射热度衰减（无论死活都衰减，与表现层解耦后由裁决侧统一维护）
 	if heat > 0.0:
 		heat = maxf(0.0, heat - HEAT_DECAY * delta)
+	# M4 后坐角弹簧恢复（host 权威）
+	if absf(recoil_angle) > 0.01:
+		recoil_angle = move_toward(recoil_angle, 0.0, RECOIL_RECOVER_SPEED * delta)
+	else:
+		recoil_angle = 0.0
 	if _invincible_time > 0.0:
 		_invincible_time = maxf(0.0, _invincible_time - delta)
 	if is_incapacitated():
 		return
 	weapon_slots.tick(delta)
 	if shoot_held:
-		weapon_slots.try_fire(aim_direction)
+		_apply_recoil_pulse()
+		weapon_slots.try_fire(aim_after_recoil(aim_direction, recoil_angle).normalized())
 	_update_state()
+
+## M4：每发后坐脉冲（随机 ±RECOIL_PER_SHOT×recoil.x，累加进后坐角）
+func _apply_recoil_pulse() -> void:
+	var recoil_x := 1.0
+	var slot := weapon_slots.get_current_slot()
+	if slot != null and slot.type_data != null:
+		recoil_x = slot.type_data.recoil.x
+	var pulse := randf_range(-RECOIL_PER_SHOT, RECOIL_PER_SHOT) * recoil_x
+	recoil_angle = clampf(recoil_angle + pulse, -RECOIL_ANGLE_MAX, RECOIL_ANGLE_MAX)
 
 func _update_state() -> void:
 	var next: State
@@ -189,6 +215,7 @@ func revive() -> void:
 	state = State.IDLE
 	_invincible_time = INVINCIBLE_DURATION
 	heat = 0.0  # 复活重置连射热度（与表现层视觉复位一致）
+	recoil_angle = 0.0  # M4：后坐角同步复位
 	EventBus.publish(PlayerHealthChangedEvent.new(health, max_health, player_id))
 	EventBus.publish(PlayerStateChangedEvent.new(state))
 

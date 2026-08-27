@@ -7,12 +7,19 @@ extends Node
 const SETTINGS_PATH := "user://settings.cfg"
 const SECTION_AUDIO := "audio"
 const SECTION_META := "meta"
+const SECTION_GAME := "game"
 const SETTINGS_VERSION := 1
 
 const KEY_MUSIC := "music_volume"
 const KEY_SFX := "sfx_volume"
 const KEY_UI := "ui_volume"
 const KEY_LANG := "language"
+## M4：手感/视觉设置（默认值即旧行为；版本化兼容旧 settings.cfg 缺省）
+const KEY_SENSITIVITY := "sensitivity"
+const KEY_SHAKE_ENABLED := "shake_enabled"
+const KEY_SHAKE_STRENGTH := "shake_strength"
+const KEY_CURSOR_STYLE := "cursor_style"
+const KEY_SPREAD_VISUAL := "spread_visual"
 
 ## 支持的语言：code → 翻译 JSON（I18NManager/MSF I18n 系统，M4.1）
 const LOCALE_FILES := {
@@ -33,6 +40,13 @@ signal language_changed(lang_code: String)
 var _config := ConfigFile.new()
 var _volumes: Dictionary = {}
 var _language := DEFAULT_LANGUAGE
+var _game: Dictionary = {
+	KEY_SENSITIVITY: 1.0,
+	KEY_SHAKE_ENABLED: true,
+	KEY_SHAKE_STRENGTH: 1.0,
+	KEY_CURSOR_STYLE: 0,
+	KEY_SPREAD_VISUAL: true,
+}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -62,15 +76,60 @@ func _load() -> void:
 	_language = str(_config.get_value(SECTION_AUDIO, KEY_LANG, DEFAULT_LANGUAGE))
 	if not LOCALE_FILES.has(_language):
 		_language = DEFAULT_LANGUAGE
+	# M4：游戏/手感设置（旧文件缺省 → 用默认值，向后兼容）
+	_game[KEY_SENSITIVITY] = clampf(float(_config.get_value(SECTION_GAME, KEY_SENSITIVITY, 1.0)), 0.5, 2.0)
+	_game[KEY_SHAKE_ENABLED] = bool(_config.get_value(SECTION_GAME, KEY_SHAKE_ENABLED, true))
+	_game[KEY_SHAKE_STRENGTH] = clampf(float(_config.get_value(SECTION_GAME, KEY_SHAKE_STRENGTH, 1.0)), 0.0, 2.0)
+	_game[KEY_CURSOR_STYLE] = int(_config.get_value(SECTION_GAME, KEY_CURSOR_STYLE, 0))
+	_game[KEY_SPREAD_VISUAL] = bool(_config.get_value(SECTION_GAME, KEY_SPREAD_VISUAL, true))
 
 func save() -> void:
 	_config.set_value(SECTION_META, "version", SETTINGS_VERSION)
 	for key in [KEY_MUSIC, KEY_SFX, KEY_UI]:
 		_config.set_value(SECTION_AUDIO, key, float(_volumes.get(key, 1.0)))
 	_config.set_value(SECTION_AUDIO, KEY_LANG, _language)
+	for key in _game.keys():
+		_config.set_value(SECTION_GAME, key, _game[key])
 	var err := _config.save(SETTINGS_PATH)
 	if err != OK:
 		push_error("SettingsManager: 保存设置失败 err=%d" % err)
+
+# ─── M4：手感/视觉设置 ───
+
+func get_sensitivity() -> float:
+	return float(_game.get(KEY_SENSITIVITY, 1.0))
+
+func set_sensitivity(value: float) -> void:
+	_game[KEY_SENSITIVITY] = clampf(value, 0.5, 2.0)
+	save()
+
+func is_shake_enabled() -> bool:
+	return bool(_game.get(KEY_SHAKE_ENABLED, true))
+
+func set_shake_enabled(enabled: bool) -> void:
+	_game[KEY_SHAKE_ENABLED] = enabled
+	save()
+
+func get_shake_strength() -> float:
+	return float(_game.get(KEY_SHAKE_STRENGTH, 1.0))
+
+func set_shake_strength(value: float) -> void:
+	_game[KEY_SHAKE_STRENGTH] = clampf(value, 0.0, 2.0)
+	save()
+
+func get_cursor_style() -> int:
+	return int(_game.get(KEY_CURSOR_STYLE, 0))
+
+func set_cursor_style(style: int) -> void:
+	_game[KEY_CURSOR_STYLE] = 1 if style == 1 else 0
+	save()
+
+func is_spread_visual_enabled() -> bool:
+	return bool(_game.get(KEY_SPREAD_VISUAL, true))
+
+func set_spread_visual(enabled: bool) -> void:
+	_game[KEY_SPREAD_VISUAL] = enabled
+	save()
 
 func get_volume(bus_name: String) -> float:
 	match bus_name:
