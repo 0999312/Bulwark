@@ -339,10 +339,6 @@ func _build_offer_row(offer: ShopRefreshedEvent.Offer) -> Control:
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.add_child(row)
 
-	var icon_rect := TextureRect.new()
-	UiIcon.apply(icon_rect, _category_icon_key(item.category), Vector2(22, 22))
-	row.add_child(icon_rect)
-
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.add_theme_constant_override("separation", 2)
@@ -633,23 +629,6 @@ func _rarity_prefix(rarity: int) -> String:
 			return UiText.text("shop.rarity_legendary")
 		_:
 			return ""
-
-func _category_icon_key(category: int) -> String:
-	match category:
-		ShopItemData.Category.ATTACHMENT:
-			return "puzzle"
-		ShopItemData.Category.BARRICADE:
-			return "sandbag"
-		ShopItemData.Category.RESERVE:
-			return "crate"
-		ShopItemData.Category.WEAPON_CRATE:
-			return "tank"
-		ShopItemData.Category.AMMO:
-			return "bullet"
-		ShopItemData.Category.STAT_WEAPON:
-			return "bullet"
-		_:
-			return "trophy"
 
 
 func _show_feedback(text: String) -> void:

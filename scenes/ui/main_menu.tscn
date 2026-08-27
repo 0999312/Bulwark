@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="FontFile" path="res://assets/fonts/MiSans-Semibold.ttf" id="2_font"]
-[ext_resource type="Texture2D" path="res://assets/sprites/turret/tankBody_dark.png" id="3_tank"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu_world_backdrop.tscn" id="3_bg"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.55, 1)
@@ -52,49 +52,29 @@ texture = SubResource("GradientTexture2D_bg")
 expand_mode = 1
 stretch_mode = 0
 
-[node name="StripeTop" type="TextureRect" parent="."]
-anchor_right = 1.0
-offset_bottom = 10.0
-grow_horizontal = 2
-stretch_mode = 1
-mouse_filter = 2
-
-[node name="StripeBottom" type="TextureRect" parent="."]
-anchor_top = 1.0
+[node name="WorldBackdrop" type="SubViewportContainer" parent="."]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -14.0
 grow_horizontal = 2
-stretch_mode = 1
+grow_vertical = 2
+stretch = true
 mouse_filter = 2
 
-[node name="SideBarL" type="ColorRect" parent="."]
-anchor_top = 0.1
-anchor_bottom = 0.9
-offset_left = 10.0
-offset_right = 22.0
-color = Color(0.93, 0.62, 0.12, 0.16)
-mouse_filter = 2
+[node name="SubViewport" type="SubViewport" parent="WorldBackdrop"]
+size = Vector2i(1920, 1080)
+transparent_bg = true
+render_target_update_mode = 4
 
-[node name="SideBarR" type="ColorRect" parent="."]
-anchor_left = 1.0
+[node name="Backdrop" parent="WorldBackdrop/SubViewport" instance=ExtResource("3_bg")]
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
 anchor_right = 1.0
-anchor_top = 0.1
-anchor_bottom = 0.9
-offset_left = -22.0
-offset_right = -10.0
-color = Color(0.93, 0.62, 0.12, 0.16)
-mouse_filter = 2
-
-[node name="TagLabel" type="Label" parent="."]
-offset_left = 18.0
-offset_top = 18.0
-offset_right = 260.0
-offset_bottom = 40.0
-theme_override_colors/font_color = Color(1, 1, 1, 0.35)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 13
-text = "BULWARK HQ"
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.04, 0.5)
 mouse_filter = 2
 
 [node name="Center" type="CenterContainer" parent="."]
@@ -106,15 +86,6 @@ grow_vertical = 2
 
 [node name="MainVBox" type="VBoxContainer" parent="Center"]
 theme_override_constants/separation = 12
-
-[node name="Emblem" type="TextureRect" parent="Center/MainVBox"]
-custom_minimum_size = Vector2(112, 100)
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 0.85, 0.47, 0.9)
-rotation = -0.35
-texture = ExtResource("3_tank")
-mouse_filter = 2
 
 [node name="TitleLabel" type="Label" parent="Center/MainVBox"]
 unique_name_in_owner = true
@@ -176,7 +147,6 @@ text = ""
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(560, 0)
-theme_override_styles/panel = SubResource("StyleBoxFlat_room")
 
 [node name="RoomVBox" type="VBoxContainer" parent="Center/RoomPanel"]
 theme_override_constants/separation = 8

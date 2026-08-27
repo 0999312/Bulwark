@@ -1,0 +1,99 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/tiles/tile_01.png" id="4_grass"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tiles/tile_05.png" id="5_dirt"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/sandbagBeige.png" id="6_sand"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/crateMetal.png" id="7_crate"]
+[ext_resource type="Texture2D" path="res://assets/vfx/kenney/debris/crateWood.png" id="8_wood"]
+[ext_resource type="Texture2D" path="res://assets/sprites/turret/tank/tank_huge.png" id="9_wreck"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/oilSpill_large.png" id="10_oil"]
+
+[node name="MenuWorldBackdrop" type="Node2D"]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(0, 0)
+zoom = Vector2(1.25, 1.25)
+
+[node name="Ground" type="Sprite2D" parent="."]
+position = Vector2(0, 0)
+scale = Vector2(30, 30)
+modulate = Color(0.5, 0.58, 0.46, 1)
+texture = ExtResource("4_grass")
+
+[node name="ZoneA" type="Sprite2D" parent="."]
+position = Vector2(-520, -300)
+scale = Vector2(15, 15)
+modulate = Color(0.7, 0.75, 0.62, 0.7)
+texture = ExtResource("5_dirt")
+
+[node name="ZoneB" type="Sprite2D" parent="."]
+position = Vector2(520, 300)
+scale = Vector2(15, 15)
+modulate = Color(0.66, 0.72, 0.78, 0.7)
+texture = ExtResource("5_dirt")
+
+[node name="ZoneC" type="Sprite2D" parent="."]
+position = Vector2(520, -300)
+scale = Vector2(15, 15)
+modulate = Color(0.78, 0.68, 0.6, 0.7)
+texture = ExtResource("5_dirt")
+
+[node name="GridV" type="Line2D" parent="."]
+points = PackedVector2Array(-900, -540, -900, 540)
+width = 1.0
+default_color = Color(0.2, 0.24, 0.2, 0.25)
+
+[node name="GridH" type="Line2D" parent="."]
+points = PackedVector2Array(-960, 0, 960, 0)
+width = 1.0
+default_color = Color(0.2, 0.24, 0.2, 0.25)
+
+[node name="BaseCore" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -70, 60, -35, 60, 35, 0, 70, -60, 35, -60, -35)
+color = Color(0.16, 0.2, 0.16, 1)
+
+[node name="BaseGlow" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -84, 72, -42, 72, 42, 0, 84, -72, 42, -72, -42)
+color = Color(0.9, 0.62, 0.12, 0.12)
+
+[node name="SandA" type="Sprite2D" parent="."]
+position = Vector2(-160, -120)
+scale = Vector2(2.0, 2.0)
+modulate = Color(0.9, 0.88, 0.78, 0.85)
+texture = ExtResource("6_sand")
+
+[node name="SandB" type="Sprite2D" parent="."]
+position = Vector2(160, -120)
+scale = Vector2(2.0, 2.0)
+modulate = Color(0.9, 0.88, 0.78, 0.85)
+texture = ExtResource("6_sand")
+
+[node name="CrateA" type="Sprite2D" parent="."]
+position = Vector2(-300, 180)
+scale = Vector2(2.4, 2.4)
+modulate = Color(0.75, 0.72, 0.62, 0.9)
+texture = ExtResource("7_crate")
+
+[node name="CrateB" type="Sprite2D" parent="."]
+position = Vector2(300, 180)
+scale = Vector2(2.4, 2.4)
+modulate = Color(0.75, 0.72, 0.62, 0.9)
+texture = ExtResource("8_wood")
+
+[node name="WreckA" type="Sprite2D" parent="."]
+position = Vector2(-720, -380)
+scale = Vector2(2.6, 2.6)
+modulate = Color(0.35, 0.38, 0.34, 0.55)
+texture = ExtResource("9_wreck")
+
+[node name="WreckB" type="Sprite2D" parent="."]
+position = Vector2(720, 380)
+scale = Vector2(2.6, 2.6)
+modulate = Color(0.35, 0.38, 0.34, 0.55)
+texture = ExtResource("9_wreck")
+
+[node name="OilA" type="Sprite2D" parent="."]
+position = Vector2(-400, 60)
+scale = Vector2(2.8, 2.8)
+modulate = Color(0.6, 0.62, 0.56, 0.5)
+texture = ExtResource("10_oil")

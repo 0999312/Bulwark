@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_hud"]
 [ext_resource type="FontFile" path="res://assets/fonts/MiSans-Semibold.ttf" id="2_font"]
-[ext_resource type="Script" path="res://scripts/ui/military_progress_bar.gd" id="3_bar"]
+[ext_resource type="Theme" path="res://assets/theme/minimal_vector.tres" id="4_dark"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
 bg_color = Color(0.32, 0.72, 0.52, 1)
@@ -70,6 +70,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_hud")
+theme = ExtResource("4_dark")
 
 [node name="BannerTop" type="MarginContainer" parent="."]
 anchors_preset = 10
@@ -165,13 +166,13 @@ text = ""
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
-[node name="HPBar" type="TextureProgressBar" parent="TopLeft/VBox"]
+[node name="HPBar" type="ProgressBar" parent="TopLeft/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 16)
 max_value = 100.0
 value = 100.0
-script = ExtResource("3_bar")
-fill_color = Color(0.32, 0.75, 0.55, 1)
+show_percentage = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
 
 [node name="TopRight" type="PanelContainer" parent="."]
 anchors_preset = 1
@@ -194,13 +195,13 @@ text = ""
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 
-[node name="BaseBar" type="TextureProgressBar" parent="TopRight/VBox"]
+[node name="BaseBar" type="ProgressBar" parent="TopRight/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 16)
 max_value = 300.0
 value = 300.0
-script = ExtResource("3_bar")
-fill_color = Color(0.87, 0.58, 0.22, 1)
+show_percentage = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_base_fill")
 
 [node name="WaveLabel" type="Label" parent="TopRight/VBox"]
 unique_name_in_owner = true
@@ -237,14 +238,14 @@ theme_override_colors/font_color = Color(0.55, 0.9, 0.8, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
 
-[node name="BossBar" type="TextureProgressBar" parent="TopRight/VBox"]
+[node name="BossBar" type="ProgressBar" parent="TopRight/VBox"]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(300, 14)
 max_value = 100.0
 value = 100.0
-script = ExtResource("3_bar")
-fill_color = Color(0.93, 0.36, 0.33, 1)
+show_percentage = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_base_fill")
 
 [node name="BossLabel" type="Label" parent="TopRight/VBox"]
 unique_name_in_owner = true

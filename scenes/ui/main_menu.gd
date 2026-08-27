@@ -18,8 +18,6 @@ extends Control
 @onready var join_port_edit: LineEdit = %JoinPortEdit
 @onready var status_label: Label = %StatusLabel
 
-var _stripe_texture: ImageTexture
-
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	AudioDirector.play_menu_music()
@@ -77,42 +75,11 @@ func _apply_texts() -> void:
 	%JoinButton.text = tr("room.join_button")
 	%RoomBackButton.text = tr("room.back")
 
-## M2 军事化皮肤：按钮图标/标题描边/警示条纹/入场动效（一次性，非每帧）
+## M2 军事化皮肤（去图标/去条纹版本）：标题描边 + 入场动效（一次性，非每帧）
 func _apply_military_skin() -> void:
 	%TitleLabel.add_theme_constant_override("outline_size", 6)
-	%TitleLabel.add_theme_color_override("font_outline_color", Color(0.01, 0.016, 0.024, 0.95))
-	var icon_map: Dictionary = {
-		%SingleButton: "arrow_right",
-		%EndlessButton: "refresh",
-		%MultiButton: "users",
-		%SettingsButton: "settings",
-		%QuitButton: "exit",
-	}
-	for btn: Variant in icon_map:
-		var b := btn as Button
-		if b != null:
-			b.icon = UiIcon.icon(String(icon_map[btn]))
-			b.add_theme_constant_override("icon_max_width", 20)
-			b.add_theme_constant_override("icon_max_height", 20)
-	var stripes: Texture2D = _make_stripe_texture()
-	if $StripeTop != null:
-		$StripeTop.texture = stripes
-	if $StripeBottom != null:
-		$StripeBottom.texture = stripes
+	%TitleLabel.add_theme_color_override("font_outline_color", Color(0.97, 0.95, 0.89, 0.95))
 	_play_entrance()
-
-## 45° 警示斜纹纹理（一次生成，缓存）
-func _make_stripe_texture() -> ImageTexture:
-	if _stripe_texture != null:
-		return _stripe_texture
-	var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
-	img.fill(Color(1, 1, 1, 0))
-	for x in 16:
-		for y in 16:
-			if (x + y) % 8 < 4:
-				img.set_pixel(x, y, Color(0.93, 0.62, 0.12, 0.28))
-	_stripe_texture = ImageTexture.create_from_image(img)
-	return _stripe_texture
 
 ## 标题/按钮入场（≤250ms，一次性）
 func _play_entrance() -> void:

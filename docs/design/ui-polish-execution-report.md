@@ -70,3 +70,20 @@
 | （附加）双人冒烟 | ⚠️ 未跑（需要双开环境；列入 M5 遗留） |
 
 > **结论：除"双人冒烟"外，§4 整体 Gate 均满足；双人冒烟因环境受限未执行，示为已知遗留而非隐藏。**
+
+---
+
+## 7. 精修轮（用户美学反馈后，2026-08-27 补交）
+
+> 用户反馈："这一轮的优化甚至降低了美学设计的效果——游戏整体变得更难看了"。按反馈精修：
+
+| # | 反馈 | 处理 |
+|---|---|---|
+| 1 | 去掉图标 | 移除主菜单按钮图标、商店卡片图标位；删除 `scripts/ui/{ui_icon,icon_label,military_progress_bar}.gd`（未使用即删） |
+| 2 | 长列内容给可见滚动条 | `military_light.tres` 滚动条 8px 宽 + 高对比 grabber；`settings_panel.tscn` KeysScroll `vertical_scroll_mode=2`（SHOW_ALWAYS）；商店 OffersScroll/RightScroll 原已 SHOW_ALWAYS（确认可见，见截图右侧绿色竖条） |
+| 3 | 优化世界装饰 + 章节变化 | 新 `scenes/world/world_decor.gd`：每章一组固定道具+色调（前哨=沙袋/木箱；小镇=灰蓝残骸+油渍；污染区=暗橙油渍+烟雾；巢穴=深红剪影），`WaveStartedEvent.chapter_index` 驱动换章；删除 M1 散点式 20 个 Sprite 硬编码 |
+| 4 | 调色板可改（考虑亮色） | 新 `assets/theme/military_light.tres`（米白/卡其面板 + 深橄榄文字 + 琥珀强调，圆角 6、轻阴影）；`project.godot` 切换；**HUD 场景 root 显式挂回 `minimal_vector.tres`（保持深色可读）**；面板 tscn 移除硬编码深色 stylebox 覆盖 |
+| 5 | 条纹分段进度条很差 | HUD 三条改回原版 `ProgressBar`（圆角填充），删除 military_progress_bar 使用 |
+| 6 | 主菜单给世界背景 | 新 `scenes/ui/menu_world_backdrop.tscn`（Kenney 地面+基地轮廓+稀疏道具+暗调），经 `SubViewport` 渲染为 `main_menu.tscn` 背景 + 半透明压暗；去除纹章/警示条纹/侧条/HQ 标签 |
+
+**精修验证**：`RES_CHECK=PASS`（6 场景，含新背景场景）；`GUT`（见 §2 复跑结果）；截图 `m2_menu_v2_{1280x720,1920x1080}`（世界背景+浅色按钮）、`m1_after_settings|shop_1280x720`（浅色面板+可见滚动条）、`m3_hud_base_v2_1280x720`（深色原版 HUD+章节装饰）——均已 read_image 复核。

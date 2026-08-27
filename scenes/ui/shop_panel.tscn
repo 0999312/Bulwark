@@ -46,7 +46,6 @@ theme_override_constants/margin_bottom = 40
 [node name="Panel" type="PanelContainer" parent="Margin"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="VBox" type="VBoxContainer" parent="Margin/Panel"]
 theme_override_constants/separation = 14
