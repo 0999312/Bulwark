@@ -6,9 +6,9 @@ extends Control
 
 const INFINITE_TEXT := "∞"
 
-@onready var hp_bar: ProgressBar = %HPBar
+@onready var hp_bar: Range = %HPBar
 @onready var hp_label: Label = %HPLabel
-@onready var base_bar: ProgressBar = %BaseBar
+@onready var base_bar: Range = %BaseBar
 @onready var base_label: Label = %BaseLabel
 @onready var wave_label: Label = %WaveLabel
 @onready var banner_label: Label = %BannerLabel
@@ -18,7 +18,7 @@ const INFINITE_TEXT := "∞"
 @onready var score_label: Label = %ScoreLabel
 @onready var combo_label: Label = %ComboLabel
 @onready var buff_label: Label = %BuffLabel
-@onready var boss_bar: ProgressBar = %BossBar
+@onready var boss_bar: Range = %BossBar
 @onready var boss_label: Label = %BossLabel
 @onready var ammo_row: HBoxContainer = %AmmoLabel
 @onready var ammo_title_label: Label = %AmmoTitle
@@ -426,7 +426,7 @@ func _tween_hp(target_value: float) -> void:
 func _tween_base(target_value: float) -> void:
 	_tween_bar_to(base_bar, target_value, _base_tween)
 
-func _tween_bar_to(bar: ProgressBar, target_value: float, existing_tween: Tween) -> void:
+func _tween_bar_to(bar: Range, target_value: float, existing_tween: Tween) -> void:
 	if bar == null:
 		return
 	if existing_tween != null and existing_tween.is_valid():
