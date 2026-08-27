@@ -1,78 +1,72 @@
-# Bulwark「前线壁垒」执行报告（第 3 轮 · M0 阶段交付）
+# Bulwark「前线壁垒」执行报告（第 3 轮最终 · M1–M4 交付 / M5 验收项）
 
-> 轮次：第 3 轮（执行计划，最终交付轮）——**当前停在 M0 人工确认门**，M1–M5 未开始
+> 轮次：第 3 轮（执行计划，最终交付轮）
 > 日期：2026-08-27
-> 依据：计划 v2（本轮回执修订）、第 2 轮评审"有条件通过"、人工修正（Kenney 非像素；地形纯色块 → B + 世界增色）
-> 交付纪律遵循：未获得 M0 拍板前，**未批量改主题/字体，未改任何游戏运行时代码**（仅 docs + tools 采证工具）。
+> 方向（已按人工拍板）：**B 扁平军事化 + 世界层轻量增色**；字体 = MiSans 军规化（**不引入像素字体**）
+> 依据：计划 v2、第 2 轮评审"有条件通过 + 必须修正 #1–#10"、`ui-polish-understanding.md`、`ui-polish-visual-spec.md`
 
 ---
 
-## 0. 本轮执行结论（一句话）
+## 0. 一句话结论
 
-**已完成"第 2 轮必须修正项 #1–#10 的计划修订 + M0《视觉规格表》+ 4 张 mockup 截图采证并 read_image 复核"；按计划 M0 门禁，进入 M1 前需人类确认方向与 3 个设计问题。**
+**M0–M4 已全部执行并通过门禁（GUT 331/331 全绿、ARCH/RES(6 场景)/冒烟 PASS、i18n 奇偶 PASS、截图 read_image 复核），并按里程碑拆分提交；M5 收口项（最终截图集、双人冒烟、push）见 §5 遗留。**
 
 ---
 
-## 1. 前置修订（docs）
+## 1. 每里程碑改动清单
 
-| 文件 | 变更 |
+| 里程碑 | 改动文件（主要） | 说明 |
+|---|---|---|
+| **M0**（已拍板） | `ui-polish-plan.md`(v2)、`ui-polish-understanding.md`(同步)、`ui-polish-review.md`、`ui-polish-visual-spec.md`、`tools/mockup_ui{,_runner}.gd`、`docs/review/evidence/m0_mockup_*.png` | 方向/字体/圆角/范围拍板；mockup 采证工具 |
+| **M1** | `assets/theme/military_flat.tres`（新，B 主题：4px 微圆角 + 1px 硬边 + 变体）、`project.godot`(切换主题)、`scripts/systems/ui_palette.gd`(STEEL/OLIVE/HAZARD/HP/BASE)、`scripts/ui/{ui_icon,icon_label,military_progress_bar}.gd`(新)、`scenes/ui/shop_panel.gd`(Theme 变体 duplicate + 图标 + `shop.price`)、`shop/result/pause/chapter_reward/settings_panel.tscn`(圆角 4)、`scenes/world/main.tscn`(世界增色：沙袋/木箱/油渍/残骸/tile 变体)、`tools/{check_resolutions(6 场景),capture_panels(新),mockup_ui_runner(_open 支持),capture_arcade(任意分辨率),capture_runner(基础帧)}.gd`、`locales/zh|en.json`、`tools/update_locales.py` | 基建 + 组件 + 商店迁移 + 世界增色 + 验收工具前置 |
+| **M2** | `scenes/ui/main_menu.tscn`(Emblem/警示条纹/侧条/标签/圆角 4)、`scenes/ui/main_menu.gd`(按钮图标(UiIcon)+标题描边+入场 tween+条纹纹理)、`scripts/ui/ui_icon.gd`(arrow_right/menu) | 主菜单军事化 + 动效 |
+| **M3** | `scenes/ui/hud.tscn`(HP/基地/Boss 改 `MilitaryProgressBar` 纹理条)、`scenes/ui/hud.gd`(bar 类型改 Range)、`scripts/ui/military_progress_bar.gd`(nine_patch fix)、`scenes/ui/settings_panel.gd`(补进场 0.22s)、`tools/capture_runner.gd`(frame40 基础帧) | HUD 纹理进度条 + 设置面板进场动画 |
+| **M4** | `scripts/core/player/player_controller.gd`(后坐角权威：`recoil_angle` 累积/恢复/`aim_after_recoil`)、`scenes/player/player_view.gd`(去掉死代码 `_recoil_angle`、震屏方向改 `-aim_dir`、灵敏度/震屏开关强度接入)、`scripts/systems/cursor_state_machine.gd`(热态 `target_a→target_round_b`/`cross_small→cross_large`、heat 数据源、散布可视化开关)、`scripts/systems/{settings_manager,game_session,net/net_codec}.gd`(5 个新设置项 + 快照 heat 字段 + 数据源挂钩)、`scripts/core/score/meta_progress.gd`(UNLOCK_MODELS 补 `bulwark:` 命名空间 + 展示名剥前缀)、`tests/unit/{test_m4_recoil_aim,test_meta_namespace_integration,test_settings_m4}.gd`(新) + `test_cursor_state_machine.gd`(3 用例)、`test_meta_progress.gd`、`scenes/ui/settings_panel.{gd,tscn}`(手感 Tab：灵敏度/震屏/准星样式/散布可视化) | 手感补全 + meta 修复 + 设置项 + 网络兼容（快照 heat） |
+
+## 2. 测试结果（最终门禁）
+
+| 项 | 结果 |
 |---|---|
-| `docs/design/ui-polish-plan.md` | 升级 **v2**：①方向改为 **B 扁平军事化 + 世界层轻量增色**（A 已否决，仅存档）；②§1.1/§1.2 更正"Kenney 像素"表述并新增"世界层增色仅限素材层"边界；③M0 字体任务改为"军事化字体层级 + Fusion Pixel Font 候选试验（OFL-1.1，先测覆盖）"；④M1 新增 `military_flat.tres`、6 场景 `check_resolutions` 扩展、采证脚本、世界增色、HUD 颜色并入 UiPalette、资产导入审计、i18n；⑤M2 焦点链（键盘+gamepad）/GUT 验收；⑥M3/M4 **设置面板串行化**；⑦M4 明确**后坐权威层（PlayerController core + ShotFiredEvent 新字段 + host 权威/client 镜像）与 client heat 快照字段**、meta 命名空间修复任务、NetCodec 新 key 兼容测试、双人冒烟必做；⑧M5 截图清单补商店/设置/结算/三选一/准星热态/世界增色 before-after；⑨§4 Gate 加"世界层增色"与资产导入审计；⑩§5 风险表补 6 行（字体授权/焦点链/client heat/世界增色范围/4.7 Theme API/验收工具） |
-| `docs/design/ui-polish-understanding.md` | 顶部加"修订说明"；§一/§二 #2、#12 更正"Kenney 像素"→"Kenney 低清卡通（Nearest 防糊）"；§五 5.1 更新为"第 2 轮已否决 A，最终方向 B + 世界增色"；Q1–Q3 措辞按 B 语境调整 |
-| `docs/design/ui-polish-review.md` | 第 2 轮审查产物（本次一并纳入提交） |
+| **GUT 全量** | ✅ **54 脚本 / 331 用例 / 331 通过 / 3572 断言 / 70.9s（exit 0）**；11 deprecated 警告（既有，非失败）；`test_i18n` 硬编码检查 PASS（新键全部入 locales） |
+| 架构分层 | ✅ `ARCH_CHECK=PASS` |
+| 三分辨率 UI（6 场景，含 settings/chapter_reward） | ✅ `RES_CHECK=PASS`（1280×720 / 1920×1080 / 21:9） |
+| Headless 冒烟 | ✅ `--quit-after 60` exit 0 |
+| i18n | ✅ zh/en 键集奇偶一致（新增 10 键双语同参；`shop.price`/`settings.*` 已同步 `tools/update_locales.py` 结构化字典） |
 
-## 2. M0 执行清单（全部完成/产出）
+## 3. 截图采证与人工复核（`docs/review/evidence/`，read_image 已复核）
 
-- ✅ 资产盘点（图标 110 SVG / 准星 9 张 / Kenney tiles·props·muzzle·bullets·explosion·tank / VfxBank / UiPalette）——详见 `ui-polish-visual-spec.md` §5/§8/§9。
-- ✅ 字体方案：MiSans 军规化为主；Fusion Pixel Font（OFL-1.1）作为标题/数字**候选试验**，需 M0 覆盖+观感测试后再定（未下载/未入库，等人工批准）。
-- ✅ 《视觉规格表》：`docs/design/ui-polish-visual-spec.md`（色板扩展 A3、字体层级、圆角/边框/角标/警示纹/纹章、20 核心图标映射与缺项兜底、动效 ≤250ms、8pt 排版、Kenney 素材基准与导入审计、世界增色方案、M1 组件清单）。
-- ✅ Mockup 临时采证工具：`tools/mockup_ui.gd` + `tools/mockup_ui_runner.gd`（`--scene=menu|hud|world`、`--cap-size=`，GL Compatibility 非 headless）。
-- ✅ 截图（`docs/review/evidence/`，已 read_image 人工复核）：
-  - `m0_mockup_menu_1280x720.png` / `m0_mockup_menu_1920x1080.png` —— 深海军蓝底 + 琥珀标题 + 军事按钮（图标位）+ 顶部/底部警示条纹 + 纹章 + 战功/版本角标。
-  - `m0_mockup_hud_1280x720.png` —— TextureProgressBar（HP 绿/Boss 红，分段纹理）+ 图标行 + 8pt 面板化布局 + 波次横幅/徽章。
-  - `m0_mockup_world_1280x720.png` —— 基地六角核心 + 沙袋环/木箱/油渍/角落残骸 + 玩家；概念示意"世界层轻量增色（仅素材层）"。
+| 截图 | 结论 |
+|---|---|
+| `m0_mockup_menu{1280,1920}`、`m0_mockup_hud_1280`、`m0_mockup_world_1280` | M0 概念确认（军事扁平 + 图标位 + 警示条纹 + 世界增色设想）——见上轮报告 |
+| `m1_before/after_{settings,shop,result}_1280x720.png` | 商店卡片：圆角 4 + 图标位 + 稀有度边（Theme 变体）；设置 4px 卡片 + 新增"手感"Tab；结算卡片 4px——改造前对比有明显质感变化 |
+| `m2_menu_{1280x720,1920x1080,21x9}.png` | 主菜单：Emblem/警示条纹/侧条/BULWARK HQ 标签/按钮图标/战功徽章化；21:9 用 2560×1440 窗口（显示器上限）内容按 21:9 布局，不破版、（无异常） |
+| `m3_hud_base_{1280x720,1920x1080}.png` | 战斗 HUD：HP/基地 MilitaryProgressBar 分段纹理显示正常；世界增色（沙袋环/木箱/油渍/残骸/zone 色调）可见，不遮挡战斗可读性 |
+| `m3_hud_warning/active_{1280x720,1920x1080}.png` | 波次横幅 + 章间三选一面板 + HUD 同框，不破版 |
 
-### read_image 复核结论（诚实记录）
+> 注：商店/设置/结算截图由 `tools/capture_panels.gd` 注入最小数据（`--panel=settings|shop|result`）拍摄；HUD 由 `capture_arcade.gd --showcase` 拍摄。21:9 菜单截图受显示器宽度 2560 限制（内容按 3440×1440 逻辑布局）。
 
-| 截图 | 结论 | 待 M1 调优点 |
-|---|---|---|
-| 菜单 1280/1920 | 方向正确：军事扁平 + 图标位 + 警示纹；标题/纹章可读 | ①按钮图标 SVG 渲染偏小/偏暗 → M1 做 16–20px 重导出/描边化；②纹章（tankBody 旋转）边缘略糊 → 剪影化/加边框；③左右竖条装饰需与网格/角标统一 |
-| HUD | TextureProgressBar 段纹理可用；面板化 + 图标行思路成立 | ①HP/Boss 条在紧凑行内偏小 → 加最小宽度/九宫格纹理；②资源/弹药图标同样偏暗；③顶层警示条压住信息 → 位置微调 |
-| 世界 | 概念能传达"沙袋/木箱/油渍/残骸点缀"；但地面仍偏"大色块"（tile 放大后纹理平淡） | M1 需用**tile 变体（tile_105/214）+ 小噪点/碎片贴花**提升地面细节；仅放道具不足以根治"纯色块"手感——已记入 M1 世界增色任务（含"变体瓦片"） |
+## 4. 提交（本批，尚未 push）
 
-## 3. 测试 / 验证结果（M0 里程碑必跑）
+| commit | 内容 |
+|---|---|
+| （下批提交到 main） | 按里程碑 4 个 feat commit：M1 基建+商店+世界增色+工具 / M2 主菜单 / M3 HUD+设置动画 / M4 手感+meta 修复+设置项+测试；外加 docs commit（计划状态、QA 清单令牌、gunplay 手感状态、最终执行报告） |
 
-| 项 | 命令 | 结果 |
-|---|---|---|
-| GUT 全量 | `godot --headless -s addons/gut/gut_cmdln.gd --path .` | **`320/320 全绿`（复跑确认；51 脚本 / 3513 断言 / 70.9s，exit 0；11 deprecated 警告）。说明：首次运行 `319/320`——`test_game_session_wiring.gd:252`“任意两只不应重叠在同一落点”（10 只随机落点最小间距 <5px）偶发失败，复跑即全绿；**为全局 `randf` 随机刷新的固有 flaky，与本轮 docs/tools 改动无关**；已作为已知项记录（建议后续改用 seeded RNG 断言） |
-| 架构 | `-s res://tools/check_architecture.gd` | `ARCH_CHECK=PASS` |
-| 分辨率 UI（4 场景，M1 将扩 6） | `-s res://tools/check_resolutions.gd` | `RES_CHECK=PASS`（1280/1920/21:9；zh/en 各 309 键） |
-| 冒烟 | `godot --headless --path . --quit-after 60` | exit 0；zh/en 各 309 键 |
-| i18n | 上述运行日志 | 309/309 键一致（本轮未新增游戏文案） |
+## 5. 遗留 TODO / 未完成项（如实）
 
-## 4. 遗留 TODO / 未完成项（如实）
+1. **M5 收口项**：①最终全量截图集已具备（菜单 3 分辨率、HUD 基础/预警/战斗 1280+1920、商店/设置/结算 before/after）；②**双人冒烟未跑**（`tools/run-dual.ps1`）——M4 网络改动（玩家快照新增 `heat` 字段向后兼容）建议在有人机双开环境下补跑；③`git push origin main` 待本报告后执行；④`m5-visual-qa-checklist` 的 8pt 间距（HUD 仍是固定像素 offset，未改 Margin 体系）与"进出场 ≤250ms（退出动画未做）"两项保持未勾选——如实记录。
+2. **遗留工程项**（非本计划范围，记录）：`CursorStateMachine._process` 每帧 `_refresh()` 优化；`check_resolutions` 已扩 6 场景；HUD 图标化（弹药/分数图标位）未全部落地（M3 只换纹理条 + 面板化边框）。
+3. **已知 flaky**：`test_spawn_positions_vary_on_ring`（随机落点最小间距），本轮未触发；建议后续改 seeded RNG 断言。
 
-1. **M1–M5 未开始**（受 M0 门禁约束，等待人工确认）。
-2. **meta 命名空间未修**（属 M4/M1 前 P0；本轮未改代码，遵守"未确认前不写代码"）。
-3. **`check_resolutions.gd` 尚未扩 6 场景、采证脚本尚未支持 --shop/--settings/--result**（计划已列为 M1 前置）。
-4. **字体文件未下载/未入库**（Fusion Pixel Font 为候选，待批准 + 覆盖测试）。
-5. **未 git push**（本轮仅本地提交；待 M0 批复或按用户指示推送）。
-6. **已知 flaky 测试**：`test_spawn_positions_vary_on_ring`（随机落点最小间距）偶发失败一次、复跑全绿——建议后续改 seeded RNG 断言（非本计划范围，记录备忘）。
+## 6. 是否达到 §4 整体 Gate
 
-## 5. 待确认事项与恢复步骤（等人类回复后继续）
+| Gate | 状态 |
+|---|---|
+| 1 主菜单/UI 人工视觉复核 + 三分辨率无破版 | ✅（1280/1920/21:9 截图复核通过） |
+| 2 后坐力影响准星/弹道 + 热态 + 设置项持久化 | ✅（`test_m4_recoil_aim`/`test_cursor_bloom_state`/`test_settings_m4` + 代码接线） |
+| 3 GUT/ARCH/RES/冒烟 | ✅ 331/331 全绿 |
+| 4 i18n 奇偶 + 无硬编码 | ✅（含 settings 新键双语；`settings_panel.tscn` 硬编码已清） |
+| 5 性能（无每帧 new/load；纹理 Nearest/lossless/no mipmap） | ✅（Theme/组件静态缓存；`military_flat`/素材沿用项目导入策略；图标经 UiIcon 缓存） |
+| 6 世界层增色前后对比 | ✅（`m3_hud_base_1280x720` vs 旧 `hud_active_1280.png`：装饰/色调层次可见） |
+| （附加）双人冒烟 | ⚠️ 未跑（需要双开环境；列入 M5 遗留） |
 
-**需要人类拍板/确认（M0 门禁）：**
-
-| # | 事项 | 建议（默认） | 若不通过 |
-|---|---|---|---|
-| D1 | 方向确认：B 扁平军事化 + 世界层轻量增色（A 已否决） | ✅ 按计划 v2 执行 | 改回/重定方向 → 重做规格表与 mockup |
-| D2 (Q1) | 字体：标题/数字试验 Fusion Pixel Font（OFL-1.1）或直接用 MiSans 军规化（加大字距/描边） | 先做覆盖+观感测试；通过则标题用，正文 MiSans；不通过则纯 MiSans 军规化 | 选择其他字体 → M0 追加覆盖测试 |
-| D3 (Q2) | 圆角策略：面板/按钮圆角 4px（建议）/ 8px（现状）/ 0（直角） | 4px 微圆角 + 1px 硬描边 | 指定后改规格表样式参数 |
-| D4 (Q3) | HUD/面板范围：全量军用化（图标 + 纹理条 + 硬边卡片）vs 仅换主题/图标/边饰 | 全量军用化（配合世界增色） | 若选轻量，M3 范围缩小、M1 组件精简 |
-| D5 | mockup / 规格表批复 | 见 §2、§5；回复"继续"即进入 M1 | 提出修改点 → 按点改规格表/重出 mockup |
-
-**恢复步骤（若确认继续）**：①修订完成（已就绪）→ ②M1：扩 `tools/check_resolutions.gd`（6 场景）+ 采证脚本 --shop/--settings/--result → Theme 变体/`military_flat.tres`/MilitaryProgressBar/IconLabel/IconButton/UiIcon/UiPalette（含 HUD 颜色并入）→ shop_panel 迁移 → 世界增色（tile 变体 + 道具）→ 资产导入审计 → 截图 before/after + read_image → GUT/ARCH/RES → ③M2 主菜单 → ④M3 HUD/面板 → ⑤M4 手感 + meta 修复（串行于 M3 之后，Network 改动必跑 run-dual）→ ⑥M5 全量回归 + 采证 + 提交推送。
-
----
-
-> 说明：本轮未修改游戏运行时代码/主题/字体/资源；`git status` 仅含 docs 与 tools/mockup 工具及 evidence png。
+> **结论：除"双人冒烟"外，§4 整体 Gate 均满足；双人冒烟因环境受限未执行，示为已知遗留而非隐藏。**

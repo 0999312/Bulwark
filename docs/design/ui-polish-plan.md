@@ -1,6 +1,6 @@
 # Bulwark「前线壁垒」后续开发计划：UI 收口 + 手感补全（v2 审查修订）
 
-> 状态：**v2（第 2 轮审查修订）— 计划已按“有条件通过 + 必须修正项 #1–#10”修订；M0 待人工确认后进入 M1**
+> 状态：**v2（第 2 轮审查修订）— M0 已拍板；M1–M4 已执行（2026-08-27，见 `ui-polish-execution-report.md`）；M5 回归与交付进行中**
 > 上游输入：`docs/review/self-audit-v2.md`（进一步自审）、`docs/review/game-review.md`（首轮评审）、`docs/design/arcade-improvement-plan.md`（P0–P2 街机化实施状态）、`docs/design/ui-polish-understanding.md`（第 1 轮理解）、`docs/design/ui-polish-review.md`（第 2 轮审查）
 > 人工拍板（2026-08-27 第 2 轮）：Kenney 素材**不是像素风格**（Nearest 仅为防糊）；地图/地形多处为**近纯色块、缺素材增色**；**“像素优先统一”为错误结论** → 方向定为 **B 扁平军事化升级 + 世界层轻量增色**，A 方案仅存档参考。
 > 本文档同时作为下一轮“理解 → 审查 → 执行”三阶段交接的载体（见 §6）
