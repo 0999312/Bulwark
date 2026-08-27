@@ -18,6 +18,8 @@ extends Control
 @onready var join_port_edit: LineEdit = %JoinPortEdit
 @onready var status_label: Label = %StatusLabel
 
+var _stripe_texture: ImageTexture
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	AudioDirector.play_menu_music()
@@ -25,6 +27,7 @@ func _ready() -> void:
 	ContentBootstrap.register_all()
 	EventBus.subscribe(&"LanguageChangedEvent", _on_language_changed)
 	_apply_texts()
+	_apply_military_skin()
 	%SingleButton.pressed.connect(_on_single_pressed)
 	%EndlessButton.pressed.connect(_on_endless_pressed)
 	%MultiButton.pressed.connect(_on_multi_pressed)
@@ -73,6 +76,63 @@ func _apply_texts() -> void:
 	%JoinPortLabel.text = tr("room.port")
 	%JoinButton.text = tr("room.join_button")
 	%RoomBackButton.text = tr("room.back")
+
+## M2 军事化皮肤：按钮图标/标题描边/警示条纹/入场动效（一次性，非每帧）
+func _apply_military_skin() -> void:
+	%TitleLabel.add_theme_constant_override("outline_size", 6)
+	%TitleLabel.add_theme_color_override("font_outline_color", Color(0.01, 0.016, 0.024, 0.95))
+	var icon_map: Dictionary = {
+		%SingleButton: "arrow_right",
+		%EndlessButton: "refresh",
+		%MultiButton: "users",
+		%SettingsButton: "settings",
+		%QuitButton: "exit",
+	}
+	for btn: Variant in icon_map:
+		var b := btn as Button
+		if b != null:
+			b.icon = UiIcon.icon(String(icon_map[btn]))
+			b.add_theme_constant_override("icon_max_width", 20)
+			b.add_theme_constant_override("icon_max_height", 20)
+	var stripes: Texture2D = _make_stripe_texture()
+	if $StripeTop != null:
+		$StripeTop.texture = stripes
+	if $StripeBottom != null:
+		$StripeBottom.texture = stripes
+	_play_entrance()
+
+## 45° 警示斜纹纹理（一次生成，缓存）
+func _make_stripe_texture() -> ImageTexture:
+	if _stripe_texture != null:
+		return _stripe_texture
+	var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	img.fill(Color(1, 1, 1, 0))
+	for x in 16:
+		for y in 16:
+			if (x + y) % 8 < 4:
+				img.set_pixel(x, y, Color(0.93, 0.62, 0.12, 0.28))
+	_stripe_texture = ImageTexture.create_from_image(img)
+	return _stripe_texture
+
+## 标题/按钮入场（≤250ms，一次性）
+func _play_entrance() -> void:
+	var title := %TitleLabel
+	title.modulate.a = 0.0
+	var tw := create_tween()
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(title, "modulate:a", 1.0, 0.25)
+	var i := 0
+	for btn: Variant in [%SingleButton, %EndlessButton, %MultiButton, %SettingsButton, %QuitButton]:
+		var b := btn as Button
+		if b == null:
+			continue
+		b.modulate.a = 0.0
+		b.scale = Vector2(0.98, 0.98)
+		var tw2 := create_tween()
+		tw2.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw2.tween_property(b, "modulate:a", 1.0, 0.2).set_delay(0.08 + i * 0.03)
+		tw2.parallel().tween_property(b, "scale", Vector2.ONE, 0.2).set_delay(0.08 + i * 0.03)
+		i += 1
 
 func _exit_tree() -> void:
 	EventBus.unsubscribe(&"LanguageChangedEvent", _on_language_changed)
