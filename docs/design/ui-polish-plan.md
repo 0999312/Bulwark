@@ -161,16 +161,18 @@
 
 ---
 
-## 6. 交接提示词（三个阶段，独立可复制）
+## 6. 交接提示词（同一对话内连续三轮）
 
 > 以下三个提示词按顺序使用：**理解计划 → 审查计划 → 执行计划**。
-> 每步产出写入 `docs/design/` 或 `docs/review/`，并在完成后报告。
+> 它们不是三个独立对话，而是**同一对话中的连续三轮**：第 2 轮在第 1 轮的产出与上下文上继续，第 3 轮在前两轮结论上执行。
+> 每轮结束时只交付本轮的产物，然后**停下等待下一条提示（或人类确认）**，不要跨轮提前动手。
 
 ### 6.1 提示词一：理解计划
 
 ```text
-【角色】你是 Bulwark「前线壁垒」（Godot 4.7 mono / GDScript，路径 E:\godot_learning\projects\godot_dsh_test）的“计划理解 Agent”。
-【你的任务】深入理解《docs/design/ui-polish-plan.md》（后续开发计划）与上游输入，产出《docs/design/ui-polish-understanding.md》，供下一阶段审查。
+【回合】这是同一对话的**第 1 轮（理解计划）**。本会话已有上下文（含自审结论与计划），请沿用；不要当作新对话重新开场。
+【角色】你是 Bulwark「前线壁垒」（Godot 4.7 mono / GDScript，路径 E:\godot_learning\projects\godot_dsh_test）的计划理解者。
+【你的任务】深入理解《docs/design/ui-polish-plan.md》（后续开发计划）与上游输入，产出《docs/design/ui-polish-understanding.md》，供下一轮审查。
 
 【必读】
 1. docs/design/ui-polish-plan.md（本计划）
@@ -197,12 +199,14 @@
 - 本阶段只读/只写理解文档，不改任何游戏代码、场景、资源。
 - 不臆测：凡引用代码/资源，必须给出文件与行号；不确定就写“待核实”。
 - 输出完成后报告：理解文档路径、基线测试结果（GUT 是否全绿）、待拍板问题列表。
+- **本轮到此结束**：交付后停止，等待第 2 轮提示词；不要进入审查或执行。
 ```
 
 ### 6.2 提示词二：审查计划
 
 ```text
-【角色】你是 Bulwark「前线壁垒」的“计划审查 Agent”（Godot 4.7 / GDScript / 像素风波次防守射击）。
+【回合】这是同一对话的**第 2 轮（审查计划）**。继续沿用本会话；第 1 轮的《docs/design/ui-polish-understanding.md》与结论已在上下文中（若缺失，先读该文件再继续）。
+【角色】你是 Bulwark「前线壁垒」（Godot 4.7 / GDScript / 像素风波次防守射击）的计划审查者。
 【你的任务】审查《docs/design/ui-polish-plan.md》与《docs/design/ui-polish-understanding.md》的可行性、完整性与风险，产出《docs/design/ui-polish-review.md》（含 PASS/FAIL 与修正建议）。
 
 【必读】
@@ -228,19 +232,22 @@
 - 推荐下一步：按原计划执行 / 先做 M0 mockup 再批准 M1–M5 / 其他。
 
 【硬约束】
-- 只审查、只输出评审文档；不改计划文档本身（修改意见以“清单”形式给出，由人类批准后由执行 Agent 落）。
+- 只审查、只输出评审文档；不改计划文档本身（修改意见以“清单”形式给出，由人类批准后由执行者落）。
 - 不执行任何游戏代码改动；可运行只读检查（git status、grep、read）。
 - 若发现计划引用的证据已过时，明确写“过时，需以理解文档的核对结果为准”。
 - 输出完成后报告：评审结论、必须修正项数量、是否建议先拍板设计方向。
+- **本轮到此结束**：交付后停止，等待第 3 轮提示词；不要提前执行。
 ```
 
 ### 6.3 提示词三：执行计划
 
 ```text
-【角色】你是 Bulwark「前线壁垒」的“执行 Agent”（Godot 4.7 mono / GDScript；项目路径 E:\godot_learning\projects\godot_dsh_test）。
+【回合】这是同一对话的**第 3 轮（执行计划，最终交付轮）**。继续沿用本会话；第 1 轮理解结论与第 2 轮评审结论均已在上下文中（若缺失，先读 docs/design/ui-polish-understanding.md 与 docs/design/ui-polish-review.md 补齐再开始）。
+【角色】你是 Bulwark「前线壁垒」（Godot 4.7 mono / GDScript；项目路径 E:\godot_learning\projects\godot_dsh_test）的计划执行者。
 【你的任务】按《docs/design/ui-polish-plan.md》执行尚未完成的里程碑，并以“每里程碑一提交、全量验收后推送”的方式交付。
 
 【前置要求】
+0. 先回顾第 1 轮“现状核对表”与第 2 轮“必须修正项/推荐下一步”；若评审结论为“退回/有条件通过”，先修订计划文档（或向人类请示），取得批准后再动代码。
 1. 若《docs/design/ui-polish-review.md》存在且含“退回/有条件通过”，先按其中“必须修正项清单”修订计划文档（或向人类请示），取得批准后再动代码。
 2. 若设计方向 A/B 未拍板：执行 M0 时先出《视觉规格表》+ mockup 截图，向人类确认后再进入 M1；未被确认前不得批量替换主题/字体。
 3. 先加载 using-godot-skill-duo，并按其路由加载：godot-ui、godot-code-review、hud-system、player-controller、input-handling、godot-testing、godot-optimization；需要时读 GD 参考 godot-ui-theming、godot-genre-shooter。
@@ -273,10 +280,11 @@
 - 不越过 Non-goals（不做搜刮/探索循环、Boss 阶段、数值重构等）；确有需要先停下向人类请示。
 - 不修改 addons/ 第三方插件源码。
 - C# 无法在会话内编译；如必须改 C#，先说明并停在编辑器构建这一步。
+- **最终交付轮**：完成后给出最终报告与证据清单；若中途因人类决策点（如方向 A/B、字体选择）暂停，明确列出待确认事项与恢复步骤，等人类回复后继续，不要擅自替人类拍板。
 ```
 
 ---
 
 ## 7. 结论
 
-本轮主线是 **UI 视觉基建 + 主菜单重做**（M0–M3），手感补全（M4）与已知缺陷修复并行，最后以全量回归 + 人工视觉复核收口（M5）。方向 A/B 是唯一需要人类在 M0 拍板的关键决策；三个交接提示词已按“理解 → 审查 → 执行”准备，可直接复制给下一轮 Agent。
+本轮主线是 **UI 视觉基建 + 主菜单重做**（M0–M3），手感补全（M4）与已知缺陷修复并行，最后以全量回归 + 人工视觉复核收口（M5）。方向 A/B 是唯一需要人类在 M0 拍板的关键决策；三个交接提示词已按“**同一对话内连续三轮**（理解 → 审查 → 执行）”准备，复制后按顺序在同一会话中发出即可。
